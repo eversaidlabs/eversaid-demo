@@ -141,6 +141,13 @@ export const mockDemoEntry = {
   analyses: [],
 }
 
+export const mockImportTextResponse = {
+  entry_id: "imported-entry-1",
+  transcription_id: "imported-trans-1",
+  cleanup_id: "imported-cleanup-1",
+  cleanup_status: "completed" as const,
+}
+
 export const mockAnalysisResult = {
   id: "analysis-123",
   cleaned_entry_id: "mock-cleanup-1",
@@ -347,6 +354,46 @@ export async function setupUploadModeMocks(page: Page): Promise<void> {
 
   await page.route("**/api/analysis-profiles", async (route) => {
     await route.fulfill({ json: { profiles: mockProfiles } })
+  })
+
+  // Mock text import endpoint
+  await page.route("**/api/import-text", async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({
+        status: 202,
+        json: mockImportTextResponse,
+      })
+    } else {
+      await route.continue()
+    }
+  })
+
+  // Mock cleanup details for imported entry
+  await page.route("**/api/cleaned-entries/imported-cleanup-1", async (route) => {
+    await route.fulfill({
+      json: {
+        id: "imported-cleanup-1",
+        voice_entry_id: "imported-entry-1",
+        transcription_id: "imported-trans-1",
+        user_id: "demo-user",
+        cleaned_text: "This is the cleaned imported text.",
+        status: "completed",
+        llm_provider: "mock",
+        llm_model: "mock-model",
+        is_primary: true,
+        created_at: new Date().toISOString(),
+        cleanup_data_edited: null,
+        cleaned_segments: [
+          {
+            id: "seg-1",
+            speaker: 0,
+            start: 0,
+            end: 10,
+            text: "This is the cleaned imported text.",
+          },
+        ],
+      },
+    })
   })
 }
 

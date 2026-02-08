@@ -8,6 +8,7 @@ interface AnalyticsEventMap {
   sample_audio_clicked: Record<string, never>
   file_selected: { file_format: string }
   record_audio_clicked: Record<string, never>
+  text_import_clicked: Record<string, never>
   cleanup_completed: { language: string; source: 'demo' | 'upload' | 'recording' }
   cleanup_failed: { error_type: string; source: 'demo' | 'upload' | 'recording' }
   diff_view_opened: Record<string, never>

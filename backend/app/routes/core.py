@@ -69,6 +69,16 @@ class AnalyzeRequest(BaseModel):
     llm_model: Optional[str] = None  # Optional LLM model override
 
 
+class ImportTextRequest(BaseModel):
+    """Request body for importing text and running cleanup."""
+
+    text: str
+    language: str = "en"
+    cleanup_type: str = "clean"
+    llm_model: Optional[str] = None
+    analysis_profile: Optional[str] = None
+
+
 # =============================================================================
 # Transcription Endpoints
 # =============================================================================
@@ -148,6 +158,46 @@ async def transcribe(
 
     # Commit rate limit entry only after successful Core API call.
     # This ensures users aren't locked out due to failed requests.
+    request.state.rate_limit_db.commit()
+
+    return response.json()
+
+
+@router.post("/api/import-text", status_code=202)
+async def import_text(
+    request: Request,
+    body: ImportTextRequest,
+    session: SessionModel = Depends(get_session),
+    core_api: CoreAPIClient = Depends(get_core_api),
+    _turnstile: None = Depends(require_turnstile()),
+    _rate_limit: RateLimitResult = Depends(require_rate_limit("transcribe")),
+):
+    """Import text and run cleanup (skip transcription).
+
+    Allows users to paste existing transcripts for cleanup + analysis.
+    """
+    request_body = {
+        "text": body.text,
+        "language": body.language,
+        "cleanup_type": body.cleanup_type,
+        "entry_type": "journal",
+    }
+    if body.llm_model:
+        request_body["llm_model"] = body.llm_model
+    if body.analysis_profile:
+        request_body["analysis_profile"] = body.analysis_profile
+
+    response = await core_api.request(
+        "POST",
+        "/api/v1/import-and-cleanup",
+        session.access_token,
+        json=request_body,
+    )
+
+    if response.status_code >= 400:
+        raise CoreAPIError(status_code=response.status_code, detail=response.text)
+
+    # Commit rate limit entry only after successful Core API call.
     request.state.rate_limit_db.commit()
 
     return response.json()

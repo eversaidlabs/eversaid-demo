@@ -331,8 +331,22 @@
       "uploading": "Nalaganje... {progress}%",
       "audioFile": "Zvočna datoteka",
       "audioLanguage": "Jezik posnetka",
+      "textLanguage": "Jezik besedila",
       "languageSlovenian": "Slovenščina",
-      "languageEnglish": "English"
+      "languageEnglish": "English",
+      "text": "Besedilo",
+      "textPlaceholder": "Prilepite besedilo tukaj...\n\nPodprta formata:\n- Navadno besedilo\n- Z oznakami govorcev (Govorec 1: Pozdravljeni...)",
+      "textHint": "Oznake govorcev kot \"Govorec 1:\" so samodejno zaznane.",
+      "cleanupNow": "Očisti zdaj",
+      "enterText": "Vnesite besedilo za čiščenje",
+      "importing": "Uvažanje...",
+      "cleanupType": "Slog čiščenja",
+      "cleanupMinimal": "Minimalno",
+      "cleanupClean": "Čisto",
+      "cleanupEdited": "Urejeno"
+    },
+    "import": {
+      "failed": "Uvoz besedila ni uspel. Poskusite znova."
     },
     "recording": {
       "title": "Posnemi zvok",

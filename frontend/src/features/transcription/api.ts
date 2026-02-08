@@ -11,6 +11,8 @@ import type {
   EntryDetails,
   Feedback,
   FeedbackPayload,
+  ImportTextOptions,
+  ImportTextResponse,
   OptionsResponse,
   PaginatedEntries,
   PaginationParams,
@@ -286,6 +288,28 @@ export async function uploadAndTranscribe(
   return request<TranscribeResponse>('/api/transcribe', {
     method: 'POST',
     body: formData,
+    turnstileToken: options.turnstileToken,
+  })
+}
+
+/**
+ * Import text and run cleanup (skip transcription).
+ * Allows users to paste existing transcripts for cleanup + analysis.
+ */
+export async function importAndCleanup(
+  options: ImportTextOptions
+): Promise<{ data: ImportTextResponse; rateLimitInfo: RateLimitInfo | null }> {
+  const body: Record<string, unknown> = {
+    text: options.text,
+    language: options.language ?? 'en',
+    cleanup_type: options.cleanupType ?? 'clean',
+  }
+  if (options.llmModel) body.llm_model = options.llmModel
+  if (options.analysisProfile) body.analysis_profile = options.analysisProfile
+
+  return request<ImportTextResponse>('/api/import-text', {
+    method: 'POST',
+    body,
     turnstileToken: options.turnstileToken,
   })
 }

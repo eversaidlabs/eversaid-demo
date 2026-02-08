@@ -43,6 +43,8 @@ import { getCleanupModels, getAnalysisModels } from "@/lib/model-config"
 import { DEFAULT_CLEANUP_LEVEL, DEFAULT_CLEANUP_TEMPERATURE, getDefaultModelForLevel, temperaturesMatch } from "@/lib/level-config"
 import { toast } from "sonner"
 import { useDemoCleanupTrigger } from "@/features/transcription/useDemoCleanupTrigger"
+import { useTextImport } from "@/features/transcription/useTextImport"
+import type { InputMode } from "@/components/demo/upload-zone"
 import { ProcessingStages } from "@/components/demo/processing-stages"
 import type { AppConfig } from "@/lib/app-config"
 import { capture } from "@/lib/analytics"
@@ -143,6 +145,11 @@ function DemoPageContent({ config }: DemoPageContentProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [selectedSpeakerCount, setSelectedSpeakerCount] = useState(2)
   const [selectedAudioLanguage, setSelectedAudioLanguage] = useState<string>(locale)
+
+  // Text Import State
+  const [inputMode, setInputMode] = useState<InputMode>('audio')
+  const [importText, setImportText] = useState('')
+  const [selectedTextCleanupType, setSelectedTextCleanupType] = useState<CleanupType>('clean')
 
   // LLM Model Selection State
   const [cleanupModels, setCleanupModels] = useState<ModelInfo[]>([])
@@ -252,6 +259,29 @@ function DemoPageContent({ config }: DemoPageContentProps) {
   // Rate limit modal state
   const [showRateLimitModal, setShowRateLimitModal] = useState(false)
   const rateLimits = useRateLimits()
+
+  // Text import hook
+  const textImport = useTextImport({
+    onComplete: async (entryId) => {
+      // Load the imported entry after cleanup completes
+      await transcription.loadEntry(entryId, turnstile.getToken())
+      turnstile.resetWidget()
+      // Refresh entry list to show the new entry
+      await entriesHook.refresh()
+      // Clear import text
+      setImportText('')
+    },
+    onError: (err) => {
+      turnstile.resetWidget()
+      // Check if this is a rate limit error
+      if (err instanceof ApiError && err.isRateLimited) {
+        rateLimits.updateFromError(err)
+        setShowRateLimitModal(true)
+      } else {
+        toast.error(t('demo.import.failed'))
+      }
+    },
+  })
 
   // Recording modal state
   const [showRecordingModal, setShowRecordingModal] = useState(false)
@@ -1026,6 +1056,22 @@ function DemoPageContent({ config }: DemoPageContentProps) {
     setShowRecordingModal(true)
   }, [])
 
+  // Text import handler
+  const handleImportTextClick = useCallback(async () => {
+    if (!importText.trim()) return
+    capture('text_import_clicked')
+    try {
+      await textImport.importText({
+        text: importText,
+        language: selectedAudioLanguage,
+        cleanupType: selectedTextCleanupType,
+        turnstileToken: turnstile.getToken(),
+      })
+    } catch {
+      // Error handling is done in the hook's onError callback
+    }
+  }, [importText, selectedAudioLanguage, selectedTextCleanupType, textImport, turnstile])
+
   const handleRecordingConfirm = useCallback(() => {
     if (recorder.audioBlob) {
       capture('record_audio_clicked')
@@ -1248,6 +1294,14 @@ function DemoPageContent({ config }: DemoPageContentProps) {
                 currentStageId={processingStages.currentStageId}
                 selectedAudioLanguage={selectedAudioLanguage}
                 onAudioLanguageChange={handleAudioLanguageChange}
+                inputMode={inputMode}
+                onInputModeChange={setInputMode}
+                text={importText}
+                onTextChange={setImportText}
+                selectedCleanupType={selectedTextCleanupType}
+                onCleanupTypeChange={setSelectedTextCleanupType}
+                onImportTextClick={handleImportTextClick}
+                isImporting={textImport.status === 'importing' || textImport.status === 'cleaning'}
               />
             </div>
             <div>

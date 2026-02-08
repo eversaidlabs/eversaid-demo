@@ -127,6 +127,30 @@ export interface TranscribeResponse {
 }
 
 /**
+ * Options for importing text and running cleanup (skip transcription)
+ */
+export interface ImportTextOptions {
+  text: string
+  language?: string
+  cleanupType?: CleanupType
+  llmModel?: string
+  analysisProfile?: string
+  turnstileToken?: string | null
+}
+
+/**
+ * Response from POST /api/import-text
+ */
+export interface ImportTextResponse {
+  entry_id: string
+  transcription_id: string
+  cleanup_id: string
+  analysis_id?: string
+  cleanup_status: 'pending' | 'processing' | 'completed' | 'failed'
+  analysis_status?: 'pending' | 'processing' | 'completed' | 'failed'
+}
+
+/**
  * Word-level timing data from transcription API
  */
 export interface TranscriptionWord {

@@ -331,8 +331,22 @@
       "uploading": "Uploading... {progress}%",
       "audioFile": "Audio file",
       "audioLanguage": "Audio language",
+      "textLanguage": "Text language",
       "languageSlovenian": "Slovenščina",
-      "languageEnglish": "English"
+      "languageEnglish": "English",
+      "text": "Text",
+      "textPlaceholder": "Paste your text here...\n\nSupported formats:\n- Plain text\n- Speaker labels (Speaker 1: Hello...)",
+      "textHint": "Speaker labels like \"Speaker 1:\" are detected automatically.",
+      "cleanupNow": "Clean Up Now",
+      "enterText": "Enter text to clean up",
+      "importing": "Importing...",
+      "cleanupType": "Cleanup style",
+      "cleanupMinimal": "Minimal",
+      "cleanupClean": "Clean",
+      "cleanupEdited": "Edited"
+    },
+    "import": {
+      "failed": "Failed to import text. Please try again."
     },
     "recording": {
       "title": "Record Audio",
