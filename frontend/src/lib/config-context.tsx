@@ -1,8 +1,23 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { createContext, useContext, useEffect, useState, Suspense, type ReactNode } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import posthog from 'posthog-js'
+
+interface Limits {
+  maxAudioFileSizeMb: number
+  maxAudioDurationSeconds: number
+}
+
+interface AppConfig {
+  limits: Limits | null
+}
+
+const ConfigContext = createContext<AppConfig>({ limits: null })
+
+interface ConfigProviderProps {
+  children: ReactNode
+}
 
 function PostHogPageView() {
   const pathname = usePathname()
@@ -21,24 +36,27 @@ function PostHogPageView() {
   return null
 }
 
-interface PostHogProviderProps {
-  children: React.ReactNode
-}
-
 /**
- * PostHog analytics provider.
+ * App configuration provider.
  *
  * Fetches config from /api/config at runtime to support the single Docker
  * image pattern (same build across staging/production with different env vars).
+ * Also initializes PostHog analytics if configured.
  */
-export function PostHogProvider({ children }: PostHogProviderProps) {
-  const [initialized, setInitialized] = useState(false)
+export function ConfigProvider({ children }: ConfigProviderProps) {
+  const [limits, setLimits] = useState<Limits | null>(null)
+  const [posthogInitialized, setPosthogInitialized] = useState(false)
 
   useEffect(() => {
-    // Fetch runtime config and initialize PostHog
     fetch('/api/config')
       .then((res) => res.json())
       .then((config) => {
+        // Set limits
+        if (config.limits) {
+          setLimits(config.limits)
+        }
+
+        // Initialize PostHog
         if (config.posthog?.key) {
           posthog.init(config.posthog.key, {
             api_host: config.posthog.host,
@@ -47,22 +65,31 @@ export function PostHogProvider({ children }: PostHogProviderProps) {
             capture_pageleave: true,
             person_profiles: 'identified_only',
           })
-          setInitialized(true)
+          setPosthogInitialized(true)
         }
       })
       .catch((err) => {
-        console.warn('Failed to load PostHog config:', err)
+        console.warn('Failed to load app config:', err)
       })
   }, [])
 
   return (
-    <>
-      {initialized && (
+    <ConfigContext.Provider value={{ limits }}>
+      {posthogInitialized && (
         <Suspense fallback={null}>
           <PostHogPageView />
         </Suspense>
       )}
       {children}
-    </>
+    </ConfigContext.Provider>
   )
+}
+
+/**
+ * Hook to access app configuration.
+ *
+ * Returns limits with fallback defaults when config hasn't loaded yet.
+ */
+export function useConfig() {
+  return useContext(ConfigContext)
 }

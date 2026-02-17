@@ -3,6 +3,7 @@
 import type React from "react"
 import { FileAudio, FileText, X } from "lucide-react"
 import { useTranslations } from 'next-intl'
+import { useConfig } from '@/lib/config-context'
 import type { ProcessingStage, StageId, CleanupType } from "@/features/transcription/types"
 import { ProcessingStages } from "./processing-stages"
 
@@ -79,6 +80,7 @@ export function UploadZone({
 }: UploadZoneProps) {
   const t = useTranslations('demo.upload')
   const tCommon = useTranslations('common')
+  const { limits } = useConfig()
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
@@ -142,7 +144,10 @@ export function UploadZone({
               </svg>
             </div>
             <h3 className="text-[20px] font-bold text-[#0F172A] mb-2">{t('dropTitle')}</h3>
-            <p className="text-[15px] text-[#64748B] mb-5">{t('formats')}</p>
+            <p className="text-[15px] text-[#64748B] mb-5">{t('formats', {
+              maxSizeMb: limits?.maxAudioFileSizeMb ?? 50,
+              maxDurationMin: Math.floor((limits?.maxAudioDurationSeconds ?? 180) / 60),
+            })}</p>
             <label className="px-6 py-3 bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-sm font-semibold rounded-[10px] transition-colors cursor-pointer inline-block">
               {t('browse')}
               <input type="file" accept="audio/*" onChange={handleFileInput} className="hidden" />

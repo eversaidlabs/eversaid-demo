@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { Inter, Comfortaa, DM_Sans } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
-import { PostHogProvider } from "@/app/posthog-provider"
+import { ConfigProvider } from "@/lib/config-context"
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { locales } from '@/i18n/config'
@@ -144,12 +144,12 @@ export default async function LocaleLayout({
         <SoftwareApplicationSchema />
       </head>
       <body className={`font-sans antialiased`}>
-        <PostHogProvider>
+        <ConfigProvider>
           <NextIntlClientProvider messages={messages}>
             {children}
             <Toaster />
           </NextIntlClientProvider>
-        </PostHogProvider>
+        </ConfigProvider>
         <Analytics />
       </body>
     </html>

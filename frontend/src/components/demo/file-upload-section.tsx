@@ -4,6 +4,7 @@ import type React from "react"
 
 import { Upload, FileAudio } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { useConfig } from "@/lib/config-context"
 
 export interface FileUploadSectionProps {
   selectedFile: File | null
@@ -21,6 +22,7 @@ export function FileUploadSection({
   onTranscribeClick,
 }: FileUploadSectionProps) {
   const t = useTranslations("demo.upload")
+  const { limits } = useConfig()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -48,7 +50,10 @@ export function FileUploadSection({
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <Upload className="w-12 h-12 text-blue-500 mb-2" />
                 <p className="text-sm font-medium text-slate-700">{t("clickToUpload")}</p>
-                <p className="text-xs text-slate-500 mt-1">{t("formats")}</p>
+                <p className="text-xs text-slate-500 mt-1">{t("formats", {
+                  maxSizeMb: limits?.maxAudioFileSizeMb ?? 50,
+                  maxDurationMin: Math.floor((limits?.maxAudioDurationSeconds ?? 180) / 60),
+                })}</p>
               </div>
               <input
                 type="file"

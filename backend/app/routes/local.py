@@ -42,6 +42,10 @@ async def get_config(
             "key": settings.POSTHOG_KEY,
             "host": settings.POSTHOG_HOST,
         },
+        "limits": {
+            "maxAudioFileSizeMb": settings.MAX_AUDIO_FILE_SIZE_MB,
+            "maxAudioDurationSeconds": settings.MAX_AUDIO_DURATION_SECONDS,
+        },
     }
 
 
