@@ -72,6 +72,39 @@ def get_audio_duration(file_content: bytes, filename: str) -> Optional[float]:
         return None
 
 
+def validate_audio_file_size(
+    file_content: bytes,
+    filename: str,
+    max_size_mb: int,
+) -> None:
+    """Validate that audio file size is within limits.
+
+    Args:
+        file_content: Raw audio file bytes
+        filename: Original filename (for logging)
+        max_size_mb: Maximum allowed file size in megabytes
+
+    Raises:
+        AudioValidationError: If file exceeds size limit
+    """
+    max_size_bytes = max_size_mb * 1024 * 1024
+    file_size_bytes = len(file_content)
+
+    if file_size_bytes > max_size_bytes:
+        file_size_mb = file_size_bytes / (1024 * 1024)
+        raise AudioValidationError(
+            message=f"File size ({file_size_mb:.1f} MB) exceeds maximum ({max_size_mb} MB)",
+            error_type="file_size_exceeded",
+        )
+
+    logger.debug(
+        "Audio file size validation passed",
+        filename=filename,
+        file_size_mb=f"{file_size_bytes / (1024 * 1024):.2f}",
+        max_size_mb=max_size_mb,
+    )
+
+
 def validate_audio_duration(
     file_content: bytes,
     filename: str,

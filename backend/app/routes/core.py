@@ -13,7 +13,7 @@ from app.models import Session as SessionModel
 from app.rate_limit import RateLimitResult, require_rate_limit
 from app.session import get_session
 from app.turnstile import require_turnstile
-from app.utils.audio import AudioValidationError, validate_audio_duration
+from app.utils.audio import AudioValidationError, validate_audio_duration, validate_audio_file_size
 
 router = APIRouter(tags=["core"])
 
@@ -112,8 +112,13 @@ async def transcribe(
     """
     file_content = await file.read()
 
-    # Validate audio duration before consuming rate limit
+    # Validate audio file size and duration before consuming rate limit
     try:
+        validate_audio_file_size(
+            file_content=file_content,
+            filename=file.filename or "unknown",
+            max_size_mb=settings.MAX_AUDIO_FILE_SIZE_MB,
+        )
         validate_audio_duration(
             file_content=file_content,
             filename=file.filename or "unknown",

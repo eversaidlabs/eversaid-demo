@@ -27,6 +27,7 @@ class Settings(BaseSettings):
 
     # Audio validation
     MAX_AUDIO_DURATION_SECONDS: int = 180  # 3 minutes
+    MAX_AUDIO_FILE_SIZE_MB: int = 50  # 50 MB
 
     # Cloudflare Turnstile (CAPTCHA)
     TURNSTILE_ENABLED: bool = False  # Default False for local dev
