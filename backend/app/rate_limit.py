@@ -14,9 +14,8 @@ Key Design Decisions (documented per user request):
 3. LONGEST WAIT WINS: When multiple limits are exceeded, we report the limit
    with the LONGEST retry_after time. This ensures users see accurate retry times.
 
-4. RESET = NOW + WINDOW: We calculate reset time as current_time + window_size
-   rather than tracking the oldest entry. This is a conservative estimate that's
-   simpler to implement and always safe (actual reset may be sooner).
+4. RESET = OLDEST + WINDOW: We calculate reset time as oldest_entry + window_size.
+   This gives users accurate information about when their first slot frees up.
 """
 
 from datetime import datetime, timedelta
@@ -151,6 +150,25 @@ class RateLimitTracker:
             query = query.filter(RateLimitEntry.ip_address == ip_address)
         return query.scalar() or 0
 
+    def _get_oldest_entry_time(
+        self,
+        db: DBSession,
+        action: str,
+        since: datetime,
+        session_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+    ) -> Optional[datetime]:
+        """Get the oldest entry time within the window for accurate reset calculation."""
+        query = db.query(func.min(RateLimitEntry.created_at)).filter(
+            RateLimitEntry.action == action,
+            RateLimitEntry.created_at >= since,
+        )
+        if session_id:
+            query = query.filter(RateLimitEntry.session_id == session_id)
+        if ip_address:
+            query = query.filter(RateLimitEntry.ip_address == ip_address)
+        return query.scalar()
+
     def check_and_increment(
         self,
         session_id: str,
@@ -165,10 +183,10 @@ class RateLimitTracker:
         When multiple limits are exceeded, we report the one with the LONGEST
         retry_after. This ensures users see accurate retry times.
 
-        Design Decision: Reset = now + window
-        ----------------------------------------
-        We calculate reset as current_time + window_size. This is conservative
-        (actual reset may be sooner) but simpler than tracking oldest entry.
+        Design Decision: Reset = oldest entry + window
+        ------------------------------------------------
+        We calculate reset as oldest_entry_time + window_size. This gives users
+        accurate information about when their first slot frees up.
         """
         now = datetime.utcnow()
         day_ago = now - timedelta(days=1)
@@ -180,8 +198,17 @@ class RateLimitTracker:
         ip_day_count = self._count_entries(db, action, day_ago, ip_address=ip_address)
         global_day_count = self._count_entries(db, action, day_ago)
 
-        # Calculate reset time (now + window as conservative estimate)
-        day_reset = int((now + timedelta(days=1)).timestamp())
+        # Get oldest entry times to calculate accurate reset times
+        # Reset = when the oldest entry in the window expires (oldest + 24h)
+        day_oldest = self._get_oldest_entry_time(db, action, day_ago, session_id=session_id)
+        ip_oldest = self._get_oldest_entry_time(db, action, day_ago, ip_address=ip_address)
+        global_oldest = self._get_oldest_entry_time(db, action, day_ago)
+
+        # Calculate reset times based on oldest entry (or now + 24h as fallback)
+        default_reset = int((now + timedelta(days=1)).timestamp())
+        day_reset = int((day_oldest + timedelta(days=1)).timestamp()) if day_oldest else default_reset
+        ip_reset = int((ip_oldest + timedelta(days=1)).timestamp()) if ip_oldest else default_reset
+        global_reset = int((global_oldest + timedelta(days=1)).timestamp()) if global_oldest else default_reset
         now_ts = int(now.timestamp())
 
         # Build limit info for each tier
@@ -193,12 +220,12 @@ class RateLimitTracker:
         ip_day_info = LimitInfo(
             limit=ip_day_limit,
             remaining=max(0, ip_day_limit - ip_day_count),
-            reset=day_reset,
+            reset=ip_reset,
         )
         global_day_info = LimitInfo(
             limit=global_day_limit,
             remaining=max(0, global_day_limit - global_day_count),
-            reset=day_reset,
+            reset=global_reset,
         )
 
         # Check which limits are exceeded and find the one with longest wait
@@ -207,9 +234,9 @@ class RateLimitTracker:
         if day_count >= day_limit:
             exceeded.append(("day", day_reset - now_ts))
         if ip_day_count >= ip_day_limit:
-            exceeded.append(("ip_day", day_reset - now_ts))
+            exceeded.append(("ip_day", ip_reset - now_ts))
         if global_day_count >= global_day_limit:
-            exceeded.append(("global_day", day_reset - now_ts))
+            exceeded.append(("global_day", global_reset - now_ts))
 
         if exceeded:
             # Find the limit with the longest retry_after time
@@ -307,8 +334,39 @@ def get_rate_limit_status(
         or 0
     )
 
-    # Calculate reset time
-    day_reset = int((now + timedelta(days=1)).timestamp())
+    # Get oldest entry times to calculate accurate reset times
+    day_oldest = (
+        db.query(func.min(RateLimitEntry.created_at))
+        .filter(
+            RateLimitEntry.action == action,
+            RateLimitEntry.created_at >= day_ago,
+            RateLimitEntry.session_id == session_id,
+        )
+        .scalar()
+    )
+    ip_oldest = (
+        db.query(func.min(RateLimitEntry.created_at))
+        .filter(
+            RateLimitEntry.action == action,
+            RateLimitEntry.created_at >= day_ago,
+            RateLimitEntry.ip_address == ip_address,
+        )
+        .scalar()
+    )
+    global_oldest = (
+        db.query(func.min(RateLimitEntry.created_at))
+        .filter(
+            RateLimitEntry.action == action,
+            RateLimitEntry.created_at >= day_ago,
+        )
+        .scalar()
+    )
+
+    # Calculate reset times based on oldest entry (or now + 24h as fallback)
+    default_reset = int((now + timedelta(days=1)).timestamp())
+    day_reset = int((day_oldest + timedelta(days=1)).timestamp()) if day_oldest else default_reset
+    ip_reset = int((ip_oldest + timedelta(days=1)).timestamp()) if ip_oldest else default_reset
+    global_reset = int((global_oldest + timedelta(days=1)).timestamp()) if global_oldest else default_reset
 
     return RateLimitResult(
         allowed=True,  # Read-only check doesn't determine allowed
@@ -320,12 +378,12 @@ def get_rate_limit_status(
         ip_day=LimitInfo(
             limit=ip_day_limit,
             remaining=max(0, ip_day_limit - ip_day_count),
-            reset=day_reset,
+            reset=ip_reset,
         ),
         global_day=LimitInfo(
             limit=global_day_limit,
             remaining=max(0, global_day_limit - global_day_count),
-            reset=day_reset,
+            reset=global_reset,
         ),
     )
 
