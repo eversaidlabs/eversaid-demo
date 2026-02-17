@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { ProcessingStatus, ProcessingStage, StageId } from './types'
+import type { TextImportStatus } from './useTextImport'
 
 /**
  * Options for the useProcessingStages hook
@@ -11,6 +12,8 @@ export interface UseProcessingStagesOptions {
   isAnalyzing?: boolean
   /** Whether there was an error (shows error state on current stage) */
   hasError?: boolean
+  /** Text import status (overrides transcription stages when active) */
+  textImportStatus?: TextImportStatus
 }
 
 /**
@@ -55,10 +58,34 @@ export function useProcessingStages({
   status,
   isAnalyzing = false,
   hasError = false,
+  textImportStatus,
 }: UseProcessingStagesOptions): UseProcessingStagesReturn {
   const result = useMemo(() => {
+    // Check if text import is active (overrides transcription flow)
+    const isTextImportActive = textImportStatus && textImportStatus !== 'idle' && textImportStatus !== 'complete' && textImportStatus !== 'error'
+
     // Determine the status of each stage based on the overall processing status
     const getStageStatus = (stageId: StageId): ProcessingStage['status'] => {
+      // Text import flow: skip upload/transcribe, show cleanup progress
+      if (isTextImportActive) {
+        switch (stageId) {
+          case 'upload':
+            // Upload is skipped for text import (completed/skipped)
+            return 'completed'
+          case 'transcribe':
+            // Transcription is skipped for text import (completed/skipped)
+            return 'completed'
+          case 'cleanup':
+            if (textImportStatus === 'importing') return 'active'
+            if (textImportStatus === 'cleaning') return 'active'
+            return 'pending'
+          case 'analyze':
+            return 'pending'
+          default:
+            return 'pending'
+        }
+      }
+
       // Error handling - mark current stage as error
       if (hasError && status === 'error') {
         // Infer which stage failed based on typical flow
@@ -107,10 +134,12 @@ export function useProcessingStages({
 
     // Determine if processing is happening
     const isProcessing = ['uploading', 'transcribing', 'cleaning'].includes(status) ||
-      (status === 'complete' && isAnalyzing)
+      (status === 'complete' && isAnalyzing) ||
+      !!isTextImportActive
 
     // All complete when status is complete and not analyzing
-    const isComplete = status === 'complete' && !isAnalyzing
+    const isComplete = (status === 'complete' && !isAnalyzing) ||
+      (textImportStatus === 'complete')
 
     return {
       stages,
@@ -118,7 +147,7 @@ export function useProcessingStages({
       isProcessing,
       isComplete,
     }
-  }, [status, isAnalyzing, hasError])
+  }, [status, isAnalyzing, hasError, textImportStatus])
 
   return result
 }

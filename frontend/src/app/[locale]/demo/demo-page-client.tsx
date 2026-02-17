@@ -232,13 +232,6 @@ function DemoPageContent({ config }: DemoPageContentProps) {
     analysisId: transcription.analysisId,
   })
 
-  // Processing stages for progress UI
-  const processingStages = useProcessingStages({
-    status: transcription.status,
-    isAnalyzing: analysisHook.isPolling,
-    hasError: transcription.status === 'error',
-  })
-
   // Waitlist modal state
   const [waitlistState, setWaitlistState] = useState<"hidden" | "toast" | "form" | "success">("hidden")
   const [waitlistType, setWaitlistType] = useState<"extended_usage" | "api_access">("extended_usage")
@@ -281,6 +274,14 @@ function DemoPageContent({ config }: DemoPageContentProps) {
         toast.error(t('demo.import.failed'))
       }
     },
+  })
+
+  // Processing stages for progress UI
+  const processingStages = useProcessingStages({
+    status: transcription.status,
+    isAnalyzing: analysisHook.isPolling,
+    hasError: transcription.status === 'error',
+    textImportStatus: textImport.status,
   })
 
   // Recording modal state
@@ -1194,11 +1195,15 @@ function DemoPageContent({ config }: DemoPageContentProps) {
   const isLoadingEntry = transcription.segments.length === 0 &&
     (transcription.status === 'loading' || (hasEntryParam && transcription.status === 'idle'))
 
-  // Show processing stages when loading an existing entry that's still processing
-  // (has entry ID, no segments yet, and is transcribing/cleaning)
-  const isLoadingProcessingEntry = transcription.entryId &&
-    transcription.segments.length === 0 &&
-    ['transcribing', 'cleaning'].includes(transcription.status)
+  // Text import processing state
+  const isTextImportProcessing = textImport.status === 'importing' || textImport.status === 'cleaning'
+
+  // Show full-screen layout when: loading, processing, or has segments
+  // This prevents layout flash when transitioning from upload to transcript view
+  // Note: processingStages.isProcessing includes both audio upload and text import
+  const showFullScreenMode = isLoadingEntry ||
+    processingStages.isProcessing ||
+    transcription.segments.length > 0
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
@@ -1211,28 +1216,26 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       />
       <DemoNavigation onWaitlistClick={() => setWaitlistState("form")} />
 
-      {!isLoadingEntry && (
+      {!showFullScreenMode && (
         <div className="max-w-[1400px] mx-auto px-6 pt-8 pb-4">
-          {transcription.segments.length === 0 && (
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-4xl font-bold text-[#1E293B] mb-2">{t('demo.title')}</h1>
-                <p className="text-[#64748B] text-lg">
-                  {t('demo.subtitle')}
-                </p>
-              </div>
-              {transcription.rateLimits?.day &&
-               transcription.rateLimits.day.remaining <= Number(process.env.NEXT_PUBLIC_RATE_LIMIT_WARNING_THRESHOLD || 2) && (
-                <div className="flex gap-4">
-                  <div className="px-4 py-2 bg-amber-50 rounded-lg border border-amber-200 shadow-sm">
-                    <span className="text-sm font-semibold text-amber-700">
-                      {t('demo.rateLimit.remaining', { count: transcription.rateLimits.day.remaining })}
-                    </span>
-                  </div>
-                </div>
-              )}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-bold text-[#1E293B] mb-2">{t('demo.title')}</h1>
+              <p className="text-[#64748B] text-lg">
+                {t('demo.subtitle')}
+              </p>
             </div>
-          )}
+            {transcription.rateLimits?.day &&
+             transcription.rateLimits.day.remaining <= Number(process.env.NEXT_PUBLIC_RATE_LIMIT_WARNING_THRESHOLD || 2) && (
+              <div className="flex gap-4">
+                <div className="px-4 py-2 bg-amber-50 rounded-lg border border-amber-200 shadow-sm">
+                  <span className="text-sm font-semibold text-amber-700">
+                    {t('demo.rateLimit.remaining', { count: transcription.rateLimits.day.remaining })}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Error display for upload/transcription errors */}
           {transcription.error && transcription.status === 'error' && (
@@ -1248,7 +1251,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       )}
 
       {/* Turnstile CAPTCHA widget - rendered once, shared across all protected actions */}
-      {turnstile.isEnabled && (
+      {turnstile.isEnabled && !showFullScreenMode && (
         <div className="max-w-[1400px] mx-auto px-6">
           <TurnstileWidget
             siteKey={turnstile.siteKey}
@@ -1261,71 +1264,37 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       )}
 
       <main className="mx-auto px-6 max-w-[1400px]">
-        {isLoadingEntry ? (
-          /* Loading State - fetching entry data */
-          <div className="rounded-xl overflow-hidden shadow-lg">
-            <TranscriptLoadingSkeleton />
-          </div>
-        ) : isLoadingProcessingEntry ? (
-          /* Processing State - entry is still being transcribed/cleaned */
-          <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-lg">
-            <ProcessingStages
-              stages={processingStages.stages}
-              currentStageId={processingStages.currentStageId}
-            />
-          </div>
-        ) : transcription.segments.length === 0 ? (
-          /* Upload Mode */
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <DemoWarningBanner />
-              <UploadZone
-                selectedSpeakerCount={selectedSpeakerCount}
-                isUploading={processingStages.isProcessing}
-                uploadProgress={transcription.uploadProgress}
-                hasFile={!!selectedFile}
-                selectedFile={selectedFile}
-                onFileSelect={handleFileSelect}
-                onRemoveFile={handleRemoveFile}
-                onSpeakerCountChange={handleSpeakerCountChange}
-                onTranscribeClick={handleTranscribeClick}
-                onRecordClick={handleRecordClick}
-                stages={processingStages.stages}
-                currentStageId={processingStages.currentStageId}
-                selectedAudioLanguage={selectedAudioLanguage}
-                onAudioLanguageChange={handleAudioLanguageChange}
-                inputMode={inputMode}
-                onInputModeChange={setInputMode}
-                text={importText}
-                onTextChange={setImportText}
-                selectedCleanupType={selectedTextCleanupType}
-                onCleanupTypeChange={setSelectedTextCleanupType}
-                onImportTextClick={handleImportTextClick}
-                isImporting={textImport.status === 'importing' || textImport.status === 'cleaning'}
-              />
-            </div>
-            <div>
-              <EntryHistoryCard
-                entries={filteredEntries}
-                activeId={transcription.entryId}
-                deletingId={entriesHook.deletingId}
-                onSelect={handleEntrySelect}
-                onDelete={handleDeleteEntry}
-                isEmpty={filteredEntries.length === 0 && !entriesHook.isLoading}
-              />
-            </div>
-          </div>
-        ) : (
-          /* Transcript Mode - Full screen tab-based interface */
+        {showFullScreenMode ? (
+          /* Full-screen Mode - Processing or Transcript view */
           <>
             <div className="bg-card border-y border-border overflow-hidden flex flex-col fixed inset-x-0 top-16 bottom-0 z-30">
-              {audioUrl && (
-                <audio src={audioUrl} {...audioPlayer.audioProps} preload="metadata" className="hidden" />
-              )}
+              {isLoadingEntry ? (
+                /* Loading State - fetching entry data */
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="w-full max-w-2xl">
+                    <TranscriptLoadingSkeleton />
+                  </div>
+                </div>
+              ) : transcription.segments.length === 0 ? (
+                /* Processing State - transcribing/cleaning in progress */
+                <div className="flex-1 flex items-center justify-center p-6">
+                  <div className="w-[65%] h-[40%] bg-white rounded-xl border border-[#E2E8F0] shadow-lg flex items-center justify-center">
+                    <ProcessingStages
+                      stages={processingStages.stages}
+                      currentStageId={processingStages.currentStageId}
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* Transcript Content */
+                <>
+                  {audioUrl && (
+                    <audio src={audioUrl} {...audioPlayer.audioProps} preload="metadata" className="hidden" />
+                  )}
 
-              {/* Audio Player - sticky header */}
-              <div className="bg-gradient-to-b from-muted/30 to-transparent border-b border-border/50 flex-shrink-0">
-                <AudioPlayer
+                  {/* Audio Player - sticky header */}
+                  <div className="bg-gradient-to-b from-muted/30 to-transparent border-b border-border/50 flex-shrink-0">
+                    <AudioPlayer
                   isPlaying={audioPlayer.isPlaying}
                   currentTime={audioPlayer.currentTime}
                   duration={audioPlayer.duration}
@@ -1421,33 +1390,78 @@ function DemoPageContent({ config }: DemoPageContentProps) {
                 )}
               </div>
 
-              {/* Demo Source Attribution - sticky at bottom */}
-              <div className="flex-shrink-0 bg-background">
-                <DemoAttribution
-                  isDemo={transcription.isDemo}
-                  filename={transcription.demoLocale ? `demo-${transcription.demoLocale}.mp3` : undefined}
-                  demoConfig={config.demo}
-                />
-              </div>
+                  {/* Demo Source Attribution - sticky at bottom */}
+                  <div className="flex-shrink-0 bg-background">
+                    <DemoAttribution
+                      isDemo={transcription.isDemo}
+                      filename={transcription.demoLocale ? `demo-${transcription.demoLocale}.mp3` : undefined}
+                      demoConfig={config.demo}
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* Floating Feedback Widget */}
-            <FloatingFeedbackWidget
-              rating={feedbackHook.rating}
-              feedback={feedbackHook.feedbackText}
-              onRatingChange={(rating: number) => {
-                capture('quality_rated', { rating })
-                feedbackHook.setRating(rating)
-              }}
-              onFeedbackChange={feedbackHook.setFeedbackText}
-              onSubmit={feedbackHook.submit}
-              isLoading={feedbackHook.isLoading}
-              isSubmitting={feedbackHook.isSubmitting}
-              isSubmitted={feedbackHook.isSubmitted}
-              hasExisting={feedbackHook.hasExisting}
-              disabled={!transcription.entryId}
-            />
+            {/* Floating Feedback Widget - only show when transcript is ready */}
+            {transcription.segments.length > 0 && (
+              <FloatingFeedbackWidget
+                rating={feedbackHook.rating}
+                feedback={feedbackHook.feedbackText}
+                onRatingChange={(rating: number) => {
+                  capture('quality_rated', { rating })
+                  feedbackHook.setRating(rating)
+                }}
+                onFeedbackChange={feedbackHook.setFeedbackText}
+                onSubmit={feedbackHook.submit}
+                isLoading={feedbackHook.isLoading}
+                isSubmitting={feedbackHook.isSubmitting}
+                isSubmitted={feedbackHook.isSubmitted}
+                hasExisting={feedbackHook.hasExisting}
+                disabled={!transcription.entryId}
+              />
+            )}
           </>
+        ) : (
+          /* Upload Mode */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <DemoWarningBanner />
+              <UploadZone
+                selectedSpeakerCount={selectedSpeakerCount}
+                isUploading={processingStages.isProcessing}
+                uploadProgress={transcription.uploadProgress}
+                hasFile={!!selectedFile}
+                selectedFile={selectedFile}
+                onFileSelect={handleFileSelect}
+                onRemoveFile={handleRemoveFile}
+                onSpeakerCountChange={handleSpeakerCountChange}
+                onTranscribeClick={handleTranscribeClick}
+                onRecordClick={handleRecordClick}
+                stages={processingStages.stages}
+                currentStageId={processingStages.currentStageId}
+                selectedAudioLanguage={selectedAudioLanguage}
+                onAudioLanguageChange={handleAudioLanguageChange}
+                inputMode={inputMode}
+                onInputModeChange={setInputMode}
+                text={importText}
+                onTextChange={setImportText}
+                selectedCleanupType={selectedTextCleanupType}
+                onCleanupTypeChange={setSelectedTextCleanupType}
+                onImportTextClick={handleImportTextClick}
+                isImporting={isTextImportProcessing}
+              />
+            </div>
+            <div>
+              <EntryHistoryCard
+                entries={filteredEntries}
+                activeId={transcription.entryId}
+                deletingId={entriesHook.deletingId}
+                onSelect={handleEntrySelect}
+                onDelete={handleDeleteEntry}
+                isEmpty={filteredEntries.length === 0 && !entriesHook.isLoading}
+              />
+            </div>
+          </div>
         )}
       </main>
 

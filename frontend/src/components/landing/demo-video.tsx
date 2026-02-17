@@ -41,8 +41,9 @@ export function DemoVideo({ src, waveformStart = 2, waveformEnd = 5 }: DemoVideo
     if (!video) return
 
     // If video is already ready (cached), mark as ready
+    // Use queueMicrotask to avoid synchronous setState in effect
     if (video.readyState >= 3) {
-      setVideoState("ready")
+      queueMicrotask(() => setVideoState("ready"))
     }
   }, [])
 
