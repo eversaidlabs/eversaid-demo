@@ -11,7 +11,8 @@ And both endpoints:
 """
 
 import io
-from datetime import datetime, timedelta
+import os
+from datetime import datetime, timedelta, timezone
 
 import pytest
 import respx
@@ -41,7 +42,13 @@ def rate_limit_settings():
         RATE_LIMIT_LLM_DAY=30,
         RATE_LIMIT_LLM_IP_DAY=40,
         RATE_LIMIT_LLM_GLOBAL_DAY=50,
-        DATABASE_URL="sqlite://",
+        # Database configuration (PostgreSQL)
+        DATABASE_HOST=os.getenv("DATABASE_HOST", "localhost"),
+        DATABASE_PORT=int(os.getenv("DATABASE_PORT", "5432")),
+        DATABASE_NAME=os.getenv("DATABASE_NAME", "eversaid"),
+        DATABASE_USER=os.getenv("DATABASE_USER", "eversaid"),
+        DATABASE_PASSWORD=os.getenv("DATABASE_PASSWORD", ""),
+        DB_SCHEMA="platform_test",
     )
 
 
@@ -234,7 +241,7 @@ class TestRateLimitTranscribeSessionDay:
                 session_id=session_id,
                 ip_address=ip_address,
                 action="transcribe",
-                created_at=datetime.utcnow() - timedelta(hours=2),
+                created_at=datetime.now(timezone.utc) - timedelta(hours=2),
             )
             db.add(entry)
         db.commit()
@@ -294,7 +301,7 @@ class TestRateLimitTranscribeIPDay:
                 session_id=f"other-session-{i}",
                 ip_address=ip_address,
                 action="transcribe",
-                created_at=datetime.utcnow() - timedelta(hours=2),
+                created_at=datetime.now(timezone.utc) - timedelta(hours=2),
             )
             db.add(entry)
         db.commit()
@@ -331,7 +338,7 @@ class TestRateLimitTranscribeGlobalDay:
                 session_id=f"session-{i}",
                 ip_address=f"192.168.1.{i}",
                 action="transcribe",
-                created_at=datetime.utcnow() - timedelta(hours=2),
+                created_at=datetime.now(timezone.utc) - timedelta(hours=2),
             )
             db.add(entry)
         db.commit()

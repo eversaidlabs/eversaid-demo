@@ -1,18 +1,22 @@
 """Test fixtures for the backend."""
 
+import os
 from typing import Generator
 
 import pytest
 import respx
 from fastapi.testclient import TestClient
 from httpx import Response
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from app.config import Settings, get_settings
 from app.core_client import CoreAPIClient
 from app.database import Base, get_db
+
+
+# Test schema name
+TEST_SCHEMA = "platform_test"
 
 
 @pytest.fixture
@@ -31,23 +35,47 @@ def test_settings() -> Settings:
         RATE_LIMIT_LLM_GLOBAL_DAY=10000,
         # Audio validation
         MAX_AUDIO_DURATION_SECONDS=180,
-        DATABASE_URL="sqlite://",  # in-memory
+        # Database configuration (PostgreSQL)
+        DATABASE_HOST=os.getenv("DATABASE_HOST", "localhost"),
+        DATABASE_PORT=int(os.getenv("DATABASE_PORT", "5432")),
+        DATABASE_NAME=os.getenv("DATABASE_NAME", "eversaid"),
+        DATABASE_USER=os.getenv("DATABASE_USER", "eversaid"),
+        DATABASE_PASSWORD=os.getenv("DATABASE_PASSWORD", ""),
+        DB_SCHEMA=TEST_SCHEMA,
     )
 
 
 @pytest.fixture
-def test_engine():
-    """Create an in-memory SQLite engine for testing."""
+def test_engine(test_settings: Settings):
+    """Create a PostgreSQL engine for testing with isolated schema."""
     # Import models to ensure they're registered with Base
     from app import models  # noqa: F401
 
     engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
+        test_settings.database_url,
+        pool_size=5,
+        max_overflow=10,
+        pool_pre_ping=True,
     )
+
+    # Set search_path for all connections
+    @event.listens_for(engine, "connect")
+    def set_search_path(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute(f"SET search_path TO {TEST_SCHEMA}, public")
+        cursor.close()
+
+    # Create schema and tables
+    with engine.connect() as conn:
+        conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {TEST_SCHEMA}"))
+        conn.commit()
+
     Base.metadata.create_all(bind=engine)
-    return engine
+
+    yield engine
+
+    # Cleanup: drop all tables in test schema
+    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture
@@ -164,5 +192,3 @@ def client(test_engine, test_settings: Settings) -> Generator[TestClient, None, 
     main_module.get_settings = original_get_settings
     fastapi_app.dependency_overrides.clear()
     get_settings.cache_clear()
-
-

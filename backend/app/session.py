@@ -2,7 +2,7 @@
 
 import secrets
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import Depends, HTTPException, Request, Response
@@ -64,7 +64,7 @@ async def _create_anonymous_session(
             detail=f"Failed to create session: {e.detail}",
         ) from e
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     session = SessionModel(
         session_id=session_id,
@@ -125,7 +125,7 @@ async def _refresh_session_tokens(
 
     session.access_token = token_response["access_token"]
     session.refresh_token = token_response["refresh_token"]
-    session.token_expires_at = datetime.utcnow() + timedelta(days=TOKEN_EXPIRY_DAYS)
+    session.token_expires_at = datetime.now(timezone.utc) + timedelta(days=TOKEN_EXPIRY_DAYS)
 
     db.commit()
     db.refresh(session)
@@ -192,7 +192,7 @@ async def get_or_create_session(
         ).first()
 
         if session:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             # Check if token needs refresh (within threshold of expiry)
             refresh_threshold = now + timedelta(hours=TOKEN_REFRESH_THRESHOLD_HOURS)

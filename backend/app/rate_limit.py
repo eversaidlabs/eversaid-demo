@@ -18,7 +18,7 @@ Key Design Decisions (documented per user request):
    This gives users accurate information about when their first slot frees up.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 
 from fastapi import Depends, HTTPException, Request
@@ -188,7 +188,7 @@ class RateLimitTracker:
         We calculate reset as oldest_entry_time + window_size. This gives users
         accurate information about when their first slot frees up.
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         day_ago = now - timedelta(days=1)
 
         day_limit, ip_day_limit, global_day_limit = self._get_limits(action)
@@ -290,7 +290,7 @@ def get_rate_limit_status(
     This is used by GET /api/rate-limits to return limits on page load.
     Unlike check_and_increment, this does NOT add a new entry.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     day_ago = now - timedelta(days=1)
 
     # Get limits for the action type

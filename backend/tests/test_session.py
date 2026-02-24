@@ -1,7 +1,7 @@
 """Tests for session management."""
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import httpx
 import pytest
@@ -90,7 +90,7 @@ class TestSessionCreation:
                 })
             )
 
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             session = asyncio.get_event_loop().run_until_complete(
                 _create_anonymous_session(
                     core_api=mock_core_api_client,
@@ -119,9 +119,9 @@ class TestTokenRefresh:
             core_api_email="test@anon.eversaid.example",
             access_token="old-access-token",
             refresh_token="old-refresh-token",
-            token_expires_at=datetime.utcnow() - timedelta(hours=1),
-            created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(days=7),
+            token_expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7),
         )
         test_db.add(session)
         test_db.commit()
@@ -146,7 +146,7 @@ class TestTokenRefresh:
 
         assert updated_session.access_token == "new-access-token"
         assert updated_session.refresh_token == "new-refresh-token"
-        assert updated_session.token_expires_at > datetime.utcnow()
+        assert updated_session.token_expires_at > datetime.now(timezone.utc)
 
     def test_refresh_with_expired_token_raises_401(
         self, test_db, test_settings, mock_core_api_client
@@ -157,9 +157,9 @@ class TestTokenRefresh:
             core_api_email="test@anon.eversaid.example",
             access_token="old-access-token",
             refresh_token="expired-refresh-token",
-            token_expires_at=datetime.utcnow() - timedelta(hours=1),
-            created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(days=7),
+            token_expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7),
         )
         test_db.add(session)
         test_db.commit()

@@ -4,7 +4,7 @@ These endpoints store data in the wrapper's SQLite database only,
 they do NOT proxy to the Core API (except for entry verification).
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -173,7 +173,7 @@ async def submit_feedback(
         # Update existing feedback
         existing.rating = body.rating
         existing.feedback_text = body.feedback_text
-        existing.created_at = datetime.utcnow()
+        existing.created_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(existing)
         return existing
