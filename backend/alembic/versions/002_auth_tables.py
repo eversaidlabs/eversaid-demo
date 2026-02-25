@@ -82,7 +82,7 @@ def upgrade() -> None:
             ),
             sa.Column("created_at", sa.DateTime(), nullable=True),
             sa.Column("updated_at", sa.DateTime(), nullable=True),
-            sa.ForeignKeyConstraint(["tenant_id"], [f"{schema}.tenants.id"]),
+            sa.ForeignKeyConstraint(["tenant_id"], [f"{schema}.tenants.id"], ondelete="CASCADE"),
             sa.PrimaryKeyConstraint("id"),
             schema=schema,
         )
@@ -113,7 +113,7 @@ def upgrade() -> None:
             sa.Column("created_at", sa.DateTime(), nullable=True),
             sa.Column("ip_address", sa.String(), nullable=True),
             sa.Column("user_agent", sa.String(), nullable=True),
-            sa.ForeignKeyConstraint(["user_id"], [f"{schema}.users.id"]),
+            sa.ForeignKeyConstraint(["user_id"], [f"{schema}.users.id"], ondelete="CASCADE"),
             sa.PrimaryKeyConstraint("id"),
             schema=schema,
         )

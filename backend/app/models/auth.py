@@ -49,7 +49,7 @@ class User(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     tenant_id = Column(
         String,
-        ForeignKey(f"{DB_SCHEMA}.tenants.id"),
+        ForeignKey(f"{DB_SCHEMA}.tenants.id", ondelete="CASCADE"),
         nullable=False,
     )
     email = Column(String, nullable=False)
@@ -84,7 +84,7 @@ class AuthSession(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     user_id = Column(
         String,
-        ForeignKey(f"{DB_SCHEMA}.users.id"),
+        ForeignKey(f"{DB_SCHEMA}.users.id", ondelete="CASCADE"),
         nullable=False,
     )
     token_hash = Column(String, nullable=False)  # SHA-256 hash of refresh token
