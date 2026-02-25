@@ -1,6 +1,7 @@
 """JWT token utilities for authentication."""
 
 import hashlib
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -86,6 +87,7 @@ def create_access_token(
         "type": TokenType.ACCESS.value,
         "exp": expire,
         "iat": datetime.now(timezone.utc),
+        "jti": str(uuid.uuid4()),  # Unique token ID for revocation tracking
     }
 
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
@@ -122,6 +124,7 @@ def create_refresh_token(
         "type": TokenType.REFRESH.value,
         "exp": expire,
         "iat": datetime.now(timezone.utc),
+        "jti": str(uuid.uuid4()),  # Unique token ID for revocation tracking
     }
 
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)

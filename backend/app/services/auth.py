@@ -237,7 +237,9 @@ class AuthService:
             raise InvalidRefreshTokenError("Session not found - token may have been revoked")
 
         # Check session hasn't expired
-        if session.expires_at < datetime.now(timezone.utc):
+        # DB stores naive datetimes, treat as UTC for comparison
+        expires_at_utc = session.expires_at.replace(tzinfo=timezone.utc)
+        if expires_at_utc < datetime.now(timezone.utc):
             self.db.delete(session)
             self.db.commit()
             raise InvalidRefreshTokenError("Session has expired")
