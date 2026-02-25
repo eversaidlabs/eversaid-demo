@@ -3,6 +3,12 @@
 import os
 from typing import Generator
 
+from dotenv import load_dotenv
+
+# Load test-specific env file (not the main .env which has Docker settings)
+# CI/CD sets env vars directly, this file is for local development only
+load_dotenv(".env.test")
+
 import pytest
 import respx
 from fastapi.testclient import TestClient
