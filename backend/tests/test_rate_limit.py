@@ -511,3 +511,278 @@ class TestRateLimitResponseFormat:
         assert "reset" in day_info
 
 
+# =============================================================================
+# Auth Rate Limit Tests
+# =============================================================================
+
+
+@pytest.fixture
+def auth_rate_limit_settings():
+    """Settings with very low auth rate limits for testing."""
+    from app.config import Settings
+
+    return Settings(
+        CORE_API_URL="http://core-api:8000",
+        SESSION_DURATION_DAYS=7,
+        # Standard rate limits
+        RATE_LIMIT_DAY=20,
+        RATE_LIMIT_IP_DAY=20,
+        RATE_LIMIT_GLOBAL_DAY=1000,
+        RATE_LIMIT_LLM_DAY=200,
+        RATE_LIMIT_LLM_IP_DAY=200,
+        RATE_LIMIT_LLM_GLOBAL_DAY=10000,
+        # Very low auth limit for testing (10 attempts per IP per 15 min)
+        RATE_LIMIT_AUTH_IP_15MIN=3,
+        # Database configuration
+        DATABASE_HOST=os.getenv("DATABASE_HOST", "localhost"),
+        DATABASE_PORT=int(os.getenv("DATABASE_PORT", "5432")),
+        DATABASE_NAME=os.getenv("DATABASE_NAME", "eversaid"),
+        DATABASE_USER=os.getenv("DATABASE_USER", "eversaid"),
+        DATABASE_PASSWORD=os.getenv("DATABASE_PASSWORD", ""),
+        DB_SCHEMA="platform_test",
+        # JWT settings for auth
+        JWT_SECRET_KEY="test-secret-key-for-testing-only",
+        JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15,
+        JWT_REFRESH_TOKEN_EXPIRE_DAYS=30,
+    )
+
+
+@pytest.fixture
+def auth_rate_limited_client(test_engine, auth_rate_limit_settings):
+    """Test client with low auth rate limits for testing."""
+    from typing import Generator
+
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import Session, sessionmaker
+
+    from app.config import get_settings
+    from app.database import get_db
+    from app.main import app as fastapi_app
+    import app.main as main_module
+
+    TestingSessionLocal = sessionmaker(bind=test_engine)
+
+    def override_get_db() -> Generator[Session, None, None]:
+        db = TestingSessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    get_settings.cache_clear()
+
+    fastapi_app.dependency_overrides[get_db] = override_get_db
+    fastapi_app.dependency_overrides[get_settings] = lambda: auth_rate_limit_settings
+
+    original_get_settings = main_module.get_settings
+    main_module.get_settings = lambda: auth_rate_limit_settings
+
+    # Patch run_migrations to no-op
+    original_run_migrations = main_module.run_migrations
+    main_module.run_migrations = lambda: None
+
+    with TestClient(fastapi_app, raise_server_exceptions=False) as test_client:
+        yield test_client
+
+    main_module.run_migrations = original_run_migrations
+    main_module.get_settings = original_get_settings
+    fastapi_app.dependency_overrides.clear()
+    get_settings.cache_clear()
+
+
+class TestAuthRateLimitLogin:
+    """Tests for login auth rate limiting."""
+
+    def test_allows_requests_under_limit(self, auth_rate_limited_client):
+        """Login attempts under limit should get through (even if auth fails)."""
+        # Make login attempts (will fail auth but should not be rate limited)
+        response = auth_rate_limited_client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "wrong-password"},
+        )
+        # Should get 401 (wrong password), not 429
+        assert response.status_code == 401
+
+        response = auth_rate_limited_client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "wrong-password"},
+        )
+        assert response.status_code == 401
+
+    def test_blocks_at_15min_limit(
+        self, auth_rate_limited_client, auth_rate_limit_settings, test_engine
+    ):
+        """Login should be blocked at 15-minute limit."""
+        from sqlalchemy.orm import sessionmaker
+
+        # Exhaust 15-minute limit (3 attempts)
+        for _ in range(3):
+            auth_rate_limited_client.post(
+                "/api/auth/login",
+                json={"email": "test@test.com", "password": "wrong"},
+            )
+
+        # 4th attempt should be blocked
+        response = auth_rate_limited_client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "wrong"},
+        )
+
+        assert response.status_code == 429
+        data = response.json()
+        assert data["error"] == "auth_rate_limit_exceeded"
+        assert data["action"] == "login"
+        assert "retry_after" in data
+
+    def test_429_includes_retry_after_header(self, auth_rate_limited_client):
+        """429 response should include Retry-After header."""
+        # Exhaust limit
+        for _ in range(3):
+            auth_rate_limited_client.post(
+                "/api/auth/login",
+                json={"email": "test@test.com", "password": "wrong"},
+            )
+
+        response = auth_rate_limited_client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "wrong"},
+        )
+
+        assert response.status_code == 429
+        assert "Retry-After" in response.headers
+        retry_after = int(response.headers["Retry-After"])
+        assert retry_after > 0
+
+    def test_429_includes_auth_rate_limit_headers(self, auth_rate_limited_client):
+        """429 response should include auth rate limit headers."""
+        # Exhaust limit
+        for _ in range(3):
+            auth_rate_limited_client.post(
+                "/api/auth/login",
+                json={"email": "test@test.com", "password": "wrong"},
+            )
+
+        response = auth_rate_limited_client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "wrong"},
+        )
+
+        assert response.status_code == 429
+        assert "X-RateLimit-Auth-Limit" in response.headers
+        assert "X-RateLimit-Auth-Remaining" in response.headers
+        assert "X-RateLimit-Auth-Reset" in response.headers
+        assert response.headers["X-RateLimit-Auth-Remaining"] == "0"
+
+    def test_success_response_includes_auth_headers(
+        self, auth_rate_limited_client, auth_rate_limit_settings, test_engine
+    ):
+        """Successful login should include auth rate limit headers."""
+        from sqlalchemy.orm import sessionmaker
+
+        from app.models.auth import Tenant, User
+        from app.utils.security import hash_password
+
+        # Create a user in the database for successful login
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        tenant = Tenant(name="Test Tenant")
+        db.add(tenant)
+        db.flush()
+
+        user = User(
+            email="test@test.com",
+            hashed_password=hash_password("correct-password"),
+            tenant_id=tenant.id,
+            is_active=True,
+        )
+        db.add(user)
+        db.commit()
+        db.close()
+
+        response = auth_rate_limited_client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "correct-password"},
+        )
+
+        assert response.status_code == 200
+        assert "X-RateLimit-Auth-Limit" in response.headers
+        assert "X-RateLimit-Auth-Remaining" in response.headers
+
+
+class TestAuthRateLimitRefresh:
+    """Tests for refresh token rate limiting."""
+
+    def test_blocks_at_15min_limit(self, auth_rate_limited_client):
+        """Refresh should be blocked at 15-minute limit."""
+        # Exhaust 15-minute limit (3 attempts)
+        for _ in range(3):
+            auth_rate_limited_client.post(
+                "/api/auth/refresh",
+                json={"refresh_token": "invalid-token"},
+            )
+
+        # 4th attempt should be blocked
+        response = auth_rate_limited_client.post(
+            "/api/auth/refresh",
+            json={"refresh_token": "invalid-token"},
+        )
+
+        assert response.status_code == 429
+        data = response.json()
+        assert data["error"] == "auth_rate_limit_exceeded"
+        assert data["action"] == "refresh"
+
+
+class TestAuthRateLimitIPExtraction:
+    """Tests for IP-based rate limiting with different headers."""
+
+    def test_rate_limit_uses_cf_connecting_ip(
+        self, auth_rate_limited_client, test_engine
+    ):
+        """Rate limit should track by CF-Connecting-IP when present."""
+        from sqlalchemy.orm import sessionmaker
+
+        # Make request with CF-Connecting-IP header
+        auth_rate_limited_client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "wrong"},
+            headers={"CF-Connecting-IP": "1.2.3.4"},
+        )
+
+        # Check that the rate limit entry has the CF IP
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+        entries = db.query(RateLimitEntry).filter_by(action="auth_login").all()
+        db.close()
+
+        assert len(entries) == 1
+        assert entries[0].ip_address == "1.2.3.4"
+
+    def test_different_ips_have_separate_limits(
+        self, auth_rate_limited_client, test_engine
+    ):
+        """Different IPs should have separate rate limits."""
+        # Exhaust limit for IP 1.2.3.4
+        for _ in range(3):
+            auth_rate_limited_client.post(
+                "/api/auth/login",
+                json={"email": "test@test.com", "password": "wrong"},
+                headers={"CF-Connecting-IP": "1.2.3.4"},
+            )
+
+        # IP 1.2.3.4 should be blocked
+        response = auth_rate_limited_client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "wrong"},
+            headers={"CF-Connecting-IP": "1.2.3.4"},
+        )
+        assert response.status_code == 429
+
+        # But IP 5.6.7.8 should still be allowed
+        response = auth_rate_limited_client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "wrong"},
+            headers={"CF-Connecting-IP": "5.6.7.8"},
+        )
+        assert response.status_code == 401  # Auth fails, but not rate limited

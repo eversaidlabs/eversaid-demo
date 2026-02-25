@@ -12,6 +12,7 @@ from app.config import Settings, get_settings
 from app.core_client import CoreAPIClient, CoreAPIError, get_core_api
 from app.database import get_db
 from app.models import Session as SessionModel
+from app.utils.ip import get_client_ip
 from app.utils.logger import get_logger
 
 logger = get_logger("session")
@@ -183,7 +184,7 @@ async def get_or_create_session(
         SessionModel instance (existing or newly created)
     """
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
-    ip_address = request.client.host if request.client else None
+    ip_address = get_client_ip(request)
 
     if session_id:
         # Try to load existing session

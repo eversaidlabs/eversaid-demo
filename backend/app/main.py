@@ -11,7 +11,7 @@ from app.config import get_settings
 from app.core_client import CoreAPIClient, CoreAPIError
 from app import models  # noqa: F401 - Import models to register them with Base
 from app.middleware.logging import RequestLoggingMiddleware
-from app.rate_limit import RateLimitExceeded
+from app.rate_limit import AuthRateLimitExceeded, RateLimitExceeded
 from app.turnstile import TurnstileError
 from app.routes.admin import router as admin_router
 from app.routes.auth import router as auth_router
@@ -48,6 +48,13 @@ class RateLimitHeaderMiddleware(BaseHTTPMiddleware):
             response.headers["X-RateLimit-Limit-Day"] = str(result.day.limit)
             response.headers["X-RateLimit-Remaining-Day"] = str(result.day.remaining)
             response.headers["X-RateLimit-Reset"] = str(result.day.reset)
+
+        # Add auth rate limit headers if result is available
+        if hasattr(request.state, "auth_rate_limit_result"):
+            result = request.state.auth_rate_limit_result
+            response.headers["X-RateLimit-Auth-Limit"] = str(result.ip_15min.limit)
+            response.headers["X-RateLimit-Auth-Remaining"] = str(result.ip_15min.remaining)
+            response.headers["X-RateLimit-Auth-Reset"] = str(result.ip_15min.reset)
 
         return response
 
@@ -116,6 +123,9 @@ app.add_middleware(
         "X-RateLimit-Limit-Day",
         "X-RateLimit-Remaining-Day",
         "X-RateLimit-Reset",
+        "X-RateLimit-Auth-Limit",
+        "X-RateLimit-Auth-Remaining",
+        "X-RateLimit-Auth-Reset",
         "Retry-After",
         "X-Request-ID",
     ],
@@ -142,6 +152,25 @@ async def rate_limit_exceeded_handler(
         "X-RateLimit-Limit-Day": str(result.day.limit),
         "X-RateLimit-Remaining-Day": str(result.day.remaining),
         "X-RateLimit-Reset": str(result.day.reset),
+        "Retry-After": str(result.retry_after),
+    }
+    return JSONResponse(
+        status_code=429,
+        content=exc.detail,
+        headers=headers,
+    )
+
+
+@app.exception_handler(AuthRateLimitExceeded)
+async def auth_rate_limit_exceeded_handler(
+    request: Request, exc: AuthRateLimitExceeded
+) -> JSONResponse:
+    """Convert AuthRateLimitExceeded to HTTP 429 response with headers."""
+    result = exc.result
+    headers = {
+        "X-RateLimit-Auth-Limit": str(result.ip_15min.limit),
+        "X-RateLimit-Auth-Remaining": str(result.ip_15min.remaining),
+        "X-RateLimit-Auth-Reset": str(result.ip_15min.reset),
         "Retry-After": str(result.retry_after),
     }
     return JSONResponse(

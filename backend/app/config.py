@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     RATE_LIMIT_LLM_IP_DAY: int = 200
     RATE_LIMIT_LLM_GLOBAL_DAY: int = 10000
 
+    # Auth rate limits - IP-based only, 15-minute window for brute force protection
+    RATE_LIMIT_AUTH_IP_15MIN: int = 10  # Auth attempts (login/refresh) per IP per 15 min
+
     # Audio validation
     MAX_AUDIO_DURATION_SECONDS: int = 180  # 3 minutes
     MAX_AUDIO_FILE_SIZE_MB: int = 50  # 50 MB

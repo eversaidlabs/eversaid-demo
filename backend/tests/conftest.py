@@ -39,6 +39,8 @@ def test_settings() -> Settings:
         RATE_LIMIT_LLM_DAY=200,
         RATE_LIMIT_LLM_IP_DAY=200,
         RATE_LIMIT_LLM_GLOBAL_DAY=10000,
+        # Auth rate limits
+        RATE_LIMIT_AUTH_IP_15MIN=10,
         # Audio validation
         MAX_AUDIO_DURATION_SECONDS=180,
         # Database configuration (PostgreSQL)

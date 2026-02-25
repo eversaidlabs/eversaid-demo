@@ -17,6 +17,7 @@ import httpx
 from fastapi import Depends, Header, HTTPException, Request
 
 from app.config import Settings, get_settings
+from app.utils.ip import get_client_ip
 from app.utils.logger import get_logger
 
 logger = get_logger("turnstile")
@@ -82,7 +83,7 @@ def require_turnstile():
         if not x_turnstile_token:
             raise TurnstileError(detail="CAPTCHA token required")
 
-        ip = request.client.host if request.client else None
+        ip = get_client_ip(request)
         await _verify_token(x_turnstile_token, settings.TURNSTILE_SECRET_KEY, ip)
         return None
 

@@ -8,6 +8,7 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.utils import context
+from app.utils.ip import get_client_ip
 from app.utils.logger import get_logger
 
 logger = get_logger("middleware")
@@ -42,7 +43,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             context.session_id.set(session_id[:8])  # Short for readability
 
         # Get client info
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = get_client_ip(request) or "unknown"
 
         # Log incoming request
         logger.info(

@@ -16,6 +16,7 @@ from app.schemas.auth import (
     TokenResponse,
     UserResponse,
 )
+from app.rate_limit import AuthRateLimitResult, require_auth_rate_limit
 from app.services.auth import (
     AuthService,
     InvalidCredentialsError,
@@ -23,21 +24,15 @@ from app.services.auth import (
     TenantInactiveError,
     UserInactiveError,
 )
+from app.utils.ip import get_client_ip
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
 def get_client_info(request: Request) -> tuple[Optional[str], Optional[str]]:
     """Extract client IP and user agent from request."""
-    # Get IP, checking for proxy headers
-    ip_address = request.headers.get("X-Forwarded-For")
-    if ip_address:
-        ip_address = ip_address.split(",")[0].strip()
-    else:
-        ip_address = request.client.host if request.client else None
-
+    ip_address = get_client_ip(request)
     user_agent = request.headers.get("User-Agent")
-
     return ip_address, user_agent
 
 
@@ -46,8 +41,11 @@ def login(
     request: Request,
     body: LoginRequest,
     db: Session = Depends(get_db),
+    _rate_limit: AuthRateLimitResult = Depends(require_auth_rate_limit("login")),
 ) -> TokenResponse:
     """Authenticate user and return access/refresh tokens.
+
+    Rate limited: 10 attempts per IP per 15 minutes
 
     Returns access_token, refresh_token, and password_change_required flag.
     If password_change_required is true, client should prompt user to change password.
@@ -84,8 +82,11 @@ def refresh_token(
     request: Request,
     body: RefreshTokenRequest,
     db: Session = Depends(get_db),
+    _rate_limit: AuthRateLimitResult = Depends(require_auth_rate_limit("refresh")),
 ) -> TokenResponse:
     """Refresh access token using refresh token.
+
+    Rate limited: 10 attempts per IP per 15 minutes
 
     Implements token rotation: old refresh token is invalidated,
     new tokens are issued.

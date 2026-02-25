@@ -30,6 +30,7 @@ from app.config import Settings, get_settings
 from app.database import get_db
 from app.models import RateLimitEntry, Session as SessionModel
 from app.session import get_session
+from app.utils.ip import get_client_ip
 from app.utils.logger import get_logger
 
 logger = get_logger("rate_limit")
@@ -419,7 +420,7 @@ def require_rate_limit(action: str = "transcribe"):
         tracker = RateLimitTracker(settings)
         result = tracker.check_and_increment(
             session_id=session.session_id,
-            ip_address=session.ip_address or request.client.host,
+            ip_address=get_client_ip(request) or "unknown",
             db=db,
             action=action,
         )
@@ -440,6 +441,184 @@ def require_rate_limit(action: str = "transcribe"):
 
         # Store result in request state for middleware to add headers
         request.state.rate_limit_result = result
+        return result
+
+    return dependency
+
+
+# =============================================================================
+# Auth Rate Limiting (IP-based, 15-minute window)
+# =============================================================================
+
+
+class AuthLimitInfo(BaseModel):
+    """Information about auth rate limit."""
+
+    limit: int
+    remaining: int
+    reset: int  # Unix timestamp when this limit resets
+
+
+class AuthRateLimitResult(BaseModel):
+    """Auth rate limit status."""
+
+    allowed: bool
+    ip_15min: AuthLimitInfo
+    retry_after: Optional[int] = None
+
+
+class AuthRateLimitExceeded(HTTPException):
+    """Exception raised when auth rate limit is exceeded."""
+
+    def __init__(self, result: AuthRateLimitResult, action: str):
+        self.result = result
+        self.action = action
+
+        super().__init__(
+            status_code=429,
+            detail={
+                "error": "auth_rate_limit_exceeded",
+                "message": "Too many attempts. Please try again later.",
+                "action": action,
+                "retry_after": result.retry_after,
+            },
+        )
+
+
+class AuthRateLimitTracker:
+    """Tracks and enforces auth rate limits (IP-based only, 15-minute window).
+
+    Unlike the main RateLimitTracker, this:
+    - Uses a 15-minute window (not 24h)
+    - Only tracks by IP (no session dimension)
+    - Counts ATTEMPTS, not successes (for brute force protection)
+    """
+
+    def __init__(self, settings: Settings):
+        self.settings = settings
+
+    def check_and_increment(
+        self,
+        ip_address: str,
+        db: DBSession,
+        action: str,
+    ) -> AuthRateLimitResult:
+        """Check auth rate limits and add entry.
+
+        IMPORTANT: Auth limits count ATTEMPTS, not successes.
+        This prevents brute force attacks even when credentials are wrong.
+        Entry is committed immediately.
+        """
+        now = datetime.now(timezone.utc)
+        fifteen_min_ago = now - timedelta(minutes=15)
+        limit = self.settings.RATE_LIMIT_AUTH_IP_15MIN
+
+        # Count current usage
+        count = (
+            db.query(func.count(RateLimitEntry.id))
+            .filter(
+                RateLimitEntry.action == f"auth_{action}",
+                RateLimitEntry.created_at >= fifteen_min_ago,
+                RateLimitEntry.ip_address == ip_address,
+            )
+            .scalar()
+            or 0
+        )
+
+        # Get oldest entry for reset calculation
+        oldest = (
+            db.query(func.min(RateLimitEntry.created_at))
+            .filter(
+                RateLimitEntry.action == f"auth_{action}",
+                RateLimitEntry.created_at >= fifteen_min_ago,
+                RateLimitEntry.ip_address == ip_address,
+            )
+            .scalar()
+        )
+
+        # Calculate reset time
+        default_reset = int((now + timedelta(minutes=15)).timestamp())
+        reset = (
+            int((oldest + timedelta(minutes=15)).timestamp())
+            if oldest
+            else default_reset
+        )
+        now_ts = int(now.timestamp())
+
+        # Build limit info
+        info = AuthLimitInfo(
+            limit=limit,
+            remaining=max(0, limit - count),
+            reset=reset,
+        )
+
+        # Check if exceeded
+        if count >= limit:
+            return AuthRateLimitResult(
+                allowed=False,
+                ip_15min=info,
+                retry_after=reset - now_ts,
+            )
+
+        # Add entry and commit immediately (count attempts, not successes)
+        entry = RateLimitEntry(
+            session_id=None,  # Auth limits are IP-only
+            ip_address=ip_address,
+            action=f"auth_{action}",
+        )
+        db.add(entry)
+        db.commit()
+
+        # Update remaining
+        info.remaining = max(0, info.remaining - 1)
+
+        return AuthRateLimitResult(
+            allowed=True,
+            ip_15min=info,
+        )
+
+
+def require_auth_rate_limit(action: str = "login"):
+    """Factory that creates an auth rate limit dependency.
+
+    Unlike require_rate_limit(), this:
+    - Does NOT depend on get_session (works before auth)
+    - Uses IP-only tracking with 15-minute window
+    - Counts attempts, not successes (commits immediately)
+
+    Usage:
+        @router.post("/api/auth/login")
+        async def login(
+            _rate_limit: AuthRateLimitResult = Depends(require_auth_rate_limit("login")),
+        ):
+            ...
+    """
+
+    async def dependency(
+        request: Request,
+        db: DBSession = Depends(get_db),
+        settings: Settings = Depends(get_settings),
+    ) -> AuthRateLimitResult:
+        ip_address = get_client_ip(request) or "unknown"
+
+        tracker = AuthRateLimitTracker(settings)
+        result = tracker.check_and_increment(
+            ip_address=ip_address,
+            db=db,
+            action=action,
+        )
+
+        if not result.allowed:
+            logger.warning(
+                "Auth rate limit exceeded",
+                action=action,
+                retry_after=result.retry_after,
+                ip=ip_address,
+            )
+            raise AuthRateLimitExceeded(result, action)
+
+        # Store result for middleware headers
+        request.state.auth_rate_limit_result = result
         return result
 
     return dependency
