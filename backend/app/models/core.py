@@ -1,3 +1,5 @@
+"""Core models for anonymous sessions, waitlist, and feedback."""
+
 import uuid
 from datetime import datetime, timezone
 

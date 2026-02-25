@@ -6,7 +6,7 @@ from alembic import context
 
 from app.config import get_settings
 from app.database import Base
-from app import models  # noqa: F401 - Import models to register them with Base
+from app.models import core, auth  # noqa: F401 - Import models to register them with Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

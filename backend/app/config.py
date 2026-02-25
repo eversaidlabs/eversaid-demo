@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     # CORS origins (comma-separated list)
     CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
+    # JWT settings
+    JWT_SECRET_KEY: str = ""  # Required in production
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+
     # Analytics (PostHog) - served via /api/config for runtime configuration
     POSTHOG_KEY: str = ""
     POSTHOG_HOST: str = "/ingest"
@@ -55,8 +61,11 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
         """Validate that production has required security settings."""
-        if self.ENVIRONMENT == "production" and not self.DATABASE_PASSWORD:
-            raise ValueError("DATABASE_PASSWORD is required in production")
+        if self.ENVIRONMENT == "production":
+            if not self.DATABASE_PASSWORD:
+                raise ValueError("DATABASE_PASSWORD is required in production")
+            if not self.JWT_SECRET_KEY:
+                raise ValueError("JWT_SECRET_KEY is required in production")
         return self
 
     @property

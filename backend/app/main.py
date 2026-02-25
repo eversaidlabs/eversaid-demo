@@ -13,6 +13,8 @@ from app import models  # noqa: F401 - Import models to register them with Base
 from app.middleware.logging import RequestLoggingMiddleware
 from app.rate_limit import RateLimitExceeded
 from app.turnstile import TurnstileError
+from app.routes.admin import router as admin_router
+from app.routes.auth import router as auth_router
 from app.routes.core import router as core_router
 from app.routes.local import router as local_router
 from app.utils.logger import setup_logging
@@ -92,6 +94,8 @@ app = FastAPI(
 )
 
 # Register routers
+app.include_router(auth_router)
+app.include_router(admin_router)
 app.include_router(core_router)
 app.include_router(local_router)
 

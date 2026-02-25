@@ -42,6 +42,10 @@ def test_settings() -> Settings:
         DATABASE_USER=os.getenv("DATABASE_USER", "eversaid"),
         DATABASE_PASSWORD=os.getenv("DATABASE_PASSWORD", ""),
         DB_SCHEMA=TEST_SCHEMA,
+        # JWT settings for auth tests
+        JWT_SECRET_KEY="test-secret-key-for-testing-only",
+        JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15,
+        JWT_REFRESH_TOKEN_EXPIRE_DAYS=30,
     )
 
 

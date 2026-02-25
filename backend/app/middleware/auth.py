@@ -1,0 +1,148 @@
+"""JWT authentication middleware and dependencies."""
+
+from dataclasses import dataclass
+from typing import Optional
+
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from app.models.auth import UserRole
+from app.utils.jwt import (
+    InvalidTokenError,
+    TokenExpiredError,
+    TokenType,
+    verify_token,
+)
+
+# HTTP Bearer security scheme
+security = HTTPBearer(auto_error=False)
+
+
+@dataclass
+class AuthenticatedUser:
+    """Authenticated user context from JWT token."""
+
+    user_id: str
+    tenant_id: str
+    email: str
+    role: str
+    scopes: list[str]
+
+
+def get_current_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+) -> AuthenticatedUser:
+    """FastAPI dependency to get current authenticated user from JWT.
+
+    Usage:
+        @router.get("/protected")
+        def protected_route(user: AuthenticatedUser = Depends(get_current_user)):
+            return {"user_id": user.user_id}
+
+    Raises:
+        HTTPException 401: If token is missing, invalid, or expired.
+    """
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    try:
+        token_data = verify_token(credentials.credentials, TokenType.ACCESS)
+    except TokenExpiredError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except InvalidTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return AuthenticatedUser(
+        user_id=token_data.user_id,
+        tenant_id=token_data.tenant_id,
+        email=token_data.email,
+        role=token_data.role or "",
+        scopes=token_data.scopes or [],
+    )
+
+
+def get_tenant_admin(
+    user: AuthenticatedUser = Depends(get_current_user),
+) -> AuthenticatedUser:
+    """FastAPI dependency requiring tenant_admin or platform_admin role.
+
+    Usage:
+        @router.post("/tenant/users")
+        def create_user(user: AuthenticatedUser = Depends(get_tenant_admin)):
+            ...
+
+    Raises:
+        HTTPException 403: If user doesn't have tenant_admin or platform_admin role.
+    """
+    allowed_roles = {UserRole.TENANT_ADMIN.value, UserRole.PLATFORM_ADMIN.value}
+
+    if user.role not in allowed_roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant admin or platform admin access required",
+        )
+
+    return user
+
+
+def get_platform_admin(
+    user: AuthenticatedUser = Depends(get_current_user),
+) -> AuthenticatedUser:
+    """FastAPI dependency requiring platform_admin role.
+
+    Usage:
+        @router.post("/admin/tenants")
+        def create_tenant(user: AuthenticatedUser = Depends(get_platform_admin)):
+            ...
+
+    Raises:
+        HTTPException 403: If user doesn't have platform_admin role.
+    """
+    if user.role != UserRole.PLATFORM_ADMIN.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Platform admin access required",
+        )
+
+    return user
+
+
+def require_scope(required_scope: str):
+    """Factory for scope-checking dependencies.
+
+    Usage:
+        @router.get("/data")
+        def get_data(user: AuthenticatedUser = Depends(require_scope("read:tenant"))):
+            ...
+
+    Args:
+        required_scope: The scope required to access the endpoint.
+
+    Returns:
+        Dependency that checks if user has the required scope.
+    """
+
+    def scope_checker(
+        user: AuthenticatedUser = Depends(get_current_user),
+    ) -> AuthenticatedUser:
+        if required_scope not in user.scopes:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Required scope '{required_scope}' not granted",
+            )
+        return user
+
+    return scope_checker
