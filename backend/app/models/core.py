@@ -31,9 +31,9 @@ class Session(Base):
     core_api_email = Column(String, nullable=False)
     access_token = Column(String, nullable=False)
     refresh_token = Column(String, nullable=False)
-    token_expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=utc_now)
-    expires_at = Column(DateTime, nullable=False)
+    token_expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
     ip_address = Column(String, nullable=True)
 
 
@@ -47,7 +47,7 @@ class Waitlist(Base):
     email = Column(String, unique=True, nullable=False)
     use_case = Column(String, nullable=True)
     waitlist_type = Column(String, nullable=False)
-    created_at = Column(DateTime, default=utc_now)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
     source_page = Column(String, nullable=True)
     language_preference = Column(String, nullable=True)
 
@@ -68,7 +68,7 @@ class EntryFeedback(Base):
     feedback_type = Column(String, nullable=False)  # transcription, cleanup, analysis
     rating = Column(Integer, nullable=False)  # 1-5
     feedback_text = Column(String, nullable=True)
-    created_at = Column(DateTime, default=utc_now)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
 
 
 class RateLimitEntry(Base):
@@ -81,4 +81,4 @@ class RateLimitEntry(Base):
     session_id = Column(String, nullable=True)
     ip_address = Column(String, nullable=True)
     action = Column(String, nullable=False)
-    created_at = Column(DateTime, default=utc_now)
+    created_at = Column(DateTime(timezone=True), default=utc_now)

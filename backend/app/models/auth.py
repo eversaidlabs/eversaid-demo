@@ -29,8 +29,8 @@ class Tenant(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     name = Column(String, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime, default=utc_now)
-    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
     # Relationships
     users = relationship("User", back_populates="tenant", lazy="dynamic")
@@ -57,8 +57,8 @@ class User(Base):
     password_change_required = Column(Boolean, default=True, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     role = Column(Enum(UserRole, schema=DB_SCHEMA), nullable=False, default=UserRole.TENANT_USER)
-    created_at = Column(DateTime, default=utc_now)
-    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="users")
@@ -88,8 +88,8 @@ class AuthSession(Base):
         nullable=False,
     )
     token_hash = Column(String, nullable=False)  # SHA-256 hash of refresh token
-    expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=utc_now)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
     ip_address = Column(String, nullable=True)
     user_agent = Column(String, nullable=True)
 
