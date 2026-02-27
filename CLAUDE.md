@@ -40,7 +40,7 @@ alembic current                                   # Show current migration versi
 alembic history                                   # Show migration history
 ```
 
-Migrations run automatically on app startup via `run_migrations()` in `app/main.py`. No separate migration step is needed in Docker or development. SQLite batch mode (`render_as_batch=True`) is enabled for full ALTER TABLE support.
+Migrations run automatically on app startup via `run_migrations()` in `app/main.py`. No separate migration step is needed in Docker or development.
 
 ### Docker
 ```bash
@@ -55,10 +55,11 @@ Frontend (Next.js) → Wrapper Backend (FastAPI) → Core API (private)
 ```
 
 The wrapper backend handles:
-- Anonymous session management (cookies)
+- Anonymous session management (cookies) for demo users
+- Multi-tenant JWT authentication for dashboard users
 - Rate limiting (per-session, per-IP, global)
 - Proxying requests with Bearer auth to Core API
-- Feedback and waitlist collection (local SQLite)
+- Feedback and waitlist collection (PostgreSQL)
 
 ## Frontend Architecture Rules
 
@@ -111,27 +112,50 @@ src/
 backend/app/
 ├── main.py          # FastAPI app, lifespan, error handlers
 ├── config.py        # Pydantic Settings (env vars)
+├── database.py      # PostgreSQL connection with schema isolation
 ├── core_client.py   # HTTP client for Core API
-├── session.py       # Anonymous session management
+├── session.py       # Anonymous session management (demo)
 ├── rate_limit.py    # Multi-tier rate limiting
-├── middleware/      # Request/response middleware
-├── utils/           # Shared utilities
+├── middleware/
+│   ├── auth.py      # JWT authentication dependencies
+│   └── logging.py   # Request/response logging
+├── services/
+│   └── auth.py      # Auth business logic (login, tokens, users)
+├── models/
+│   ├── core.py      # Session, RateLimitEntry, Feedback, Waitlist
+│   └── auth.py      # Tenant, User, AuthSession, UserRole
+├── utils/
+│   ├── jwt.py       # JWT token creation/verification
+│   └── security.py  # Password hashing (argon2)
 └── routes/
     ├── core.py      # Core API proxy endpoints
-    └── local.py     # Local endpoints (feedback, waitlist)
+    ├── local.py     # Local endpoints (feedback, waitlist)
+    ├── auth.py      # /api/auth/* (login, refresh, logout, me)
+    └── admin.py     # /api/admin/* (tenants, users)
 ```
 
 ### Environment Variables
 Key backend configuration (see `docker-compose.yml` for full list):
 - `CORE_API_URL` - Core API base URL (default: http://localhost:8000)
+- `DATABASE_*` - PostgreSQL connection (HOST, PORT, NAME, USER, PASSWORD)
+- `DB_SCHEMA` - PostgreSQL schema for table isolation (default: platform_dev)
+- `JWT_SECRET_KEY` - Required in production for token signing
 - `RATE_LIMIT_DAY` / `RATE_LIMIT_IP_DAY` / `RATE_LIMIT_GLOBAL_DAY` - Transcription limits
 - `RATE_LIMIT_LLM_*` - LLM/analysis limits (10x transcription by default)
 - `LOG_FORMAT` - "text" (dev) or "json" (production/Loki)
 
+### Multi-Tenant Auth System
+- **Tenants**: Organizations that own users
+- **Users**: Belong to one tenant, have roles (platform_admin, tenant_admin, tenant_user)
+- **Role-based access**: Platform admins manage all tenants; tenant admins manage users in their tenant only
+- **JWT tokens**: Access tokens (15min) + refresh tokens (30 days) with rotation
+- **Password hashing**: Argon2id via `passlib`
+
 ### Rate Limiting
 - Multi-tier: per-session/day, per-IP/day, global/day
 - LLM limits are 10x higher than transcription limits
-- Rate limits are committed only after successful Core API calls to avoid locking users out on failures
+- "Count successes, not attempts": Rate limits committed only after successful Core API calls (small race window accepted for better UX)
+- Auth endpoints have separate IP-based rate limiting (15-minute window)
 
 ### Session Management
 - Anonymous sessions via cookies (`eversaid_session_id`)
