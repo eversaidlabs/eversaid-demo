@@ -24,7 +24,12 @@ import type {
   WaitlistPayload,
 } from './types'
 import { ApiError } from './types'
-import { clearSession } from '@/lib/session'
+import {
+  clearTokens,
+  ensureAuthenticated,
+  getAccessToken,
+  handleUnauthorized,
+} from '@/lib/auth'
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
@@ -84,11 +89,17 @@ interface RequestOptions {
 }
 
 /**
- * Make an API request with error handling and rate limit parsing
+ * Make an API request with error handling, authentication, and rate limit parsing.
+ *
+ * Authentication flow:
+ * 1. Ensure we have a valid access token (creates anonymous session if needed)
+ * 2. Add Authorization header to request
+ * 3. On 401, create new anonymous session and retry once
  */
 async function request<T>(
   endpoint: string,
-  options: RequestOptions = {}
+  options: RequestOptions = {},
+  isRetry = false
 ): Promise<{ data: T; rateLimitInfo: RateLimitInfo | null }> {
   const { method = 'GET', body, headers = {}, turnstileToken, timeout } = options
 
@@ -96,11 +107,14 @@ async function request<T>(
   const isUpload = body instanceof FormData
   const timeoutMs = timeout ?? (isUpload ? 120_000 : 30_000)
 
+  // Ensure we have a valid access token (creates anonymous session if needed)
+  const accessToken = await ensureAuthenticated()
+
   const fetchOptions: RequestInit = {
     method,
-    credentials: 'include', // Include cookies for session
     headers: {
       ...headers,
+      Authorization: `Bearer ${accessToken}`,
       ...(turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {}),
     },
     signal: AbortSignal.timeout(timeoutMs),
@@ -155,30 +169,13 @@ async function request<T>(
       )
     }
 
-    // Handle session expired (401) - retry once after clearing session
-    if (response.status === 401) {
-      // Clear local session data
-      clearSession()
+    // Handle session expired (401) - retry once with new anonymous session
+    if (response.status === 401 && !isRetry) {
+      // Create new anonymous session
+      await handleUnauthorized()
 
-      // Retry the request once - server will create a new session via cookie
-      try {
-        const retryResponse = await fetch(url, fetchOptions)
-        if (retryResponse.ok) {
-          const retryRateLimitInfo = parseRateLimitHeaders(retryResponse)
-          const contentType = retryResponse.headers.get('Content-Type')
-          let retryData: T
-          if (contentType?.includes('application/json')) {
-            retryData = await retryResponse.json()
-          } else {
-            retryData = {} as T
-          }
-          return { data: retryData, rateLimitInfo: retryRateLimitInfo }
-        }
-      } catch {
-        // If retry also fails, throw the original 401 error
-      }
-
-      throw new ApiError(401, 'Session expired. Please refresh the page.', rateLimitInfo || undefined)
+      // Retry the request once with new token
+      return request<T>(endpoint, options, true)
     }
 
     // Handle other errors
@@ -223,9 +220,12 @@ async function request<T>(
  */
 export async function getRateLimits(): Promise<RateLimitInfo | null> {
   try {
+    const accessToken = await ensureAuthenticated()
     const response = await fetch(`${API_BASE_URL}/api/rate-limits`, {
       method: 'GET',
-      credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     })
 
     if (!response.ok) {

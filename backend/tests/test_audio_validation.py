@@ -160,19 +160,19 @@ class TestValidateAudioDuration:
 class TestTranscribeEndpointDurationValidation:
     """Integration tests for /api/transcribe duration validation."""
 
-    def test_rejects_long_audio_with_422(self, client, test_settings, long_wav_bytes):
+    def test_rejects_long_audio_with_422(self, client, test_settings, long_wav_bytes, auth_headers):
         """Audio exceeding duration limit should return 422."""
         # Set a low limit for testing
         test_settings.MAX_AUDIO_DURATION_SECONDS = 60  # 1 minute
 
         files = {"file": ("test.wav", io.BytesIO(long_wav_bytes), "audio/wav")}
-        response = client.post("/api/transcribe", files=files)
+        response = client.post("/api/transcribe", files=files, headers=auth_headers)
 
         assert response.status_code == 422
         assert "exceeds maximum" in response.json()["detail"]
 
     def test_does_not_consume_rate_limit_on_validation_failure(
-        self, client, test_settings, long_wav_bytes, test_engine
+        self, client, test_settings, long_wav_bytes, test_engine, auth_headers
     ):
         """Failed validation should not increment rate limit counter."""
         from sqlalchemy.orm import sessionmaker
@@ -182,7 +182,7 @@ class TestTranscribeEndpointDurationValidation:
         test_settings.MAX_AUDIO_DURATION_SECONDS = 60
 
         files = {"file": ("test.wav", io.BytesIO(long_wav_bytes), "audio/wav")}
-        response = client.post("/api/transcribe", files=files)
+        response = client.post("/api/transcribe", files=files, headers=auth_headers)
 
         assert response.status_code == 422
 
@@ -194,7 +194,7 @@ class TestTranscribeEndpointDurationValidation:
 
         assert len(entries) == 0
 
-    def test_accepts_audio_under_limit(self, client, test_settings, short_wav_bytes):
+    def test_accepts_audio_under_limit(self, client, test_settings, short_wav_bytes, auth_headers):
         """Audio under duration limit should proceed to Core API."""
         import respx
         from httpx import Response
@@ -226,12 +226,12 @@ class TestTranscribeEndpointDurationValidation:
         )
 
         files = {"file": ("test.wav", io.BytesIO(short_wav_bytes), "audio/wav")}
-        response = client.post("/api/transcribe", files=files)
+        response = client.post("/api/transcribe", files=files, headers=auth_headers)
 
         assert response.status_code == 202
         assert response.json()["entry_id"] == "entry-123"
 
-    def test_accepts_unknown_format(self, client, test_settings):
+    def test_accepts_unknown_format(self, client, test_settings, auth_headers):
         """Files with unknown format should be allowed through."""
         import respx
         from httpx import Response
@@ -264,7 +264,7 @@ class TestTranscribeEndpointDurationValidation:
 
         # Unknown format - should be allowed through
         files = {"file": ("test.xyz", io.BytesIO(b"unknown format"), "audio/unknown")}
-        response = client.post("/api/transcribe", files=files)
+        response = client.post("/api/transcribe", files=files, headers=auth_headers)
 
         assert response.status_code == 202
 
@@ -346,7 +346,7 @@ class TestValidateAudioFileSize:
 class TestTranscribeEndpointFileSizeValidation:
     """Integration tests for /api/transcribe file size validation."""
 
-    def test_rejects_large_file_with_422(self, client, test_settings):
+    def test_rejects_large_file_with_422(self, client, test_settings, auth_headers):
         """File exceeding size limit should return 422."""
         # Set a low limit for testing (1 MB)
         test_settings.MAX_AUDIO_FILE_SIZE_MB = 1
@@ -354,14 +354,14 @@ class TestTranscribeEndpointFileSizeValidation:
         # Create a 2 MB file
         large_content = b"x" * (2 * 1024 * 1024)
         files = {"file": ("test.wav", io.BytesIO(large_content), "audio/wav")}
-        response = client.post("/api/transcribe", files=files)
+        response = client.post("/api/transcribe", files=files, headers=auth_headers)
 
         assert response.status_code == 422
         assert "exceeds maximum" in response.json()["detail"]
         assert "MB" in response.json()["detail"]
 
     def test_does_not_consume_rate_limit_on_file_size_failure(
-        self, client, test_settings, test_engine
+        self, client, test_settings, test_engine, auth_headers
     ):
         """Failed file size validation should not increment rate limit counter."""
         from sqlalchemy.orm import sessionmaker
@@ -372,7 +372,7 @@ class TestTranscribeEndpointFileSizeValidation:
 
         large_content = b"x" * (2 * 1024 * 1024)
         files = {"file": ("test.wav", io.BytesIO(large_content), "audio/wav")}
-        response = client.post("/api/transcribe", files=files)
+        response = client.post("/api/transcribe", files=files, headers=auth_headers)
 
         assert response.status_code == 422
 
@@ -384,7 +384,7 @@ class TestTranscribeEndpointFileSizeValidation:
 
         assert len(entries) == 0
 
-    def test_accepts_file_under_limit(self, client, test_settings, short_wav_bytes):
+    def test_accepts_file_under_limit(self, client, test_settings, short_wav_bytes, auth_headers):
         """File under size limit should proceed to duration validation."""
         import respx
         from httpx import Response
@@ -417,7 +417,7 @@ class TestTranscribeEndpointFileSizeValidation:
         )
 
         files = {"file": ("test.wav", io.BytesIO(short_wav_bytes), "audio/wav")}
-        response = client.post("/api/transcribe", files=files)
+        response = client.post("/api/transcribe", files=files, headers=auth_headers)
 
         assert response.status_code == 202
 

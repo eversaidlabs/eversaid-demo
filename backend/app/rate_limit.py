@@ -29,8 +29,8 @@ from sqlalchemy.orm import Session as DBSession
 
 from app.config import Settings, get_settings
 from app.database import get_db
-from app.models import RateLimitEntry, Session as SessionModel
-from app.session import get_session
+from app.middleware.auth import AuthenticatedUser, get_current_user
+from app.models import RateLimitEntry
 from app.utils.ip import get_client_ip
 from app.utils.logger import get_logger
 
@@ -138,7 +138,7 @@ class RateLimitTracker:
         db: DBSession,
         action: str,
         since: datetime,
-        session_id: Optional[str] = None,
+        user_id: Optional[str] = None,
         ip_address: Optional[str] = None,
     ) -> int:
         """Count rate limit entries matching criteria since a given time."""
@@ -146,8 +146,8 @@ class RateLimitTracker:
             RateLimitEntry.action == action,
             RateLimitEntry.created_at >= since,
         )
-        if session_id:
-            query = query.filter(RateLimitEntry.session_id == session_id)
+        if user_id:
+            query = query.filter(RateLimitEntry.user_id == user_id)
         if ip_address:
             query = query.filter(RateLimitEntry.ip_address == ip_address)
         return query.scalar() or 0
@@ -157,7 +157,7 @@ class RateLimitTracker:
         db: DBSession,
         action: str,
         since: datetime,
-        session_id: Optional[str] = None,
+        user_id: Optional[str] = None,
         ip_address: Optional[str] = None,
     ) -> Optional[datetime]:
         """Get the oldest entry time within the window for accurate reset calculation."""
@@ -165,15 +165,15 @@ class RateLimitTracker:
             RateLimitEntry.action == action,
             RateLimitEntry.created_at >= since,
         )
-        if session_id:
-            query = query.filter(RateLimitEntry.session_id == session_id)
+        if user_id:
+            query = query.filter(RateLimitEntry.user_id == user_id)
         if ip_address:
             query = query.filter(RateLimitEntry.ip_address == ip_address)
         return query.scalar()
 
     def check_and_increment(
         self,
-        session_id: str,
+        user_id: str,
         ip_address: str,
         db: DBSession,
         action: str = "transcribe",
@@ -196,13 +196,13 @@ class RateLimitTracker:
         day_limit, ip_day_limit, global_day_limit = self._get_limits(action)
 
         # Count current usage for each tier
-        day_count = self._count_entries(db, action, day_ago, session_id=session_id)
+        day_count = self._count_entries(db, action, day_ago, user_id=user_id)
         ip_day_count = self._count_entries(db, action, day_ago, ip_address=ip_address)
         global_day_count = self._count_entries(db, action, day_ago)
 
         # Get oldest entry times to calculate accurate reset times
         # Reset = when the oldest entry in the window expires (oldest + 24h)
-        day_oldest = self._get_oldest_entry_time(db, action, day_ago, session_id=session_id)
+        day_oldest = self._get_oldest_entry_time(db, action, day_ago, user_id=user_id)
         ip_oldest = self._get_oldest_entry_time(db, action, day_ago, ip_address=ip_address)
         global_oldest = self._get_oldest_entry_time(db, action, day_ago)
 
@@ -256,7 +256,7 @@ class RateLimitTracker:
 
         # All limits passed - add entry (caller will commit)
         entry = RateLimitEntry(
-            session_id=session_id,
+            user_id=user_id,
             ip_address=ip_address,
             action=action,
         )
@@ -281,7 +281,7 @@ class RateLimitTracker:
 
 
 def get_rate_limit_status(
-    session_id: str,
+    user_id: str,
     ip_address: str,
     db: DBSession,
     action: str,
@@ -311,7 +311,7 @@ def get_rate_limit_status(
         .filter(
             RateLimitEntry.action == action,
             RateLimitEntry.created_at >= day_ago,
-            RateLimitEntry.session_id == session_id,
+            RateLimitEntry.user_id == user_id,
         )
         .scalar()
         or 0
@@ -342,7 +342,7 @@ def get_rate_limit_status(
         .filter(
             RateLimitEntry.action == action,
             RateLimitEntry.created_at >= day_ago,
-            RateLimitEntry.session_id == session_id,
+            RateLimitEntry.user_id == user_id,
         )
         .scalar()
     )
@@ -414,13 +414,13 @@ def require_rate_limit(action: str = "transcribe"):
 
     async def dependency(
         request: Request,
-        session: SessionModel = Depends(get_session),
+        user: AuthenticatedUser = Depends(get_current_user),
         db: DBSession = Depends(get_db),
         settings: Settings = Depends(get_settings),
     ) -> RateLimitResult:
         tracker = RateLimitTracker(settings)
         result = tracker.check_and_increment(
-            session_id=session.session_id,
+            user_id=user.user_id,
             ip_address=get_client_ip(request) or "unknown",
             db=db,
             action=action,
@@ -563,7 +563,7 @@ class AuthRateLimitTracker:
 
         # Add entry and commit immediately (count attempts, not successes)
         entry = RateLimitEntry(
-            session_id=None,  # Auth limits are IP-only
+            user_id=None,  # Auth limits are IP-only
             ip_address=ip_address,
             action=f"auth_{action}",
         )

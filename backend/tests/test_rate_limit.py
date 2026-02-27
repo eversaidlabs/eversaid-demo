@@ -49,7 +49,30 @@ def rate_limit_settings():
         DATABASE_USER=os.getenv("DATABASE_USER", "eversaid"),
         DATABASE_PASSWORD=os.getenv("DATABASE_PASSWORD", ""),
         DB_SCHEMA="platform_test",
+        # JWT settings for auth
+        JWT_SECRET_KEY="test-secret-key-for-testing-only",
+        JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15,
+        JWT_REFRESH_TOKEN_EXPIRE_DAYS=30,
     )
+
+
+# Anonymous tenant ID (must match migration)
+ANONYMOUS_TENANT_ID = "00000000-0000-0000-0000-000000000000"
+
+
+@pytest.fixture
+def rate_limit_auth_headers(rate_limit_settings):
+    """Get JWT auth headers for rate limit tests."""
+    from app.utils.jwt import create_access_token
+
+    access_token = create_access_token(
+        user_id="test-user-123",
+        tenant_id=ANONYMOUS_TENANT_ID,
+        email="test-anon@anon.eversaid.example",
+        role="tenant_user",
+    )
+
+    return {"Authorization": f"Bearer {access_token}"}
 
 
 @pytest.fixture
@@ -65,6 +88,7 @@ def rate_limited_client(test_engine, rate_limit_settings):
     from app.config import get_settings
     from app.database import get_db
     from app.main import app as fastapi_app
+    from app.models.auth import Tenant
     import app.main as main_module
 
     TestingSessionLocal = sessionmaker(bind=test_engine)
@@ -84,58 +108,30 @@ def rate_limited_client(test_engine, rate_limit_settings):
     original_get_settings = main_module.get_settings
     main_module.get_settings = lambda: rate_limit_settings
 
-    with respx.mock:
-        # Auth mocks
-        respx.post(f"{rate_limit_settings.CORE_API_URL}/api/v1/auth/register").mock(
-            return_value=Response(
-                201,
-                json={
-                    "id": "user-123",
-                    "email": "anon-test@anon.eversaid.example",
-                    "is_active": True,
-                    "role": "user",
-                    "created_at": "2025-01-01T00:00:00Z",
-                },
-            )
-        )
-        respx.post(f"{rate_limit_settings.CORE_API_URL}/api/v1/auth/login").mock(
-            return_value=Response(
-                200,
-                json={
-                    "access_token": "test-access-token",
-                    "refresh_token": "test-refresh-token",
-                    "token_type": "bearer",
-                    "user": {
-                        "id": "user-123",
-                        "email": "anon-test@anon.eversaid.example",
-                        "is_active": True,
-                        "role": "user",
-                        "created_at": "2025-01-01T00:00:00Z",
-                    },
-                },
-            )
-        )
-        respx.post(f"{rate_limit_settings.CORE_API_URL}/api/v1/auth/refresh").mock(
-            return_value=Response(
-                200,
-                json={
-                    "access_token": "new-access-token",
-                    "refresh_token": "new-refresh-token",
-                    "token_type": "bearer",
-                    "user": {
-                        "id": "user-123",
-                        "email": "anon-test@anon.eversaid.example",
-                        "is_active": True,
-                        "role": "user",
-                        "created_at": "2025-01-01T00:00:00Z",
-                    },
-                },
-            )
-        )
+    # Patch run_migrations to no-op (test_engine already calls create_all)
+    original_run_migrations = main_module.run_migrations
+    main_module.run_migrations = lambda: None
 
+    # Create anonymous tenant in the database
+    db = TestingSessionLocal()
+    try:
+        existing = db.query(Tenant).filter(Tenant.id == ANONYMOUS_TENANT_ID).first()
+        if not existing:
+            tenant = Tenant(
+                id=ANONYMOUS_TENANT_ID,
+                name="anonymous",
+                is_active=True,
+            )
+            db.add(tenant)
+            db.commit()
+    finally:
+        db.close()
+
+    with respx.mock:
         with TestClient(fastapi_app, raise_server_exceptions=False) as test_client:
             yield test_client
 
+    main_module.run_migrations = original_run_migrations
     main_module.get_settings = original_get_settings
     fastapi_app.dependency_overrides.clear()
     get_settings.cache_clear()
@@ -188,15 +184,15 @@ def mock_analyze_success(settings):
     )
 
 
-def do_transcribe(client):
+def do_transcribe(client, headers=None):
     """Helper to make a transcribe request."""
     files = {"file": ("test.mp3", io.BytesIO(b"fake audio"), "audio/mpeg")}
-    return client.post("/api/transcribe", files=files)
+    return client.post("/api/transcribe", files=files, headers=headers)
 
 
-def do_analyze(client):
+def do_analyze(client, headers=None):
     """Helper to make an analyze request."""
-    return client.post("/api/cleaned-entries/cleanup-123/analyze")
+    return client.post("/api/cleaned-entries/cleanup-123/analyze", headers=headers)
 
 
 # =============================================================================
@@ -207,38 +203,38 @@ def do_analyze(client):
 class TestRateLimitTranscribeSessionDay:
     """Tests for transcribe session daily rate limit."""
 
-    def test_allows_requests_under_limit(self, rate_limited_client, rate_limit_settings):
+    def test_allows_requests_under_limit(self, rate_limited_client, rate_limit_settings, rate_limit_auth_headers):
         """Requests under daily limit should succeed."""
         mock_transcribe_success(rate_limit_settings)
 
         # First request should succeed
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
         assert response.status_code == 202
 
         # Second request (under limit of 3) should succeed
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
         assert response.status_code == 202
 
-    def test_blocks_at_daily_limit(self, rate_limited_client, rate_limit_settings, test_engine):
+    def test_blocks_at_daily_limit(self, rate_limited_client, rate_limit_settings, test_engine, rate_limit_auth_headers):
         """Request at daily limit should be blocked."""
         from sqlalchemy.orm import sessionmaker
 
         mock_transcribe_success(rate_limit_settings)
 
         # First, get a session by making a request
-        do_transcribe(rate_limited_client)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
 
-        # Get the session_id from the database
+        # Get the user_id from the database
         TestingSessionLocal = sessionmaker(bind=test_engine)
         db = TestingSessionLocal()
         entries = db.query(RateLimitEntry).all()
-        session_id = entries[0].session_id
+        user_id = entries[0].user_id
         ip_address = entries[0].ip_address
 
         # Add entries from "earlier today" (still within day)
         for _ in range(2):  # day limit is 3, we already have 1
             entry = RateLimitEntry(
-                session_id=session_id,
+                user_id=user_id,
                 ip_address=ip_address,
                 action="transcribe",
                 created_at=datetime.now(timezone.utc) - timedelta(hours=2),
@@ -249,22 +245,22 @@ class TestRateLimitTranscribeSessionDay:
 
         # Now daily count is 3 (at limit)
         # Next request should hit daily limit
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
         assert response.status_code == 429
 
         data = response.json()
         assert data["limit_type"] == "day"
 
-    def test_429_includes_limit_type(self, rate_limited_client, rate_limit_settings):
+    def test_429_includes_limit_type(self, rate_limited_client, rate_limit_settings, rate_limit_auth_headers):
         """429 response should indicate which limit was exceeded."""
         mock_transcribe_success(rate_limit_settings)
 
         # Exhaust daily limit (limit is 3)
-        do_transcribe(rate_limited_client)
-        do_transcribe(rate_limited_client)
-        do_transcribe(rate_limited_client)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
 
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
         data = response.json()
 
         assert data["error"] == "rate_limit_exceeded"
@@ -280,14 +276,14 @@ class TestRateLimitTranscribeSessionDay:
 class TestRateLimitTranscribeIPDay:
     """Tests for transcribe IP daily rate limit."""
 
-    def test_ip_limit_across_sessions(self, rate_limited_client, rate_limit_settings, test_engine):
+    def test_ip_limit_across_sessions(self, rate_limited_client, rate_limit_settings, test_engine, rate_limit_auth_headers):
         """IP limit should count requests from different sessions with same IP."""
         from sqlalchemy.orm import sessionmaker
 
         mock_transcribe_success(rate_limit_settings)
 
         # Make first request to establish the IP
-        do_transcribe(rate_limited_client)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
 
         # Get IP from the entry
         TestingSessionLocal = sessionmaker(bind=test_engine)
@@ -295,10 +291,10 @@ class TestRateLimitTranscribeIPDay:
         entries = db.query(RateLimitEntry).all()
         ip_address = entries[0].ip_address
 
-        # Add entries from "other sessions" with same IP
+        # Add entries from "other users" with same IP
         for i in range(3):  # IP day limit is 4, we have 1
             entry = RateLimitEntry(
-                session_id=f"other-session-{i}",
+                user_id=f"other-user-{i}",
                 ip_address=ip_address,
                 action="transcribe",
                 created_at=datetime.now(timezone.utc) - timedelta(hours=2),
@@ -308,7 +304,7 @@ class TestRateLimitTranscribeIPDay:
         db.close()
 
         # Now IP day count is 4 (at limit), session daily still low
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
         assert response.status_code == 429
 
         data = response.json()
@@ -323,7 +319,7 @@ class TestRateLimitTranscribeIPDay:
 class TestRateLimitTranscribeGlobalDay:
     """Tests for transcribe global daily rate limit."""
 
-    def test_global_limit(self, rate_limited_client, rate_limit_settings, test_engine):
+    def test_global_limit(self, rate_limited_client, rate_limit_settings, test_engine, rate_limit_auth_headers):
         """Global limit should count all requests regardless of session/IP."""
         from sqlalchemy.orm import sessionmaker
 
@@ -335,7 +331,7 @@ class TestRateLimitTranscribeGlobalDay:
 
         for i in range(5):  # Global limit is 5
             entry = RateLimitEntry(
-                session_id=f"session-{i}",
+                user_id=f"user-{i}",
                 ip_address=f"192.168.1.{i}",
                 action="transcribe",
                 created_at=datetime.now(timezone.utc) - timedelta(hours=2),
@@ -345,7 +341,7 @@ class TestRateLimitTranscribeGlobalDay:
         db.close()
 
         # Global count is 5 (at limit)
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
         assert response.status_code == 429
 
         data = response.json()
@@ -361,7 +357,7 @@ class TestRateLimitTranscribeGlobalDay:
 class TestRateLimitAnalyze:
     """Tests for analyze endpoint with LLM limits (10x transcribe)."""
 
-    def test_analyze_has_higher_limits(self, rate_limited_client, rate_limit_settings, test_engine):
+    def test_analyze_has_higher_limits(self, rate_limited_client, rate_limit_settings, test_engine, rate_limit_auth_headers):
         """Analyze endpoint should have 10x higher limits than transcribe."""
         from sqlalchemy.orm import sessionmaker
 
@@ -369,38 +365,38 @@ class TestRateLimitAnalyze:
         mock_transcribe_success(rate_limit_settings)
 
         # Make requests up to transcribe daily limit (3)
-        do_transcribe(rate_limited_client)
-        do_transcribe(rate_limited_client)
-        do_transcribe(rate_limited_client)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
 
         # Transcribe should now be blocked
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
         assert response.status_code == 429
 
         # But analyze should still work (different action, different limits)
-        response = do_analyze(rate_limited_client)
+        response = do_analyze(rate_limited_client, headers=rate_limit_auth_headers)
         assert response.status_code == 200
 
-    def test_analyze_blocks_at_llm_limit(self, rate_limited_client, rate_limit_settings, test_engine):
+    def test_analyze_blocks_at_llm_limit(self, rate_limited_client, rate_limit_settings, test_engine, rate_limit_auth_headers):
         """Analyze should block when LLM limits are reached."""
         from sqlalchemy.orm import sessionmaker
 
         mock_analyze_success(rate_limit_settings)
 
         # Get session established
-        do_analyze(rate_limited_client)
+        do_analyze(rate_limited_client, headers=rate_limit_auth_headers)
 
-        # Get session_id
+        # Get user_id
         TestingSessionLocal = sessionmaker(bind=test_engine)
         db = TestingSessionLocal()
         entries = db.query(RateLimitEntry).filter_by(action="analyze").all()
-        session_id = entries[0].session_id
+        user_id = entries[0].user_id
         ip_address = entries[0].ip_address
 
         # Add entries up to LLM daily limit (30 for test)
         for _ in range(29):  # Already have 1
             entry = RateLimitEntry(
-                session_id=session_id,
+                user_id=user_id,
                 ip_address=ip_address,
                 action="analyze",
             )
@@ -409,7 +405,7 @@ class TestRateLimitAnalyze:
         db.close()
 
         # Should now be blocked
-        response = do_analyze(rate_limited_client)
+        response = do_analyze(rate_limited_client, headers=rate_limit_auth_headers)
         assert response.status_code == 429
 
 
@@ -421,11 +417,11 @@ class TestRateLimitAnalyze:
 class TestRateLimitHeaders:
     """Tests for rate limit headers."""
 
-    def test_success_response_includes_headers(self, rate_limited_client, rate_limit_settings):
+    def test_success_response_includes_headers(self, rate_limited_client, rate_limit_settings, rate_limit_auth_headers):
         """Successful responses should include rate limit headers."""
         mock_transcribe_success(rate_limit_settings)
 
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
 
         assert response.status_code == 202
         assert "X-RateLimit-Limit-Day" in response.headers
@@ -436,16 +432,16 @@ class TestRateLimitHeaders:
         assert response.headers["X-RateLimit-Limit-Day"] == "3"
         assert response.headers["X-RateLimit-Remaining-Day"] == "2"  # Used 1 of 3
 
-    def test_429_response_includes_headers(self, rate_limited_client, rate_limit_settings):
+    def test_429_response_includes_headers(self, rate_limited_client, rate_limit_settings, rate_limit_auth_headers):
         """429 responses should include rate limit headers and Retry-After."""
         mock_transcribe_success(rate_limit_settings)
 
         # Exhaust daily limit (3)
-        do_transcribe(rate_limited_client)
-        do_transcribe(rate_limited_client)
-        do_transcribe(rate_limited_client)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
 
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
 
         assert response.status_code == 429
         assert "X-RateLimit-Limit-Day" in response.headers
@@ -454,16 +450,16 @@ class TestRateLimitHeaders:
 
         assert response.headers["X-RateLimit-Remaining-Day"] == "0"
 
-    def test_retry_after_is_positive(self, rate_limited_client, rate_limit_settings):
+    def test_retry_after_is_positive(self, rate_limited_client, rate_limit_settings, rate_limit_auth_headers):
         """Retry-After header should be a positive integer."""
         mock_transcribe_success(rate_limit_settings)
 
         # Exhaust daily limit (3)
-        do_transcribe(rate_limited_client)
-        do_transcribe(rate_limited_client)
-        do_transcribe(rate_limited_client)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
 
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
 
         retry_after = int(response.headers["Retry-After"])
         assert retry_after > 0
@@ -477,16 +473,16 @@ class TestRateLimitHeaders:
 class TestRateLimitResponseFormat:
     """Tests for 429 response body format."""
 
-    def test_429_body_structure(self, rate_limited_client, rate_limit_settings):
+    def test_429_body_structure(self, rate_limited_client, rate_limit_settings, rate_limit_auth_headers):
         """429 response body should have correct structure."""
         mock_transcribe_success(rate_limit_settings)
 
         # Exhaust daily limit (3)
-        do_transcribe(rate_limited_client)
-        do_transcribe(rate_limited_client)
-        do_transcribe(rate_limited_client)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
+        do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
 
-        response = do_transcribe(rate_limited_client)
+        response = do_transcribe(rate_limited_client, headers=rate_limit_auth_headers)
         data = response.json()
 
         # Check required fields

@@ -9,9 +9,8 @@ from starlette.background import BackgroundTask
 
 from app.config import Settings, get_settings
 from app.core_client import CoreAPIClient, CoreAPIError, get_core_api
-from app.models import Session as SessionModel
+from app.middleware.auth import AuthenticatedUser, get_current_user
 from app.rate_limit import RateLimitResult, require_rate_limit
-from app.session import get_session
 from app.turnstile import require_turnstile
 from app.utils.audio import AudioValidationError, validate_audio_duration, validate_audio_file_size
 
@@ -100,7 +99,7 @@ async def transcribe(
     # Analysis options (separate from cleanup)
     analysis_llm_model: Optional[str] = Form(None),  # LLM model for analysis
     settings: Settings = Depends(get_settings),
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
     _turnstile: None = Depends(require_turnstile()),
     _rate_limit: RateLimitResult = Depends(require_rate_limit("transcribe")),
@@ -148,11 +147,12 @@ async def transcribe(
         if analysis_llm_model:
             data["analysis_llm_model"] = analysis_llm_model
 
-    response = await core_api.client.post(
+    response = await core_api.request(
+        "POST",
         "/api/v1/upload-transcribe-cleanup",
+        access_token=user.access_token,
         files=files,
         data=data,
-        headers={"Authorization": f"Bearer {session.access_token}"},
     )
 
     if response.status_code >= 400:
@@ -172,7 +172,7 @@ async def transcribe(
 async def import_text(
     request: Request,
     body: ImportTextRequest,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
     _turnstile: None = Depends(require_turnstile()),
     _rate_limit: RateLimitResult = Depends(require_rate_limit("transcribe")),
@@ -195,7 +195,7 @@ async def import_text(
     response = await core_api.request(
         "POST",
         "/api/v1/import-and-cleanup",
-        session.access_token,
+        access_token=user.access_token,
         json=request_body,
     )
 
@@ -211,14 +211,14 @@ async def import_text(
 @router.get("/api/transcriptions/{transcription_id}")
 async def get_transcription(
     transcription_id: str,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get transcription status, text, and segments."""
     response = await core_api.request(
         "GET",
         f"/api/v1/transcriptions/{transcription_id}",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if response.status_code >= 400:
@@ -240,10 +240,10 @@ async def list_entries(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     entry_type: Optional[str] = Query(default=None),
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
-    """List all entries for the current session."""
+    """List all entries for the current user."""
     params = {"limit": limit, "offset": offset}
     if entry_type:
         params["entry_type"] = entry_type
@@ -251,7 +251,7 @@ async def list_entries(
     response = await core_api.request(
         "GET",
         "/api/v1/entries",
-        session.access_token,
+        access_token=user.access_token,
         params=params,
     )
 
@@ -267,7 +267,7 @@ async def list_entries(
 @router.get("/api/entries/{entry_id}")
 async def get_entry(
     entry_id: str,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get entry details with transcription segments and cleanup.
@@ -288,7 +288,7 @@ async def get_entry(
     entry_response = await core_api.request(
         "GET",
         f"/api/v1/entries/{entry_id}",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if entry_response.status_code >= 400:
@@ -306,7 +306,7 @@ async def get_entry(
         transcription_response = await core_api.request(
             "GET",
             f"/api/v1/transcriptions/{transcription_id}",
-            session.access_token,
+            access_token=user.access_token,
         )
         if transcription_response.status_code == 200:
             full_transcription = transcription_response.json()
@@ -318,7 +318,7 @@ async def get_entry(
     list_response = await core_api.request(
         "GET",
         "/api/v1/entries",
-        session.access_token,
+        access_token=user.access_token,
         params={"limit": 100},  # Fetch enough to find the entry # TODO: change the dirty fix
     )
 
@@ -339,7 +339,7 @@ async def get_entry(
         cleanup_response = await core_api.request(
             "GET",
             f"/api/v1/cleaned-entries/{cleanup_id}",
-            session.access_token,
+            access_token=user.access_token,
         )
         if cleanup_response.status_code == 200:
             cleanup_data = cleanup_response.json()
@@ -350,7 +350,7 @@ async def get_entry(
         analyses_response = await core_api.request(
             "GET",
             f"/api/v1/cleaned-entries/{cleanup_id}/analyses",
-            session.access_token,
+            access_token=user.access_token,
         )
         if analyses_response.status_code == 200:
             analyses_data = analyses_response.json()
@@ -366,7 +366,7 @@ async def get_entry(
 @router.get("/api/entries/{entry_id}/cleaned")
 async def list_cleaned_entries(
     entry_id: str,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List all cleanup records for an entry.
@@ -377,7 +377,7 @@ async def list_cleaned_entries(
     response = await core_api.request(
         "GET",
         f"/api/v1/entries/{entry_id}/cleaned",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if response.status_code >= 400:
@@ -392,14 +392,14 @@ async def list_cleaned_entries(
 @router.delete("/api/entries/{entry_id}")
 async def delete_entry(
     entry_id: str,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Delete an entry and all associated data."""
     response = await core_api.request(
         "DELETE",
         f"/api/v1/entries/{entry_id}",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if response.status_code >= 400:
@@ -414,7 +414,7 @@ async def delete_entry(
 @router.get("/api/entries/{entry_id}/audio")
 async def get_entry_audio(
     entry_id: str,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Stream the audio file for an entry.
@@ -422,7 +422,7 @@ async def get_entry_audio(
     Captures headers from Core API response to ensure correct Content-Type
     and filename regardless of whether audio preprocessing is enabled.
     """
-    auth_headers = {"Authorization": f"Bearer {session.access_token}"}
+    auth_headers = {"Authorization": f"Bearer {user.access_token}"}
 
     # Start streaming request to Core API
     # We'll capture headers from the response before streaming body
@@ -487,7 +487,7 @@ async def get_entry_audio(
 async def trigger_cleanup(
     transcription_id: str,
     body: CleanupRequest = Body(default=CleanupRequest()),
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
     _turnstile: None = Depends(require_turnstile()),
 ):
@@ -506,7 +506,7 @@ async def trigger_cleanup(
     response = await core_api.request(
         "POST",
         f"/api/v1/transcriptions/{transcription_id}/cleanup",
-        session.access_token,
+        access_token=user.access_token,
         json=request_body,
     )
 
@@ -522,14 +522,14 @@ async def trigger_cleanup(
 @router.get("/api/cleaned-entries/{cleanup_id}")
 async def get_cleaned_entry(
     cleanup_id: str,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get cleanup details including cleaned text and segments."""
     response = await core_api.request(
         "GET",
         f"/api/v1/cleaned-entries/{cleanup_id}",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if response.status_code >= 400:
@@ -545,14 +545,14 @@ async def get_cleaned_entry(
 async def update_user_edit(
     cleanup_id: str,
     body: UserEditRequest,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Save user edits to cleaned text."""
     response = await core_api.request(
         "PUT",
         f"/api/v1/cleaned-entries/{cleanup_id}/user-edit",
-        session.access_token,
+        access_token=user.access_token,
         json=body.model_dump(),
     )
 
@@ -568,14 +568,14 @@ async def update_user_edit(
 @router.delete("/api/cleaned-entries/{cleanup_id}/user-edit")
 async def revert_user_edit(
     cleanup_id: str,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Revert to AI-generated cleaned text."""
     response = await core_api.request(
         "DELETE",
         f"/api/v1/cleaned-entries/{cleanup_id}/user-edit",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if response.status_code >= 400:
@@ -594,14 +594,14 @@ async def revert_user_edit(
 
 @router.get("/api/analysis-profiles")
 async def list_analysis_profiles(
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List available analysis profiles."""
     response = await core_api.request(
         "GET",
         "/api/v1/analysis-profiles",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if response.status_code >= 400:
@@ -618,7 +618,7 @@ async def trigger_analysis(
     request: Request,
     cleanup_id: str,
     body: AnalyzeRequest = Body(default=AnalyzeRequest()),
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
     _rate_limit: RateLimitResult = Depends(require_rate_limit("analyze")),
 ):
@@ -627,7 +627,7 @@ async def trigger_analysis(
     response = await core_api.request(
         "POST",
         f"/api/v1/cleaned-entries/{cleanup_id}/analyze",
-        session.access_token,
+        access_token=user.access_token,
         json=body.model_dump(exclude_none=True),
     )
 
@@ -647,14 +647,14 @@ async def trigger_analysis(
 @router.get("/api/cleaned-entries/{cleanup_id}/analyses")
 async def list_analyses(
     cleanup_id: str,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List all analyses for a cleaned entry."""
     response = await core_api.request(
         "GET",
         f"/api/v1/cleaned-entries/{cleanup_id}/analyses",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if response.status_code >= 400:
@@ -669,14 +669,14 @@ async def list_analyses(
 @router.get("/api/analyses/{analysis_id}")
 async def get_analysis(
     analysis_id: str,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get analysis status and results."""
     response = await core_api.request(
         "GET",
         f"/api/v1/analyses/{analysis_id}",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if response.status_code >= 400:

@@ -26,6 +26,7 @@ class AuthenticatedUser:
     tenant_id: str
     email: str
     role: str
+    access_token: str
 
 
 def get_current_user(
@@ -69,6 +70,7 @@ def get_current_user(
         tenant_id=token_data.tenant_id,
         email=token_data.email,
         role=token_data.role or "",
+        access_token=credentials.credentials,
     )
 
 

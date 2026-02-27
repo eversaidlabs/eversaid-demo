@@ -7,7 +7,7 @@ from httpx import Response
 class TestFeedbackEndpoints:
     """Tests for feedback submission and retrieval."""
 
-    def test_submit_feedback_success(self, client, test_settings):
+    def test_submit_feedback_success(self, client, test_settings, auth_headers):
         """Test successful feedback submission."""
         # Mock entry exists in Core API
         respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries/entry-123").mock(
@@ -27,6 +27,7 @@ class TestFeedbackEndpoints:
                 "rating": 4,
                 "feedback_text": "Good transcription quality",
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 200
@@ -38,7 +39,7 @@ class TestFeedbackEndpoints:
         assert "id" in data
         assert "created_at" in data
 
-    def test_submit_feedback_entry_not_found(self, client, test_settings):
+    def test_submit_feedback_entry_not_found(self, client, test_settings, auth_headers):
         """Test feedback submission when entry doesn't exist."""
         respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries/nonexistent").mock(
             return_value=Response(
@@ -53,12 +54,13 @@ class TestFeedbackEndpoints:
                 "feedback_type": "transcription",
                 "rating": 4,
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
-    def test_submit_feedback_invalid_type(self, client, test_settings):
+    def test_submit_feedback_invalid_type(self, client, test_settings, auth_headers):
         """Test feedback submission with invalid feedback_type."""
         response = client.post(
             "/api/entries/entry-123/feedback",
@@ -66,11 +68,12 @@ class TestFeedbackEndpoints:
                 "feedback_type": "invalid_type",
                 "rating": 4,
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 422
 
-    def test_submit_feedback_invalid_rating_too_low(self, client, test_settings):
+    def test_submit_feedback_invalid_rating_too_low(self, client, test_settings, auth_headers):
         """Test feedback submission with rating below 1."""
         response = client.post(
             "/api/entries/entry-123/feedback",
@@ -78,11 +81,12 @@ class TestFeedbackEndpoints:
                 "feedback_type": "transcription",
                 "rating": 0,
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 422
 
-    def test_submit_feedback_invalid_rating_too_high(self, client, test_settings):
+    def test_submit_feedback_invalid_rating_too_high(self, client, test_settings, auth_headers):
         """Test feedback submission with rating above 5."""
         response = client.post(
             "/api/entries/entry-123/feedback",
@@ -90,11 +94,12 @@ class TestFeedbackEndpoints:
                 "feedback_type": "transcription",
                 "rating": 6,
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 422
 
-    def test_submit_feedback_text_too_long(self, client, test_settings):
+    def test_submit_feedback_text_too_long(self, client, test_settings, auth_headers):
         """Test feedback submission with text exceeding 1000 chars."""
         response = client.post(
             "/api/entries/entry-123/feedback",
@@ -103,11 +108,12 @@ class TestFeedbackEndpoints:
                 "rating": 4,
                 "feedback_text": "x" * 1001,
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 422
 
-    def test_submit_feedback_upsert(self, client, test_settings):
+    def test_submit_feedback_upsert(self, client, test_settings, auth_headers):
         """Test that second submission updates existing feedback."""
         # Mock entry exists
         respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries/entry-123").mock(
@@ -125,6 +131,7 @@ class TestFeedbackEndpoints:
                 "rating": 3,
                 "feedback_text": "Initial feedback",
             },
+            headers=auth_headers,
         )
         assert response1.status_code == 200
         feedback_id = response1.json()["id"]
@@ -137,6 +144,7 @@ class TestFeedbackEndpoints:
                 "rating": 5,
                 "feedback_text": "Updated feedback",
             },
+            headers=auth_headers,
         )
         assert response2.status_code == 200
         data = response2.json()
@@ -144,7 +152,7 @@ class TestFeedbackEndpoints:
         assert data["rating"] == 5
         assert data["feedback_text"] == "Updated feedback"
 
-    def test_submit_feedback_different_types(self, client, test_settings):
+    def test_submit_feedback_different_types(self, client, test_settings, auth_headers):
         """Test that different feedback types create separate records."""
         # Mock entry exists
         respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries/entry-123").mock(
@@ -158,6 +166,7 @@ class TestFeedbackEndpoints:
         response1 = client.post(
             "/api/entries/entry-123/feedback",
             json={"feedback_type": "transcription", "rating": 4},
+            headers=auth_headers,
         )
         assert response1.status_code == 200
         id1 = response1.json()["id"]
@@ -166,6 +175,7 @@ class TestFeedbackEndpoints:
         response2 = client.post(
             "/api/entries/entry-123/feedback",
             json={"feedback_type": "cleanup", "rating": 5},
+            headers=auth_headers,
         )
         assert response2.status_code == 200
         id2 = response2.json()["id"]
@@ -173,7 +183,7 @@ class TestFeedbackEndpoints:
         # Should be different records
         assert id1 != id2
 
-    def test_submit_feedback_all_types(self, client, test_settings):
+    def test_submit_feedback_all_types(self, client, test_settings, auth_headers):
         """Test all valid feedback types."""
         respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries/entry-123").mock(
             return_value=Response(
@@ -186,11 +196,12 @@ class TestFeedbackEndpoints:
             response = client.post(
                 "/api/entries/entry-123/feedback",
                 json={"feedback_type": feedback_type, "rating": 4},
+                headers=auth_headers,
             )
             assert response.status_code == 200
             assert response.json()["feedback_type"] == feedback_type
 
-    def test_get_feedback_empty(self, client, test_settings):
+    def test_get_feedback_empty(self, client, test_settings, auth_headers):
         """Test getting feedback when none exists."""
         respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries/entry-123").mock(
             return_value=Response(
@@ -199,12 +210,12 @@ class TestFeedbackEndpoints:
             )
         )
 
-        response = client.get("/api/entries/entry-123/feedback")
+        response = client.get("/api/entries/entry-123/feedback", headers=auth_headers)
 
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_get_feedback_entry_not_found(self, client, test_settings):
+    def test_get_feedback_entry_not_found(self, client, test_settings, auth_headers):
         """Test getting feedback when entry doesn't exist."""
         respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries/nonexistent").mock(
             return_value=Response(
@@ -213,11 +224,11 @@ class TestFeedbackEndpoints:
             )
         )
 
-        response = client.get("/api/entries/nonexistent/feedback")
+        response = client.get("/api/entries/nonexistent/feedback", headers=auth_headers)
 
         assert response.status_code == 404
 
-    def test_get_feedback_returns_all_types(self, client, test_settings):
+    def test_get_feedback_returns_all_types(self, client, test_settings, auth_headers):
         """Test getting all feedback for an entry."""
         respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries/entry-123").mock(
             return_value=Response(
@@ -231,10 +242,11 @@ class TestFeedbackEndpoints:
             client.post(
                 "/api/entries/entry-123/feedback",
                 json={"feedback_type": feedback_type, "rating": 4},
+                headers=auth_headers,
             )
 
         # Get all feedback
-        response = client.get("/api/entries/entry-123/feedback")
+        response = client.get("/api/entries/entry-123/feedback", headers=auth_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -242,7 +254,7 @@ class TestFeedbackEndpoints:
         types = {f["feedback_type"] for f in data}
         assert types == {"transcription", "cleanup", "analysis"}
 
-    def test_submit_feedback_without_text(self, client, test_settings):
+    def test_submit_feedback_without_text(self, client, test_settings, auth_headers):
         """Test feedback submission without optional text."""
         respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries/entry-123").mock(
             return_value=Response(
@@ -257,6 +269,7 @@ class TestFeedbackEndpoints:
                 "feedback_type": "transcription",
                 "rating": 5,
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 200

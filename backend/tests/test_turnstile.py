@@ -76,7 +76,7 @@ async def test_verify_token_no_ip():
         assert "remoteip" not in body
 
 
-def test_turnstile_disabled_skips_verification(client, test_settings):
+def test_turnstile_disabled_skips_verification(client, test_settings, auth_headers):
     """When TURNSTILE_ENABLED=False (default), no token is required."""
     # test_settings has TURNSTILE_ENABLED=False by default
     # The transcribe endpoint should not reject requests without a token
@@ -126,12 +126,13 @@ def test_turnstile_disabled_skips_verification(client, test_settings):
             "/api/transcribe",
             data={"language": "sl", "speaker_count": "2"},
             files={"file": ("test.wav", b"fake-audio-content", "audio/wav")},
+            headers=auth_headers,
         )
         # Should not be 403 (Turnstile is disabled)
         assert response.status_code != 403
 
 
-def test_turnstile_enabled_requires_token(client, test_settings):
+def test_turnstile_enabled_requires_token(client, test_settings, auth_headers):
     """When TURNSTILE_ENABLED=True, requests without token get 403."""
     test_settings.TURNSTILE_ENABLED = True
     test_settings.TURNSTILE_SECRET_KEY = "test-secret"
@@ -141,6 +142,7 @@ def test_turnstile_enabled_requires_token(client, test_settings):
             "/api/transcribe",
             data={"language": "sl", "speaker_count": "2"},
             files={"file": ("test.wav", b"fake-audio-content", "audio/wav")},
+            headers=auth_headers,
         )
         assert response.status_code == 403
         body = response.json()

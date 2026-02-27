@@ -1,6 +1,6 @@
 """Local-only endpoints for feedback collection and waitlist capture.
 
-These endpoints store data in the wrapper's SQLite database only,
+These endpoints store data in the wrapper's PostgreSQL database only,
 they do NOT proxy to the Core API (except for entry verification).
 """
 
@@ -14,9 +14,10 @@ from sqlalchemy.orm import Session as DBSession
 from app.config import Settings, get_settings
 from app.core_client import CoreAPIClient, CoreAPIError, get_core_api
 from app.database import get_db
-from app.models import EntryFeedback, Session as SessionModel, Waitlist
+from app.middleware.auth import AuthenticatedUser, get_current_user
+from app.models import EntryFeedback, Waitlist
 from app.rate_limit import get_rate_limit_status
-from app.session import get_session
+from app.utils.ip import get_client_ip
 
 
 router = APIRouter(tags=["local"])
@@ -57,7 +58,7 @@ async def get_config(
 @router.get("/api/rate-limits")
 async def get_rate_limits(
     request: Request,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     db: DBSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -68,8 +69,8 @@ async def get_rate_limits(
     """
     # Get transcribe limits (primary action users care about)
     result = get_rate_limit_status(
-        session_id=session.session_id,
-        ip_address=session.ip_address or request.client.host,
+        user_id=user.user_id,
+        ip_address=get_client_ip(request) or "unknown",
         db=db,
         action="transcribe",
         settings=settings,
@@ -133,20 +134,20 @@ class WaitlistResponse(BaseModel):
 async def submit_feedback(
     entry_id: str,
     body: FeedbackRequest,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
     db: DBSession = Depends(get_db),
 ):
     """Submit feedback for an entry (upsert by feedback_type).
 
     Verifies entry exists in Core API before accepting feedback.
-    If feedback already exists for this (session, entry, type), updates it.
+    If feedback already exists for this (user, entry, type), updates it.
     """
     # Verify entry exists in Core API
     response = await core_api.request(
         "GET",
         f"/api/v1/entries/{entry_id}",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if response.status_code == 404:
@@ -162,7 +163,7 @@ async def submit_feedback(
     existing = (
         db.query(EntryFeedback)
         .filter(
-            EntryFeedback.session_id == session.session_id,
+            EntryFeedback.user_id == user.user_id,
             EntryFeedback.entry_id == entry_id,
             EntryFeedback.feedback_type == body.feedback_type,
         )
@@ -180,7 +181,7 @@ async def submit_feedback(
     else:
         # Create new feedback
         feedback = EntryFeedback(
-            session_id=session.session_id,
+            user_id=user.user_id,
             entry_id=entry_id,
             feedback_type=body.feedback_type,
             rating=body.rating,
@@ -195,20 +196,20 @@ async def submit_feedback(
 @router.get("/api/entries/{entry_id}/feedback", response_model=List[FeedbackResponse])
 async def get_feedback(
     entry_id: str,
-    session: SessionModel = Depends(get_session),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
     db: DBSession = Depends(get_db),
 ):
     """Get all feedback for an entry.
 
     Verifies entry exists in Core API before returning feedback.
-    Returns all feedback types submitted by this session for the entry.
+    Returns all feedback types submitted by this user for the entry.
     """
     # Verify entry exists in Core API
     response = await core_api.request(
         "GET",
         f"/api/v1/entries/{entry_id}",
-        session.access_token,
+        access_token=user.access_token,
     )
 
     if response.status_code == 404:
@@ -220,11 +221,11 @@ async def get_feedback(
             detail=response.text,
         )
 
-    # Get all feedback for this entry from this session
+    # Get all feedback for this entry from this user
     feedback_list = (
         db.query(EntryFeedback)
         .filter(
-            EntryFeedback.session_id == session.session_id,
+            EntryFeedback.user_id == user.user_id,
             EntryFeedback.entry_id == entry_id,
         )
         .order_by(EntryFeedback.created_at.desc())

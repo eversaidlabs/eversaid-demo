@@ -7,7 +7,7 @@ from httpx import Response
 class TestImportTextEndpoint:
     """Tests for POST /api/import-text endpoint."""
 
-    def test_import_text_success(self, client, test_settings):
+    def test_import_text_success(self, client, test_settings, auth_headers):
         """Test successful text import request."""
         respx.post(
             f"{test_settings.CORE_API_URL}/api/v1/import-and-cleanup"
@@ -31,6 +31,7 @@ class TestImportTextEndpoint:
                 "language": "en",
                 "cleanup_type": "clean",
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 202
@@ -40,7 +41,7 @@ class TestImportTextEndpoint:
         assert data["cleanup_id"] == "cleanup-123"
         assert data["cleanup_status"] == "processing"
 
-    def test_import_text_with_analysis(self, client, test_settings):
+    def test_import_text_with_analysis(self, client, test_settings, auth_headers):
         """Test text import with analysis profile."""
         respx.post(
             f"{test_settings.CORE_API_URL}/api/v1/import-and-cleanup"
@@ -66,6 +67,7 @@ class TestImportTextEndpoint:
                 "cleanup_type": "clean",
                 "analysis_profile": "generic-summary",
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 202
@@ -73,7 +75,7 @@ class TestImportTextEndpoint:
         assert data["analysis_id"] == "analysis-123"
         assert data["analysis_status"] == "pending"
 
-    def test_import_text_with_llm_model(self, client, test_settings):
+    def test_import_text_with_llm_model(self, client, test_settings, auth_headers):
         """Test text import with custom LLM model."""
         respx.post(
             f"{test_settings.CORE_API_URL}/api/v1/import-and-cleanup"
@@ -97,11 +99,12 @@ class TestImportTextEndpoint:
                 "cleanup_type": "edited",
                 "llm_model": "llama3.3:70b",
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 202
 
-    def test_import_text_minimal_params(self, client, test_settings):
+    def test_import_text_minimal_params(self, client, test_settings, auth_headers):
         """Test text import with only required parameters (defaults applied)."""
         respx.post(
             f"{test_settings.CORE_API_URL}/api/v1/import-and-cleanup"
@@ -121,11 +124,12 @@ class TestImportTextEndpoint:
         response = client.post(
             "/api/import-text",
             json={"text": "Minimal test."},
+            headers=auth_headers,
         )
 
         assert response.status_code == 202
 
-    def test_import_text_core_api_error(self, client, test_settings):
+    def test_import_text_core_api_error(self, client, test_settings, auth_headers):
         """Test text import when Core API returns error."""
         respx.post(
             f"{test_settings.CORE_API_URL}/api/v1/import-and-cleanup"
@@ -142,21 +146,23 @@ class TestImportTextEndpoint:
                 "text": "Test text.",
                 "cleanup_type": "invalid",
             },
+            headers=auth_headers,
         )
 
         assert response.status_code == 400
 
-    def test_import_text_missing_text(self, client, test_settings):
+    def test_import_text_missing_text(self, client, test_settings, auth_headers):
         """Test text import without text parameter (validation error)."""
         response = client.post(
             "/api/import-text",
             json={"language": "en"},
+            headers=auth_headers,
         )
 
         # Pydantic validation should fail
         assert response.status_code == 422
 
-    def test_import_text_core_api_500(self, client, test_settings):
+    def test_import_text_core_api_500(self, client, test_settings, auth_headers):
         """Test text import when Core API returns 500."""
         respx.post(
             f"{test_settings.CORE_API_URL}/api/v1/import-and-cleanup"
@@ -170,6 +176,7 @@ class TestImportTextEndpoint:
         response = client.post(
             "/api/import-text",
             json={"text": "Test text."},
+            headers=auth_headers,
         )
 
         assert response.status_code == 500

@@ -1,13 +1,12 @@
 """Database models package.
 
-Re-exports all models for backwards compatibility.
+Re-exports all models for convenient imports.
 """
 
 from app.models.core import (
     DB_SCHEMA,
     EntryFeedback,
     RateLimitEntry,
-    Session,
     Waitlist,
     generate_uuid,
     utc_now,
@@ -24,7 +23,6 @@ __all__ = [
     "DB_SCHEMA",
     "EntryFeedback",
     "RateLimitEntry",
-    "Session",
     "Waitlist",
     "generate_uuid",
     "utc_now",

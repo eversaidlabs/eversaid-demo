@@ -3,11 +3,15 @@
 import os
 from typing import Generator
 
+# Set DB_SCHEMA env var BEFORE any imports to ensure tests use isolated schema.
+# This must happen before pydantic-settings loads config.
+os.environ["DB_SCHEMA"] = "platform_test"
+
 from dotenv import load_dotenv
 
-# Load test-specific env file (not the main .env which has Docker settings)
-# CI/CD sets env vars directly, this file is for local development only
-load_dotenv(".env.test")
+# Load test-specific env file for other settings (database credentials, etc.)
+# CI/CD sets env vars directly, this file is for local development only.
+load_dotenv(".env.test", override=True)
 
 import pytest
 import respx
@@ -16,7 +20,10 @@ from httpx import Response
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 
+# Clear settings cache BEFORE importing app modules to ensure test settings are used
 from app.config import Settings, get_settings
+get_settings.cache_clear()
+
 from app.core_client import CoreAPIClient
 from app.database import Base, get_db
 
@@ -109,15 +116,71 @@ def mock_core_api_client(test_settings: Settings) -> Generator[CoreAPIClient, No
     # Cleanup happens via garbage collection since we can't await in fixture
 
 
+# Anonymous tenant ID (must match migration)
+ANONYMOUS_TENANT_ID = "00000000-0000-0000-0000-000000000000"
+
+
+@pytest.fixture
+def anonymous_tenant(test_db: Session):
+    """Create the anonymous tenant in the test database."""
+    from app.models.auth import Tenant
+
+    tenant = Tenant(
+        id=ANONYMOUS_TENANT_ID,
+        name="anonymous",
+        is_active=True,
+    )
+    test_db.add(tenant)
+    test_db.commit()
+    return tenant
+
+
+@pytest.fixture
+def test_user(test_db: Session, anonymous_tenant, test_settings: Settings):
+    """Create a test anonymous user and return auth headers."""
+    from app.models.auth import User, UserRole
+    from app.utils.jwt import create_access_token
+    from app.utils.security import hash_password
+
+    user = User(
+        id="test-user-123",
+        tenant_id=ANONYMOUS_TENANT_ID,
+        email="test-anon@anon.eversaid.example",
+        hashed_password=hash_password("not-used"),
+        password_change_required=False,
+        role=UserRole.TENANT_USER,
+        is_active=True,
+    )
+    test_db.add(user)
+    test_db.commit()
+
+    # Create JWT access token
+    access_token = create_access_token(
+        user_id=user.id,
+        tenant_id=ANONYMOUS_TENANT_ID,
+        email=user.email,
+        role=UserRole.TENANT_USER.value,
+    )
+
+    return {
+        "user": user,
+        "access_token": access_token,
+        "headers": {"Authorization": f"Bearer {access_token}"},
+    }
+
+
 @pytest.fixture
 def client(test_engine, test_settings: Settings) -> Generator[TestClient, None, None]:
     """Create a test client with mocked database, settings, and Core API.
 
     This fixture sets up respx mocking internally to ensure proper ordering.
     Use test_settings to add additional mocks in tests.
+
+    Note: Use the auth_headers fixture to get JWT auth headers for authenticated requests.
     """
     from app.main import app as fastapi_app
     import app.main as main_module
+    from app.models.auth import Tenant
 
     TestingSessionLocal = sessionmaker(bind=test_engine)
 
@@ -142,60 +205,23 @@ def client(test_engine, test_settings: Settings) -> Generator[TestClient, None, 
     original_run_migrations = main_module.run_migrations
     main_module.run_migrations = lambda: None
 
-    # Start respx mocking with base auth mocks
+    # Create anonymous tenant in the database
+    db = TestingSessionLocal()
+    try:
+        existing = db.query(Tenant).filter(Tenant.id == ANONYMOUS_TENANT_ID).first()
+        if not existing:
+            tenant = Tenant(
+                id=ANONYMOUS_TENANT_ID,
+                name="anonymous",
+                is_active=True,
+            )
+            db.add(tenant)
+            db.commit()
+    finally:
+        db.close()
+
+    # Start respx mocking for Core API calls
     with respx.mock:
-        # Register endpoint - returns user object
-        respx.post(f"{test_settings.CORE_API_URL}/api/v1/auth/register").mock(
-            return_value=Response(
-                201,
-                json={
-                    "id": "user-123",
-                    "email": "anon-test@anon.eversaid.example",
-                    "is_active": True,
-                    "role": "user",
-                    "created_at": "2025-01-01T00:00:00Z",
-                },
-            )
-        )
-
-        # Login endpoint - returns tokens
-        respx.post(f"{test_settings.CORE_API_URL}/api/v1/auth/login").mock(
-            return_value=Response(
-                200,
-                json={
-                    "access_token": "test-access-token",
-                    "refresh_token": "test-refresh-token",
-                    "token_type": "bearer",
-                    "user": {
-                        "id": "user-123",
-                        "email": "anon-test@anon.eversaid.example",
-                        "is_active": True,
-                        "role": "user",
-                        "created_at": "2025-01-01T00:00:00Z",
-                    },
-                },
-            )
-        )
-
-        # Refresh endpoint - returns new tokens
-        respx.post(f"{test_settings.CORE_API_URL}/api/v1/auth/refresh").mock(
-            return_value=Response(
-                200,
-                json={
-                    "access_token": "new-access-token",
-                    "refresh_token": "new-refresh-token",
-                    "token_type": "bearer",
-                    "user": {
-                        "id": "user-123",
-                        "email": "anon-test@anon.eversaid.example",
-                        "is_active": True,
-                        "role": "user",
-                        "created_at": "2025-01-01T00:00:00Z",
-                    },
-                },
-            )
-        )
-
         with TestClient(fastapi_app, raise_server_exceptions=False) as test_client:
             yield test_client
 
@@ -204,3 +230,21 @@ def client(test_engine, test_settings: Settings) -> Generator[TestClient, None, 
     main_module.get_settings = original_get_settings
     fastapi_app.dependency_overrides.clear()
     get_settings.cache_clear()
+
+
+@pytest.fixture
+def auth_headers(test_settings: Settings) -> dict[str, str]:
+    """Get JWT auth headers for authenticated test requests.
+
+    Creates a test user JWT token that can be used with the test client.
+    """
+    from app.utils.jwt import create_access_token
+
+    access_token = create_access_token(
+        user_id="test-user-123",
+        tenant_id=ANONYMOUS_TENANT_ID,
+        email="test-anon@anon.eversaid.example",
+        role="tenant_user",
+    )
+
+    return {"Authorization": f"Bearer {access_token}"}

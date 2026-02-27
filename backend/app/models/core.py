@@ -1,9 +1,13 @@
-"""Core models for anonymous sessions, waitlist, and feedback."""
+"""Core models for waitlist, feedback, and rate limiting.
+
+Note: The old Session model has been removed in favor of JWT-based authentication.
+Anonymous users are now stored in the User table with tenant_id=ANONYMOUS_TENANT_ID.
+"""
 
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Integer, String
 
 from app.config import get_settings
 from app.database import Base
@@ -19,22 +23,6 @@ def generate_uuid() -> str:
 def utc_now() -> datetime:
     """Return current UTC time as timezone-aware datetime."""
     return datetime.now(timezone.utc)
-
-
-class Session(Base):
-    """Anonymous session tracking with Core API tokens."""
-
-    __tablename__ = "sessions"
-    __table_args__ = {"schema": DB_SCHEMA}
-
-    session_id = Column(String, primary_key=True, default=generate_uuid)
-    core_api_email = Column(String, nullable=False)
-    access_token = Column(String, nullable=False)
-    refresh_token = Column(String, nullable=False)
-    token_expires_at = Column(DateTime(timezone=True), nullable=False)
-    created_at = Column(DateTime(timezone=True), default=utc_now)
-    expires_at = Column(DateTime(timezone=True), nullable=False)
-    ip_address = Column(String, nullable=True)
 
 
 class Waitlist(Base):
@@ -59,11 +47,7 @@ class EntryFeedback(Base):
     __table_args__ = {"schema": DB_SCHEMA}
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    session_id = Column(
-        String,
-        ForeignKey(f"{DB_SCHEMA}.sessions.session_id"),
-        nullable=False,
-    )
+    user_id = Column(String, nullable=False)
     entry_id = Column(String, nullable=False)
     feedback_type = Column(String, nullable=False)  # transcription, cleanup, analysis
     rating = Column(Integer, nullable=False)  # 1-5
@@ -78,7 +62,7 @@ class RateLimitEntry(Base):
     __table_args__ = {"schema": DB_SCHEMA}
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    session_id = Column(String, nullable=True)
+    user_id = Column(String, nullable=True)
     ip_address = Column(String, nullable=True)
     action = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now)

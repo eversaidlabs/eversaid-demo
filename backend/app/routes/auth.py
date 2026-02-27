@@ -1,12 +1,16 @@
 """Authentication routes for login, logout, token refresh, and password change."""
 
+import secrets
+import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.middleware.auth import AuthenticatedUser, get_current_user
+from app.models.auth import AuthSession, User, UserRole
 from app.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
@@ -25,8 +29,19 @@ from app.services.auth import (
     UserInactiveError,
 )
 from app.utils.ip import get_client_ip
+from app.utils.jwt import create_access_token, create_refresh_token, hash_token
+from app.utils.security import hash_password
+from app.config import get_settings
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+# Well-known anonymous tenant ID (must match migration)
+ANONYMOUS_TENANT_ID = "00000000-0000-0000-0000-000000000000"
+
+# Cookie configuration for storing tokens
+ACCESS_TOKEN_COOKIE = "eversaid_access_token"
+REFRESH_TOKEN_COOKIE = "eversaid_refresh_token"
+COOKIE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60  # 30 days
 
 
 def get_client_info(request: Request) -> tuple[Optional[str], Optional[str]]:
@@ -34,6 +49,109 @@ def get_client_info(request: Request) -> tuple[Optional[str], Optional[str]]:
     ip_address = get_client_ip(request)
     user_agent = request.headers.get("User-Agent")
     return ip_address, user_agent
+
+
+def _set_token_cookies(response: Response, access_token: str, refresh_token: str) -> None:
+    """Set httpOnly cookies for tokens."""
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE,
+        value=access_token,
+        max_age=COOKIE_MAX_AGE_SECONDS,
+        httponly=True,
+        samesite="lax",
+        secure=False,  # Set to True in production via reverse proxy
+    )
+    response.set_cookie(
+        key=REFRESH_TOKEN_COOKIE,
+        value=refresh_token,
+        max_age=COOKIE_MAX_AGE_SECONDS,
+        httponly=True,
+        samesite="lax",
+        secure=False,  # Set to True in production via reverse proxy
+    )
+
+
+def _clear_token_cookies(response: Response) -> None:
+    """Clear token cookies."""
+    response.delete_cookie(key=ACCESS_TOKEN_COOKIE)
+    response.delete_cookie(key=REFRESH_TOKEN_COOKIE)
+
+
+@router.post("/anonymous", response_model=TokenResponse)
+def create_anonymous_session(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> TokenResponse:
+    """Create anonymous user and return tokens.
+
+    This endpoint creates a new anonymous user in the reserved "anonymous" tenant
+    and returns JWT tokens. The tokens are also set as httpOnly cookies for
+    convenience.
+
+    Anonymous users:
+    - Belong to tenant_id = 00000000-0000-0000-0000-000000000000
+    - Have email format: anon-{uuid}@anon.eversaid.example
+    - Have a random hashed password (never used, just satisfies schema)
+    - Ephemeral: after token expiry (30 days inactive), user is abandoned
+    """
+    settings = get_settings()
+    ip_address, user_agent = get_client_info(request)
+
+    # Generate unique user ID and email
+    user_id = str(uuid.uuid4())
+    email = f"anon-{user_id}@anon.eversaid.example"
+
+    # Create anonymous user with random password (never used)
+    user = User(
+        id=user_id,
+        tenant_id=ANONYMOUS_TENANT_ID,
+        email=email,
+        hashed_password=hash_password(secrets.token_urlsafe(32)),
+        password_change_required=False,  # Anonymous users don't need password change
+        role=UserRole.TENANT_USER,
+        is_active=True,
+    )
+    db.add(user)
+
+    # Create tokens
+    access_token = create_access_token(
+        user_id=user_id,
+        tenant_id=ANONYMOUS_TENANT_ID,
+        email=email,
+        role=UserRole.TENANT_USER.value,
+    )
+    refresh_token = create_refresh_token(
+        user_id=user_id,
+        tenant_id=ANONYMOUS_TENANT_ID,
+        email=email,
+    )
+
+    # Create auth session for refresh token tracking
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS
+    )
+    auth_session = AuthSession(
+        user_id=user_id,
+        token_hash=hash_token(refresh_token),
+        expires_at=expires_at,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+    db.add(auth_session)
+
+    db.commit()
+
+    # Set cookies for convenience
+    _set_token_cookies(response, access_token, refresh_token)
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        password_change_required=False,
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
