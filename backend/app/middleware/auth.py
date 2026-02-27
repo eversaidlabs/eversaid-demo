@@ -26,7 +26,6 @@ class AuthenticatedUser:
     tenant_id: str
     email: str
     role: str
-    scopes: list[str]
 
 
 def get_current_user(
@@ -70,7 +69,6 @@ def get_current_user(
         tenant_id=token_data.tenant_id,
         email=token_data.email,
         role=token_data.role or "",
-        scopes=token_data.scopes or [],
     )
 
 
@@ -118,31 +116,3 @@ def get_platform_admin(
         )
 
     return user
-
-
-def require_scope(required_scope: str):
-    """Factory for scope-checking dependencies.
-
-    Usage:
-        @router.get("/data")
-        def get_data(user: AuthenticatedUser = Depends(require_scope("read:tenant"))):
-            ...
-
-    Args:
-        required_scope: The scope required to access the endpoint.
-
-    Returns:
-        Dependency that checks if user has the required scope.
-    """
-
-    def scope_checker(
-        user: AuthenticatedUser = Depends(get_current_user),
-    ) -> AuthenticatedUser:
-        if required_scope not in user.scopes:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Required scope '{required_scope}' not granted",
-            )
-        return user
-
-    return scope_checker

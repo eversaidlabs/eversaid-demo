@@ -9,7 +9,8 @@ Key Design Decisions (documented per user request):
 2. COUNT SUCCESSES, NOT ATTEMPTS: We only commit the rate limit entry after
    the endpoint succeeds. The entry is added to the session but not committed
    until the endpoint explicitly commits. This prevents locking users out due
-   to failed requests.
+   to failed requests. Note: This design has a small race window where concurrent
+   requests may slightly exceed limits, but this is acceptable for a demo app.
 
 3. LONGEST WAIT WINS: When multiple limits are exceeded, we report the limit
    with the LONGEST retry_after time. This ensures users see accurate retry times.

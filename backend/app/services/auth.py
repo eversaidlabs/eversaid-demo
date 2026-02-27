@@ -65,42 +65,17 @@ class AuthService:
         self.db = db
         self.settings = get_settings()
 
-    def _get_user_scopes(self, role: UserRole) -> list[str]:
-        """Get permission scopes for a user role."""
-        base_scopes = ["read:own", "write:own"]
-
-        if role == UserRole.TENANT_USER:
-            return base_scopes
-
-        if role == UserRole.TENANT_ADMIN:
-            return base_scopes + ["read:tenant", "write:tenant", "admin:tenant"]
-
-        if role == UserRole.PLATFORM_ADMIN:
-            return base_scopes + [
-                "read:tenant",
-                "write:tenant",
-                "admin:tenant",
-                "read:platform",
-                "write:platform",
-                "admin:platform",
-            ]
-
-        return base_scopes
-
     def _create_tokens(self, user: User) -> Tuple[str, str, int]:
         """Create access and refresh tokens for a user.
 
         Returns:
             Tuple of (access_token, refresh_token, expires_in_seconds)
         """
-        scopes = self._get_user_scopes(user.role)
-
         access_token = create_access_token(
             user_id=user.id,
             tenant_id=user.tenant_id,
             email=user.email,
             role=user.role.value,
-            scopes=scopes,
         )
 
         refresh_token = create_refresh_token(

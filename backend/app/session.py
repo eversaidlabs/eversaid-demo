@@ -195,16 +195,27 @@ async def get_or_create_session(
         if session:
             now = datetime.now(timezone.utc)
 
-            # Check if token needs refresh (within threshold of expiry)
-            refresh_threshold = now + timedelta(hours=TOKEN_REFRESH_THRESHOLD_HOURS)
-            if session.token_expires_at < refresh_threshold:
-                session = await _refresh_session_tokens(
-                    session=session,
-                    core_api=core_api,
-                    db=db,
+            # Check if session has expired
+            if session.expires_at < now:
+                logger.info(
+                    "Session expired, creating new session",
+                    session_id=session.session_id[:8],
+                    expired_at=session.expires_at.isoformat(),
                 )
+                db.delete(session)
+                db.commit()
+                session = None  # Fall through to create new session
+            else:
+                # Check if token needs refresh (within threshold of expiry)
+                refresh_threshold = now + timedelta(hours=TOKEN_REFRESH_THRESHOLD_HOURS)
+                if session.token_expires_at < refresh_threshold:
+                    session = await _refresh_session_tokens(
+                        session=session,
+                        core_api=core_api,
+                        db=db,
+                    )
 
-            return session
+                return session
 
     # No valid session - create new one
     session = await _create_anonymous_session(

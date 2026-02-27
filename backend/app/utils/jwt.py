@@ -28,7 +28,6 @@ class TokenData:
     email: str
     token_type: TokenType
     role: Optional[str] = None
-    scopes: Optional[list[str]] = None
     exp: Optional[datetime] = None
 
 
@@ -55,7 +54,6 @@ def create_access_token(
     tenant_id: str,
     email: str,
     role: str,
-    scopes: list[str],
     expires_delta: Optional[timedelta] = None,
 ) -> str:
     """Create a JWT access token.
@@ -65,7 +63,6 @@ def create_access_token(
         tenant_id: Tenant identifier.
         email: User email.
         role: User role (platform_admin, tenant_admin, tenant_user).
-        scopes: List of permission scopes.
         expires_delta: Optional custom expiration time.
 
     Returns:
@@ -83,7 +80,6 @@ def create_access_token(
         "tenant_id": tenant_id,
         "email": email,
         "role": role,
-        "scopes": scopes,
         "type": TokenType.ACCESS.value,
         "exp": expire,
         "iat": datetime.now(timezone.utc),
@@ -167,7 +163,6 @@ def verify_token(token: str, expected_type: TokenType) -> TokenData:
         email=payload.get("email"),
         token_type=TokenType(token_type),
         role=payload.get("role"),
-        scopes=payload.get("scopes"),
         exp=datetime.fromtimestamp(payload.get("exp"), tz=timezone.utc) if payload.get("exp") else None,
     )
 

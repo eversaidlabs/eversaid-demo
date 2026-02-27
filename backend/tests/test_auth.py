@@ -53,7 +53,6 @@ class TestJWT:
             tenant_id="tenant-456",
             email="test@test.com",
             role="tenant_user",
-            scopes=["read:own", "write:own"],
         )
 
         token_data = verify_token(token, TokenType.ACCESS)
@@ -61,7 +60,6 @@ class TestJWT:
         assert token_data.tenant_id == "tenant-456"
         assert token_data.email == "test@test.com"
         assert token_data.role == "tenant_user"
-        assert "read:own" in token_data.scopes
 
     def test_create_refresh_token(self, test_settings):
         """Refresh token should be created with correct claims."""
@@ -570,3 +568,167 @@ class TestAdminEndpoints:
         )
 
         assert response.status_code == 403
+
+
+class TestCrossTenantAccessPrevention:
+    """Tests for cross-tenant access prevention (role-based isolation)."""
+
+    @pytest.fixture
+    def setup_two_tenants(self, test_db):
+        """Create two tenants with tenant admins for testing isolation."""
+        # Create Tenant A
+        tenant_a = Tenant(name="Tenant A")
+        test_db.add(tenant_a)
+        test_db.commit()
+        test_db.refresh(tenant_a)
+
+        admin_a = User(
+            email="admin-a@test.com",
+            tenant_id=tenant_a.id,
+            hashed_password=hash_password("password"),
+            role=UserRole.TENANT_ADMIN,
+            password_change_required=False,
+        )
+        test_db.add(admin_a)
+
+        user_a = User(
+            email="user-a@test.com",
+            tenant_id=tenant_a.id,
+            hashed_password=hash_password("password"),
+            role=UserRole.TENANT_USER,
+            password_change_required=False,
+        )
+        test_db.add(user_a)
+
+        # Create Tenant B
+        tenant_b = Tenant(name="Tenant B")
+        test_db.add(tenant_b)
+        test_db.commit()
+        test_db.refresh(tenant_b)
+
+        admin_b = User(
+            email="admin-b@test.com",
+            tenant_id=tenant_b.id,
+            hashed_password=hash_password("password"),
+            role=UserRole.TENANT_ADMIN,
+            password_change_required=False,
+        )
+        test_db.add(admin_b)
+
+        user_b = User(
+            email="user-b@test.com",
+            tenant_id=tenant_b.id,
+            hashed_password=hash_password("password"),
+            role=UserRole.TENANT_USER,
+            password_change_required=False,
+        )
+        test_db.add(user_b)
+
+        test_db.commit()
+
+        return {
+            "tenant_a": tenant_a,
+            "admin_a": admin_a,
+            "user_a": user_a,
+            "tenant_b": tenant_b,
+            "admin_b": admin_b,
+            "user_b": user_b,
+        }
+
+    def test_tenant_admin_cannot_list_other_tenant_users(self, client, setup_two_tenants):
+        """Tenant admin should get 403 when trying to list users from another tenant."""
+        # Login as admin of Tenant A
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "admin-a@test.com", "password": "password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # Try to list users from Tenant B
+        response = client.get(
+            "/api/admin/users",
+            params={"tenant_id": setup_two_tenants["tenant_b"].id},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 403
+        assert "other tenants" in response.json()["detail"]
+
+    def test_tenant_admin_can_list_own_tenant_users(self, client, setup_two_tenants):
+        """Tenant admin should be able to list users from their own tenant."""
+        # Login as admin of Tenant A
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "admin-a@test.com", "password": "password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # List users (should default to own tenant)
+        response = client.get(
+            "/api/admin/users",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 200
+        users = response.json()
+        # Should see admin_a and user_a (2 users)
+        assert len(users) == 2
+        emails = [u["email"] for u in users]
+        assert "admin-a@test.com" in emails
+        assert "user-a@test.com" in emails
+        # Should NOT see Tenant B users
+        assert "admin-b@test.com" not in emails
+        assert "user-b@test.com" not in emails
+
+    def test_tenant_admin_cannot_create_user_in_other_tenant(self, client, setup_two_tenants):
+        """Tenant admin trying to create user in another tenant should have request ignored.
+
+        The tenant_id in the request body is ignored for tenant admins - users are
+        always created in the admin's own tenant.
+        """
+        # Login as admin of Tenant A
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "admin-a@test.com", "password": "password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # Try to create a user in Tenant B (should be ignored, created in Tenant A)
+        response = client.post(
+            "/api/admin/users",
+            json={
+                "email": "new-user@test.com",
+                "tenant_id": setup_two_tenants["tenant_b"].id,  # This should be ignored
+                "role": "tenant_user",
+            },
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 201
+        created_user = response.json()["user"]
+
+        # User should be created in Tenant A (the admin's tenant), not Tenant B
+        assert created_user["tenant_id"] == setup_two_tenants["tenant_a"].id
+        assert created_user["email"] == "new-user@test.com"
+
+    def test_tenant_admin_cannot_escalate_to_tenant_admin_role(self, client, setup_two_tenants):
+        """Tenant admin cannot create users with tenant_admin role."""
+        # Login as admin of Tenant A
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "admin-a@test.com", "password": "password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # Try to create a tenant_admin
+        response = client.post(
+            "/api/admin/users",
+            json={
+                "email": "escalated@test.com",
+                "role": "tenant_admin",
+            },
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 403
+        assert "tenant_user" in response.json()["detail"]

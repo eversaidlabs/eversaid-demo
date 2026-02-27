@@ -225,6 +225,190 @@ class TestCoreAPIErrors:
             assert exc_info.value.status_code == 502
 
 
+class TestSessionExpiry:
+    """Tests for session expiry validation."""
+
+    def test_expired_session_creates_new_session(
+        self, test_db, test_settings, mock_core_api_client
+    ):
+        """Expired session should be deleted and new session created."""
+        # Create an expired session
+        expired_session = SessionModel(
+            session_id="expired-session",
+            core_api_email="expired@anon.eversaid.example",
+            access_token="expired-access-token",
+            refresh_token="expired-refresh-token",
+            token_expires_at=datetime.now(timezone.utc) - timedelta(days=1),
+            created_at=datetime.now(timezone.utc) - timedelta(days=30),
+            expires_at=datetime.now(timezone.utc) - timedelta(days=1),  # Expired!
+            ip_address="127.0.0.1",
+        )
+        test_db.add(expired_session)
+        test_db.commit()
+
+        with respx.mock:
+            respx.post(f"{test_settings.CORE_API_URL}/api/v1/auth/register").mock(
+                return_value=Response(201, json={
+                    "id": "user-123",
+                    "email": "test@test.com",
+                    "is_active": True,
+                    "role": "user",
+                    "created_at": "2025-01-01T00:00:00Z",
+                })
+            )
+            respx.post(f"{test_settings.CORE_API_URL}/api/v1/auth/login").mock(
+                return_value=Response(200, json={
+                    "access_token": "new-access-token",
+                    "refresh_token": "new-refresh-token",
+                    "token_type": "bearer",
+                    "user": {"id": "user-123", "email": "test@test.com"},
+                })
+            )
+
+            # Import and call the function that handles session lookup
+            from app.session import get_or_create_session
+            from unittest.mock import MagicMock
+
+            # Create mock request with the expired session cookie
+            mock_request = MagicMock()
+            mock_request.cookies.get.return_value = "expired-session"
+            mock_request.client.host = "127.0.0.1"
+            mock_request.headers = {}
+
+            mock_response = MagicMock()
+
+            new_session = asyncio.get_event_loop().run_until_complete(
+                get_or_create_session(
+                    request=mock_request,
+                    response=mock_response,
+                    db=test_db,
+                    settings=test_settings,
+                    core_api=mock_core_api_client,
+                )
+            )
+
+        # Verify new session was created with different ID
+        assert new_session.session_id != "expired-session"
+        assert new_session.access_token == "new-access-token"
+
+        # Verify old session was deleted
+        old_session = test_db.query(SessionModel).filter(
+            SessionModel.session_id == "expired-session"
+        ).first()
+        assert old_session is None
+
+    def test_valid_session_returned_when_not_expired(
+        self, test_db, test_settings, mock_core_api_client
+    ):
+        """Valid non-expired session should be returned without creating new one."""
+        # Create a valid session
+        valid_session = SessionModel(
+            session_id="valid-session",
+            core_api_email="valid@anon.eversaid.example",
+            access_token="valid-access-token",
+            refresh_token="valid-refresh-token",
+            token_expires_at=datetime.now(timezone.utc) + timedelta(days=5),
+            created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=6),  # Not expired
+            ip_address="127.0.0.1",
+        )
+        test_db.add(valid_session)
+        test_db.commit()
+
+        from app.session import get_or_create_session
+        from unittest.mock import MagicMock
+
+        # Create mock request with the valid session cookie
+        mock_request = MagicMock()
+        mock_request.cookies.get.return_value = "valid-session"
+        mock_request.client.host = "127.0.0.1"
+        mock_request.headers = {}
+
+        mock_response = MagicMock()
+
+        returned_session = asyncio.get_event_loop().run_until_complete(
+            get_or_create_session(
+                request=mock_request,
+                response=mock_response,
+                db=test_db,
+                settings=test_settings,
+                core_api=mock_core_api_client,
+            )
+        )
+
+        # Verify same session was returned
+        assert returned_session.session_id == "valid-session"
+        assert returned_session.access_token == "valid-access-token"
+
+    def test_expired_session_deleted_from_database(
+        self, test_db, test_settings, mock_core_api_client
+    ):
+        """Expired session should be deleted from database when accessed."""
+        # Create an expired session
+        expired_session = SessionModel(
+            session_id="to-be-deleted",
+            core_api_email="expired@anon.eversaid.example",
+            access_token="old-token",
+            refresh_token="old-refresh",
+            token_expires_at=datetime.now(timezone.utc) - timedelta(days=1),
+            created_at=datetime.now(timezone.utc) - timedelta(days=30),
+            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),  # Just expired
+            ip_address="127.0.0.1",
+        )
+        test_db.add(expired_session)
+        test_db.commit()
+
+        # Verify session exists before access
+        assert test_db.query(SessionModel).filter(
+            SessionModel.session_id == "to-be-deleted"
+        ).first() is not None
+
+        with respx.mock:
+            respx.post(f"{test_settings.CORE_API_URL}/api/v1/auth/register").mock(
+                return_value=Response(201, json={
+                    "id": "user-123",
+                    "email": "test@test.com",
+                    "is_active": True,
+                    "role": "user",
+                    "created_at": "2025-01-01T00:00:00Z",
+                })
+            )
+            respx.post(f"{test_settings.CORE_API_URL}/api/v1/auth/login").mock(
+                return_value=Response(200, json={
+                    "access_token": "new-token",
+                    "refresh_token": "new-refresh",
+                    "token_type": "bearer",
+                    "user": {"id": "user-123", "email": "test@test.com"},
+                })
+            )
+
+            from app.session import get_or_create_session
+            from unittest.mock import MagicMock
+
+            mock_request = MagicMock()
+            mock_request.cookies.get.return_value = "to-be-deleted"
+            mock_request.client.host = "127.0.0.1"
+            mock_request.headers = {}
+
+            mock_response = MagicMock()
+
+            asyncio.get_event_loop().run_until_complete(
+                get_or_create_session(
+                    request=mock_request,
+                    response=mock_response,
+                    db=test_db,
+                    settings=test_settings,
+                    core_api=mock_core_api_client,
+                )
+            )
+
+        # Verify expired session was deleted
+        deleted_session = test_db.query(SessionModel).filter(
+            SessionModel.session_id == "to-be-deleted"
+        ).first()
+        assert deleted_session is None
+
+
 class TestHealthEndpoint:
     """Tests for the health endpoint."""
 
