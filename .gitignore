@@ -91,3 +91,6 @@ credentials.json
 docs-local/
 
 infrastructure/
+backend/.env
+.mcp.json
+backend/scripts

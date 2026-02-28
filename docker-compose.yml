@@ -54,6 +54,8 @@ services:
       # Audio validation limits
       MAX_AUDIO_FILE_SIZE_MB: ${MAX_AUDIO_FILE_SIZE_MB:-50}
       MAX_AUDIO_DURATION_SECONDS: ${MAX_AUDIO_DURATION_SECONDS:-180}
+      # Auth rate limiting
+      RATE_LIMIT_AUTH_IP_15MIN: ${RATE_LIMIT_AUTH_IP_15MIN:-10}
       # Database configuration (PostgreSQL from core-api)
       DATABASE_HOST: ${DATABASE_HOST:-host.docker.internal}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
@@ -64,6 +66,16 @@ services:
       # Cloudflare Turnstile (CAPTCHA)
       TURNSTILE_ENABLED: ${TURNSTILE_ENABLED:-false}
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      # JWT authentication
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      JWT_REFRESH_TOKEN_EXPIRE_DAYS: ${JWT_REFRESH_TOKEN_EXPIRE_DAYS:-30}
+      # CORS
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      # Analytics (PostHog)
+      POSTHOG_KEY: ${POSTHOG_KEY:-}
+      POSTHOG_HOST: ${POSTHOG_HOST:-/ingest}
     volumes:
       - ./backend:/app
     healthcheck:
