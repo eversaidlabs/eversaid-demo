@@ -1,6 +1,7 @@
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool, text
+from sqlalchemy.exc import ProgrammingError
 
 from alembic import context
 
@@ -56,9 +57,16 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        # Create schema if it doesn't exist
-        connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
-        connection.commit()
+        # Verify schema exists (should be created by infra setup scripts)
+        result = connection.execute(
+            text("SELECT schema_name FROM information_schema.schemata WHERE schema_name = :schema"),
+            {"schema": schema}
+        )
+        if not result.fetchone():
+            raise RuntimeError(
+                f"Database schema '{schema}' does not exist. "
+                f"Please run the appropriate setup script from infra/db/ first."
+            )
 
         context.configure(
             connection=connection,
