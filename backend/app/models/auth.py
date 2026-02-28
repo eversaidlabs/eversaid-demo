@@ -15,9 +15,9 @@ DB_SCHEMA = get_settings().DB_SCHEMA
 class UserRole(str, enum.Enum):
     """User role enumeration for access control."""
 
-    PLATFORM_ADMIN = "platform_admin"  # Can manage all tenants and users
-    TENANT_ADMIN = "tenant_admin"  # Can manage users within their tenant
-    TENANT_USER = "tenant_user"  # Regular user within a tenant
+    platform_admin = "platform_admin"  # Can manage all tenants and users
+    tenant_admin = "tenant_admin"  # Can manage users within their tenant
+    tenant_user = "tenant_user"  # Regular user within a tenant
 
 
 class Tenant(Base):
@@ -56,7 +56,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     password_change_required = Column(Boolean, default=True, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    role = Column(Enum(UserRole, schema=DB_SCHEMA), nullable=False, default=UserRole.TENANT_USER)
+    role = Column(Enum(UserRole, schema=DB_SCHEMA), nullable=False, default=UserRole.tenant_user)
     created_at = Column(DateTime(timezone=True), default=utc_now)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 

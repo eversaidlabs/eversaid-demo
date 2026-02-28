@@ -67,7 +67,7 @@ def create_user(
     auth_service = AuthService(db)
 
     # Determine tenant_id based on caller's role
-    if user.role == UserRole.PLATFORM_ADMIN.value:
+    if user.role == UserRole.platform_admin.value:
         # Platform admin must specify tenant_id
         if not body.tenant_id:
             raise HTTPException(
@@ -82,12 +82,12 @@ def create_user(
         tenant_id = user.tenant_id
 
         # Tenant admin can only create tenant_user role
-        if body.role != UserRole.TENANT_USER:
+        if body.role != UserRole.tenant_user:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Tenant admins can only create tenant_user accounts",
             )
-        role = UserRole.TENANT_USER
+        role = UserRole.tenant_user
 
     # Check if email already exists
     existing_users = auth_service.list_users()
@@ -125,7 +125,7 @@ def list_users(
     auth_service = AuthService(db)
 
     # Enforce tenant scope for non-platform admins
-    if user.role != UserRole.PLATFORM_ADMIN.value:
+    if user.role != UserRole.platform_admin.value:
         # Tenant admin can only see their own tenant
         if tenant_id and tenant_id != user.tenant_id:
             raise HTTPException(

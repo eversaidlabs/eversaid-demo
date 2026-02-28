@@ -109,7 +109,7 @@ def create_anonymous_session(
         email=email,
         hashed_password=hash_password(secrets.token_urlsafe(32)),
         password_change_required=False,  # Anonymous users don't need password change
-        role=UserRole.TENANT_USER,
+        role=UserRole.tenant_user,
         is_active=True,
     )
     db.add(user)
@@ -119,7 +119,7 @@ def create_anonymous_session(
         user_id=user_id,
         tenant_id=ANONYMOUS_TENANT_ID,
         email=email,
-        role=UserRole.TENANT_USER.value,
+        role=UserRole.tenant_user.value,
     )
     refresh_token = create_refresh_token(
         user_id=user_id,

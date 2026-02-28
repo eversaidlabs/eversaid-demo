@@ -100,7 +100,7 @@ class CreateUserRequest(BaseModel):
 
     email: EmailStr
     tenant_id: Optional[str] = None  # Required for platform_admin, auto-filled for tenant_admin
-    role: UserRole = UserRole.TENANT_USER
+    role: UserRole = UserRole.tenant_user
     password: Optional[str] = None  # Generated if not provided
 
 

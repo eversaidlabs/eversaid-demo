@@ -330,7 +330,7 @@ class AuthService:
         self,
         email: str,
         tenant_id: str,
-        role: UserRole = UserRole.TENANT_USER,
+        role: UserRole = UserRole.tenant_user,
         password: Optional[str] = None,
     ) -> Tuple[User, str]:
         """Create a new user.

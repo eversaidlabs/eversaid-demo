@@ -103,7 +103,7 @@ class TestAuthService:
             email="test@test.com",
             tenant_id=tenant.id,
             hashed_password=hash_password("test-password"),
-            role=UserRole.TENANT_USER,
+            role=UserRole.tenant_user,
             password_change_required=False,
         )
         test_db.add(user)
@@ -150,7 +150,7 @@ class TestAuthService:
             email="inactive@test.com",
             tenant_id=tenant.id,
             hashed_password=hash_password("test-password"),
-            role=UserRole.TENANT_USER,
+            role=UserRole.tenant_user,
             is_active=False,
         )
         test_db.add(user)
@@ -174,7 +174,7 @@ class TestAuthService:
             email="tenant-inactive@test.com",
             tenant_id=tenant.id,
             hashed_password=hash_password("test-password"),
-            role=UserRole.TENANT_USER,
+            role=UserRole.tenant_user,
         )
         test_db.add(user)
         test_db.commit()
@@ -299,13 +299,13 @@ class TestAuthService:
         user, temp_password = auth_service.create_user(
             email="new@test.com",
             tenant_id=tenant.id,
-            role=UserRole.TENANT_ADMIN,
+            role=UserRole.tenant_admin,
         )
 
         assert user.id is not None
         assert user.email == "new@test.com"
         assert user.tenant_id == tenant.id
-        assert user.role == UserRole.TENANT_ADMIN
+        assert user.role == UserRole.tenant_admin
         assert user.password_change_required is True
         assert temp_password is not None
         assert verify_password(temp_password, user.hashed_password)
@@ -326,7 +326,7 @@ class TestAuthEndpoints:
             email="test@test.com",
             tenant_id=tenant.id,
             hashed_password=hash_password("test-password"),
-            role=UserRole.TENANT_USER,
+            role=UserRole.tenant_user,
             password_change_required=False,
         )
         test_db.add(user)
@@ -462,7 +462,7 @@ class TestAdminEndpoints:
             email="admin@test.com",
             tenant_id=tenant.id,
             hashed_password=hash_password("admin-password"),
-            role=UserRole.PLATFORM_ADMIN,
+            role=UserRole.platform_admin,
             password_change_required=False,
         )
         test_db.add(admin)
@@ -547,7 +547,7 @@ class TestAdminEndpoints:
             email="tenant-admin@test.com",
             tenant_id=tenant.id,
             hashed_password=hash_password("password"),
-            role=UserRole.TENANT_ADMIN,
+            role=UserRole.tenant_admin,
             password_change_required=False,
         )
         test_db.add(user)
@@ -586,7 +586,7 @@ class TestCrossTenantAccessPrevention:
             email="admin-a@test.com",
             tenant_id=tenant_a.id,
             hashed_password=hash_password("password"),
-            role=UserRole.TENANT_ADMIN,
+            role=UserRole.tenant_admin,
             password_change_required=False,
         )
         test_db.add(admin_a)
@@ -595,7 +595,7 @@ class TestCrossTenantAccessPrevention:
             email="user-a@test.com",
             tenant_id=tenant_a.id,
             hashed_password=hash_password("password"),
-            role=UserRole.TENANT_USER,
+            role=UserRole.tenant_user,
             password_change_required=False,
         )
         test_db.add(user_a)
@@ -610,7 +610,7 @@ class TestCrossTenantAccessPrevention:
             email="admin-b@test.com",
             tenant_id=tenant_b.id,
             hashed_password=hash_password("password"),
-            role=UserRole.TENANT_ADMIN,
+            role=UserRole.tenant_admin,
             password_change_required=False,
         )
         test_db.add(admin_b)
@@ -619,7 +619,7 @@ class TestCrossTenantAccessPrevention:
             email="user-b@test.com",
             tenant_id=tenant_b.id,
             hashed_password=hash_password("password"),
-            role=UserRole.TENANT_USER,
+            role=UserRole.tenant_user,
             password_change_required=False,
         )
         test_db.add(user_b)

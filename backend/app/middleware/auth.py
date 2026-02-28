@@ -87,7 +87,7 @@ def get_tenant_admin(
     Raises:
         HTTPException 403: If user doesn't have tenant_admin or platform_admin role.
     """
-    allowed_roles = {UserRole.TENANT_ADMIN.value, UserRole.PLATFORM_ADMIN.value}
+    allowed_roles = {UserRole.tenant_admin.value, UserRole.platform_admin.value}
 
     if user.role not in allowed_roles:
         raise HTTPException(
@@ -111,7 +111,7 @@ def get_platform_admin(
     Raises:
         HTTPException 403: If user doesn't have platform_admin role.
     """
-    if user.role != UserRole.PLATFORM_ADMIN.value:
+    if user.role != UserRole.platform_admin.value:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Platform admin access required",

@@ -148,7 +148,7 @@ def test_user(test_db: Session, anonymous_tenant, test_settings: Settings):
         email="test-anon@anon.eversaid.example",
         hashed_password=hash_password("not-used"),
         password_change_required=False,
-        role=UserRole.TENANT_USER,
+        role=UserRole.tenant_user,
         is_active=True,
     )
     test_db.add(user)
@@ -159,7 +159,7 @@ def test_user(test_db: Session, anonymous_tenant, test_settings: Settings):
         user_id=user.id,
         tenant_id=ANONYMOUS_TENANT_ID,
         email=user.email,
-        role=UserRole.TENANT_USER.value,
+        role=UserRole.tenant_user.value,
     )
 
     return {
