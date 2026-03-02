@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    # API Key settings (for Core API integration)
+    INTERNAL_API_SECRET: str = ""  # Shared secret for internal endpoints (Core API -> EverSaid)
+    API_KEY_DEFAULT_RATE_LIMIT_RPM: int = 60  # Default requests per minute for API keys
+
     # Analytics (PostHog) - served via /api/config for runtime configuration
     POSTHOG_KEY: str = ""
     POSTHOG_HOST: str = "/ingest"
@@ -69,6 +73,8 @@ class Settings(BaseSettings):
                 raise ValueError("DATABASE_PASSWORD is required in production")
             if not self.JWT_SECRET_KEY:
                 raise ValueError("JWT_SECRET_KEY is required in production")
+            if not self.INTERNAL_API_SECRET:
+                raise ValueError("INTERNAL_API_SECRET is required in production")
         return self
 
     @property

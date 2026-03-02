@@ -2,7 +2,7 @@
 
 import enum
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Index, String
+from sqlalchemy import ARRAY, Boolean, Column, DateTime, Enum, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.config import get_settings
@@ -95,3 +95,47 @@ class AuthSession(Base):
 
     # Relationships
     user = relationship("User", back_populates="auth_sessions")
+
+
+class ApiKey(Base):
+    """API key for programmatic access to Core API.
+
+    Keys are managed in EverSaid but validated by Core API via internal endpoint.
+    Full key shown only on creation; stored as bcrypt hash.
+    """
+
+    __tablename__ = "api_keys"
+    __table_args__ = (
+        Index("ix_api_keys_tenant_id", "tenant_id"),
+        Index("ix_api_keys_created_by", "created_by"),
+        Index("ix_api_keys_is_active", "is_active"),
+        Index("ix_api_keys_key_prefix", "key_prefix"),
+        {"schema": DB_SCHEMA},
+    )
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    tenant_id = Column(
+        String,
+        ForeignKey(f"{DB_SCHEMA}.tenants.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    created_by = Column(
+        String,
+        ForeignKey(f"{DB_SCHEMA}.users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    key_hash = Column(String, nullable=False)  # bcrypt hash of full key
+    key_prefix = Column(String(11), nullable=False)  # First 11 chars for display (e.g., "sta-abc1234")
+    name = Column(String(100), nullable=False)  # User-friendly label
+    description = Column(Text, nullable=True)  # Optional description
+    scopes = Column(ARRAY(Text), nullable=False, default=[])  # Permission scopes
+    rate_limit_rpm = Column(Integer, nullable=True)  # NULL = use default
+    expires_at = Column(DateTime(timezone=True), nullable=True)  # NULL = never expires
+    is_active = Column(Boolean, default=True, nullable=False)
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    # Relationships
+    tenant = relationship("Tenant")
+    creator = relationship("User")

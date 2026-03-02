@@ -14,8 +14,10 @@ from app.middleware.logging import RequestLoggingMiddleware
 from app.rate_limit import AuthRateLimitExceeded, RateLimitExceeded
 from app.turnstile import TurnstileError
 from app.routes.admin import router as admin_router
+from app.routes.api_keys import router as api_keys_router
 from app.routes.auth import router as auth_router
 from app.routes.core import router as core_router
+from app.routes.internal import router as internal_router
 from app.routes.local import router as local_router
 from app.utils.logger import setup_logging
 
@@ -103,7 +105,9 @@ app = FastAPI(
 # Register routers
 app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(api_keys_router)
 app.include_router(core_router)
+app.include_router(internal_router)
 app.include_router(local_router)
 
 # Register middleware (order matters: CORS outermost, logging innermost)

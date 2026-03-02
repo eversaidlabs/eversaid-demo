@@ -149,7 +149,7 @@ Key backend configuration (see `docker-compose.yml` for full list):
 - **Users**: Belong to one tenant, have roles (platform_admin, tenant_admin, tenant_user)
 - **Role-based access**: Platform admins manage all tenants; tenant admins manage users in their tenant only
 - **JWT tokens**: Access tokens (15min) + refresh tokens (30 days) with rotation
-- **Password hashing**: Argon2id via `passlib`
+- **Password hashing**: bcrypt via `bcrypt` library
 
 ### Rate Limiting
 - Multi-tier: per-session/day, per-IP/day, global/day
