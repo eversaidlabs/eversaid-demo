@@ -89,6 +89,7 @@ class ValidateApiKeyResponse(BaseModel):
     valid: bool
     tenant_id: Optional[str] = None
     user_id: Optional[str] = None
+    role: Optional[str] = None  # User role (platform_admin, tenant_admin, tenant_user)
     scopes: list[str] = Field(default_factory=list)
     rate_limit_rpm: Optional[int] = None
     error: Optional[str] = None  # Error message if invalid

@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.config import get_settings
 from app.database import get_db
@@ -87,8 +87,11 @@ def validate_api_key(
         )
 
     # Find candidate keys by prefix (could be multiple if there are collisions)
+    # Eager load creator relationship to get role without N+1 query
     candidates = db.scalars(
-        select(ApiKey).where(ApiKey.key_prefix == key_prefix)
+        select(ApiKey)
+        .options(joinedload(ApiKey.creator))
+        .where(ApiKey.key_prefix == key_prefix)
     ).all()
 
     if not candidates:
@@ -143,6 +146,7 @@ def validate_api_key(
         valid=True,
         tenant_id=matched_key.tenant_id,
         user_id=matched_key.created_by,
+        role=matched_key.creator.role.value if matched_key.creator else None,
         scopes=matched_key.scopes or [],
         rate_limit_rpm=rate_limit,
     )
