@@ -78,6 +78,9 @@ def run_migrations_online() -> None:
         with context.begin_transaction():
             context.run_migrations()
 
+        # Explicit commit required for SQLAlchemy 2.0 + psycopg3
+        connection.commit()
+
 
 if context.is_offline_mode():
     run_migrations_offline()
