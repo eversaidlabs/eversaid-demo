@@ -73,6 +73,20 @@ jobs:
   # ===========================================================================
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: eversaid
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: eversaid
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
 
@@ -91,6 +105,16 @@ jobs:
 
       - name: Run tests
         working-directory: backend
+        env:
+          ENVIRONMENT: development
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+          DATABASE_NAME: eversaid
+          DATABASE_USER: eversaid
+          DATABASE_PASSWORD: testpassword
+          DB_SCHEMA: platform_test
+          JWT_SECRET_KEY: ci-test-secret-key-not-for-production
+          INTERNAL_API_SECRET: ci-test-internal-secret
         run: |
           mkdir -p data
           pytest tests/ -v
