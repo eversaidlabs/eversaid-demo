@@ -90,7 +90,7 @@ credentials.json
 
 docs-local/
 
-infrastructure/
+infra/nginx
 backend/.env
 .mcp.json
 backend/scripts
