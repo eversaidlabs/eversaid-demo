@@ -1,4 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+// Mock auth module with hoisted mocks
+const { mockEnsureAuthenticated, mockHandleUnauthorized } = vi.hoisted(() => ({
+  mockEnsureAuthenticated: vi.fn(),
+  mockHandleUnauthorized: vi.fn(),
+}))
+
+vi.mock('@/lib/auth', () => ({
+  ensureAuthenticated: mockEnsureAuthenticated,
+  getAccessToken: vi.fn().mockReturnValue('test-access-token'),
+  handleUnauthorized: mockHandleUnauthorized,
+  clearTokens: vi.fn(),
+}))
+
 import {
   parseRateLimitHeaders,
   uploadAndTranscribe,
@@ -27,6 +41,11 @@ global.fetch = mockFetch
 describe('API Client', () => {
   beforeEach(() => {
     mockFetch.mockReset()
+    mockEnsureAuthenticated.mockReset()
+    mockHandleUnauthorized.mockReset()
+    // Set up default mock return values
+    mockEnsureAuthenticated.mockResolvedValue('test-access-token')
+    mockHandleUnauthorized.mockResolvedValue('new-access-token')
   })
 
   afterEach(() => {
@@ -107,7 +126,9 @@ describe('API Client', () => {
         `${API_BASE_URL}/api/transcribe`,
         expect.objectContaining({
           method: 'POST',
-          credentials: 'include',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer test-access-token',
+          }),
         })
       )
 
@@ -159,7 +180,9 @@ describe('API Client', () => {
         `${API_BASE_URL}/api/transcriptions/trans-123`,
         expect.objectContaining({
           method: 'GET',
-          credentials: 'include',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer test-access-token',
+          }),
         })
       )
       expect(result.data).toEqual(mockResponse)
