@@ -1,13 +1,15 @@
-"""Local-only endpoints for feedback collection and waitlist capture.
+"""Local-only endpoints for feedback collection, waitlist capture, and OpenAPI proxy.
 
 These endpoints store data in the wrapper's PostgreSQL database only,
-they do NOT proxy to the Core API (except for entry verification).
+they do NOT proxy to the Core API (except for entry verification and OpenAPI spec).
 """
 
+import time
 from datetime import datetime, timezone
-from typing import List, Literal, Optional
+from typing import Any, List, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from sqlalchemy.orm import Session as DBSession
 
@@ -18,6 +20,9 @@ from app.middleware.auth import AuthenticatedUser, get_current_user
 from app.models import EntryFeedback, Waitlist
 from app.rate_limit import get_rate_limit_status
 from app.utils.ip import get_client_ip
+from app.utils.logger import get_logger
+
+logger = get_logger("local")
 
 
 router = APIRouter(tags=["local"])
@@ -269,3 +274,74 @@ async def join_waitlist(
     db.commit()
 
     return WaitlistResponse(message="Thank you for joining the waitlist!")
+
+
+# =============================================================================
+# OpenAPI Public Spec Proxy
+# =============================================================================
+
+# Cache for OpenAPI spec (5 minutes)
+# TODO: Re-enable caching after testing
+# _openapi_cache: dict[str, Any] = {"spec": None, "expires_at": 0}
+# OPENAPI_CACHE_SECONDS = 300  # 5 minutes
+
+
+@router.get("/api/openapi-public.json")
+async def get_public_openapi_spec(request: Request):
+    """Proxy the public OpenAPI spec from Core API.
+
+    Core API serves a pre-filtered spec at /openapi-public.json with only
+    public endpoints and parameters. This endpoint caches and proxies it.
+
+    Used by the API documentation page to power the Scalar playground.
+    """
+    # TODO: Re-enable caching after testing
+    # global _openapi_cache
+    # now = time.time()
+    # if _openapi_cache["spec"] is not None and _openapi_cache["expires_at"] > now:
+    #     return JSONResponse(content=_openapi_cache["spec"])
+
+    # Fetch from Core API
+    try:
+        core_api = getattr(request.app.state, "core_api", None)
+        if core_api is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Core API client not initialized",
+            )
+
+        response = await core_api.client.get("/openapi-public.json")
+
+        if response.status_code != 200:
+            logger.error(
+                "Failed to fetch public OpenAPI spec from Core API",
+                status_code=response.status_code,
+            )
+            raise HTTPException(
+                status_code=502,
+                detail="Failed to fetch OpenAPI spec from Core API",
+            )
+
+        spec = response.json()
+
+        # TODO: Re-enable caching after testing
+        # _openapi_cache = {
+        #     "spec": spec,
+        #     "expires_at": now + OPENAPI_CACHE_SECONDS,
+        # }
+
+        logger.info(
+            "Public OpenAPI spec fetched",
+            paths=len(spec.get("paths", {})),
+        )
+
+        return JSONResponse(content=spec)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error fetching OpenAPI spec", error=str(e))
+        raise HTTPException(
+            status_code=502,
+            detail=f"Error fetching OpenAPI spec: {e}",
+        )

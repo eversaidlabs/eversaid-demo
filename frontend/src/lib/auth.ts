@@ -68,6 +68,35 @@ export function isAuthenticated(): boolean {
 }
 
 /**
+ * Check if an access token is expired or about to expire.
+ *
+ * Decodes the JWT payload (without verification) to check the exp claim.
+ * Returns true if token is expired or will expire within 60 seconds.
+ */
+export function isTokenExpired(token: string): boolean {
+  try {
+    // JWT structure: header.payload.signature
+    const parts = token.split('.')
+    if (parts.length !== 3) return true
+
+    // Decode the payload (base64url)
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+
+    if (!payload.exp) return true
+
+    // Check if expired or will expire within 60 seconds
+    const expiresAt = payload.exp * 1000 // Convert to milliseconds
+    const now = Date.now()
+    const bufferMs = 60 * 1000 // 60 second buffer
+
+    return now >= expiresAt - bufferMs
+  } catch {
+    // If we can't parse the token, consider it expired
+    return true
+  }
+}
+
+/**
  * Create a new anonymous session
  *
  * @returns TokenResponse with access and refresh tokens
@@ -126,7 +155,7 @@ export async function refreshTokens(): Promise<boolean> {
 /**
  * Ensure the user is authenticated.
  *
- * If no token exists, creates an anonymous session.
+ * If no token exists or token is expired, attempts to refresh or create new session.
  * Returns the access token for use in API requests.
  *
  * @returns Access token
@@ -138,7 +167,21 @@ export async function ensureAuthenticated(): Promise<string> {
   if (!token) {
     // No token - create anonymous session
     const response = await createAnonymousSession()
-    token = response.access_token
+    return response.access_token
+  }
+
+  // Check if token is expired or about to expire
+  if (isTokenExpired(token)) {
+    // Try to refresh the token
+    const refreshed = await refreshTokens()
+    if (refreshed) {
+      token = getAccessToken()
+      if (token) return token
+    }
+
+    // Refresh failed - create new anonymous session
+    const response = await createAnonymousSession()
+    return response.access_token
   }
 
   return token

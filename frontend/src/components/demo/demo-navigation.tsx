@@ -41,13 +41,16 @@ export function DemoNavigation({ currentPage = "demo", onWaitlistClick }: DemoNa
         >
           {t('features')}
         </Link>
-        {/* TODO: Enable when API docs are ready */}
-        <span
-          className="text-sm font-medium text-white/40 cursor-not-allowed"
-          title="Coming soon"
+        <Link
+          href="/api-docs"
+          className={`text-sm font-medium transition-colors ${
+            currentPage === "api"
+              ? "text-white relative pb-2 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] after:rounded-[1px]"
+              : "text-white/70 hover:text-white"
+          }`}
         >
           {t('apiDocs')}
-        </span>
+        </Link>
       </div>
 
       <div className="flex items-center gap-4">
