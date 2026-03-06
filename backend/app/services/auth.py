@@ -297,9 +297,11 @@ class AuthService:
         if not verify_password(current_password, user.hashed_password):
             raise InvalidCredentialsError("Current password is incorrect")
 
+        now = datetime.now(timezone.utc)
         user.hashed_password = hash_password(new_password)
         user.password_change_required = False
-        user.updated_at = datetime.now(timezone.utc)
+        user.password_changed_at = now
+        user.updated_at = now
 
         self.db.commit()
 

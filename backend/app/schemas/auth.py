@@ -46,6 +46,10 @@ class TenantResponse(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    # Quota limits (NULL = unlimited)
+    transcription_seconds_limit: Optional[int] = None
+    text_cleanup_words_limit: Optional[int] = None
+    analysis_count_limit: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -60,8 +64,13 @@ class UserResponse(BaseModel):
     is_active: bool
     role: UserRole
     password_change_required: bool
+    password_changed_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
+    # Quota limits (NULL = unlimited)
+    transcription_seconds_limit: Optional[int] = None
+    text_cleanup_words_limit: Optional[int] = None
+    analysis_count_limit: Optional[int] = None
 
     class Config:
         from_attributes = True

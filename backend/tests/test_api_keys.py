@@ -548,13 +548,6 @@ class TestInternalValidateKeyEndpoint:
         internal_settings = Settings(
             CORE_API_URL="http://core-api:8000",
             SESSION_DURATION_DAYS=7,
-            RATE_LIMIT_DAY=20,
-            RATE_LIMIT_IP_DAY=20,
-            RATE_LIMIT_GLOBAL_DAY=1000,
-            RATE_LIMIT_LLM_DAY=200,
-            RATE_LIMIT_LLM_IP_DAY=200,
-            RATE_LIMIT_LLM_GLOBAL_DAY=10000,
-            RATE_LIMIT_AUTH_IP_15MIN=10,
             MAX_AUDIO_DURATION_SECONDS=180,
             DATABASE_HOST=os.getenv("DATABASE_HOST", "localhost"),
             DATABASE_PORT=int(os.getenv("DATABASE_PORT", "5432")),

@@ -5,13 +5,11 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import get_settings
 from app.core_client import CoreAPIClient, CoreAPIError
 from app import models  # noqa: F401 - Import models to register them with Base
 from app.middleware.logging import RequestLoggingMiddleware
-from app.rate_limit import AuthRateLimitExceeded, RateLimitExceeded
 from app.turnstile import TurnstileError
 from app.routes.admin import router as admin_router
 from app.routes.api_keys import router as api_keys_router
@@ -19,46 +17,8 @@ from app.routes.auth import router as auth_router
 from app.routes.core import router as core_router
 from app.routes.internal import router as internal_router
 from app.routes.local import router as local_router
+from app.routes.quota import router as quota_router
 from app.utils.logger import setup_logging
-
-
-# =============================================================================
-# Rate Limit Middleware
-# =============================================================================
-
-
-class RateLimitHeaderMiddleware(BaseHTTPMiddleware):
-    """Add rate limit headers to all responses from rate-limited endpoints.
-
-    Design Decision: Middleware for headers
-    -----------------------------------------
-    Using middleware is the cleanest way to add headers to ALL responses,
-    including both success (200) and error (4xx/5xx) responses. The alternative
-    of adding headers in each endpoint would miss error responses and create
-    duplication.
-
-    The rate_limit_result is stored in request.state by the require_rate_limit
-    dependency, making it available here.
-    """
-
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
-
-        # Add rate limit headers if result is available
-        if hasattr(request.state, "rate_limit_result"):
-            result = request.state.rate_limit_result
-            response.headers["X-RateLimit-Limit-Day"] = str(result.day.limit)
-            response.headers["X-RateLimit-Remaining-Day"] = str(result.day.remaining)
-            response.headers["X-RateLimit-Reset"] = str(result.day.reset)
-
-        # Add auth rate limit headers if result is available
-        if hasattr(request.state, "auth_rate_limit_result"):
-            result = request.state.auth_rate_limit_result
-            response.headers["X-RateLimit-Auth-Limit"] = str(result.ip_15min.limit)
-            response.headers["X-RateLimit-Auth-Remaining"] = str(result.ip_15min.remaining)
-            response.headers["X-RateLimit-Auth-Reset"] = str(result.ip_15min.reset)
-
-        return response
 
 
 def run_migrations() -> None:
@@ -97,7 +57,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title="Eversaid Wrapper API",
-    description="Wrapper backend for Eversaid demo - handles sessions, rate limiting, and feedback",
+    description="Wrapper backend for Eversaid demo - handles sessions, quotas, and feedback",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -109,11 +69,11 @@ app.include_router(api_keys_router)
 app.include_router(core_router)
 app.include_router(internal_router)
 app.include_router(local_router)
+app.include_router(quota_router)
 
 # Register middleware (order matters: CORS outermost, logging innermost)
-# Execution order: CORS -> RateLimit -> Logging -> Route
+# Execution order: CORS -> Logging -> Route
 app.add_middleware(RequestLoggingMiddleware)
-app.add_middleware(RateLimitHeaderMiddleware)
 
 # CORS configuration for frontend access
 cors_settings = get_settings()
@@ -124,13 +84,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
     expose_headers=[
-        "X-RateLimit-Limit-Day",
-        "X-RateLimit-Remaining-Day",
-        "X-RateLimit-Reset",
-        "X-RateLimit-Auth-Limit",
-        "X-RateLimit-Auth-Remaining",
-        "X-RateLimit-Auth-Reset",
-        "Retry-After",
         "X-Request-ID",
     ],
 )
@@ -143,44 +96,6 @@ async def core_api_error_handler(request: Request, exc: CoreAPIError) -> JSONRes
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
-    )
-
-
-@app.exception_handler(RateLimitExceeded)
-async def rate_limit_exceeded_handler(
-    request: Request, exc: RateLimitExceeded
-) -> JSONResponse:
-    """Convert RateLimitExceeded to HTTP 429 response with headers."""
-    result = exc.result
-    headers = {
-        "X-RateLimit-Limit-Day": str(result.day.limit),
-        "X-RateLimit-Remaining-Day": str(result.day.remaining),
-        "X-RateLimit-Reset": str(result.day.reset),
-        "Retry-After": str(result.retry_after),
-    }
-    return JSONResponse(
-        status_code=429,
-        content=exc.detail,
-        headers=headers,
-    )
-
-
-@app.exception_handler(AuthRateLimitExceeded)
-async def auth_rate_limit_exceeded_handler(
-    request: Request, exc: AuthRateLimitExceeded
-) -> JSONResponse:
-    """Convert AuthRateLimitExceeded to HTTP 429 response with headers."""
-    result = exc.result
-    headers = {
-        "X-RateLimit-Auth-Limit": str(result.ip_15min.limit),
-        "X-RateLimit-Auth-Remaining": str(result.ip_15min.remaining),
-        "X-RateLimit-Auth-Reset": str(result.ip_15min.reset),
-        "Retry-After": str(result.retry_after),
-    }
-    return JSONResponse(
-        status_code=429,
-        content=exc.detail,
-        headers=headers,
     )
 
 

@@ -1,7 +1,7 @@
 """Internal API endpoints for service-to-service communication.
 
 These endpoints are protected by a shared secret and should NOT be exposed publicly.
-Used by Core API to validate API keys.
+Used by Core API to validate API keys and fetch user quota limits.
 """
 
 import secrets
@@ -15,6 +15,8 @@ from app.config import get_settings
 from app.database import get_db
 from app.models.auth import ApiKey
 from app.schemas.api_key import ValidateApiKeyRequest, ValidateApiKeyResponse
+from app.schemas.quota import InternalUserLimitsResponse, QuotaLimits
+from app.services.quota import QuotaService
 from app.utils.api_key import extract_key_prefix, is_key_expired, verify_api_key
 from app.utils.logger import get_logger
 
@@ -149,4 +151,46 @@ def validate_api_key(
         role=matched_key.creator.role.value if matched_key.creator else None,
         scopes=matched_key.scopes or [],
         rate_limit_rpm=rate_limit,
+    )
+
+
+@router.get("/user/{user_id}/limits", response_model=InternalUserLimitsResponse)
+def get_user_limits(
+    user_id: str,
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_internal_secret),
+) -> InternalUserLimitsResponse:
+    """Get quota limits for a user (for Core API quota enforcement).
+
+    This endpoint is called by Core API to get quota limits before processing
+    operations that consume quotas.
+
+    Protected by shared secret (X-Internal-Secret header).
+
+    Returns user limits, tenant limits, and effective (computed) limits.
+    Effective limits are the minimum of user and tenant per field.
+    """
+    quota_service = QuotaService(db)
+
+    user_limits, tenant_limits, tenant_id = quota_service.get_user_with_tenant_limits(
+        user_id
+    )
+
+    if user_limits is None or tenant_limits is None or tenant_id is None:
+        logger.warning("User limits lookup failed", user_id=user_id, reason="not_found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    effective_limits = quota_service.compute_effective_limits(user_limits, tenant_limits)
+
+    logger.info("User limits fetched", user_id=user_id, tenant_id=tenant_id)
+
+    return InternalUserLimitsResponse(
+        user_id=user_id,
+        tenant_id=tenant_id,
+        user_limits=user_limits,
+        tenant_limits=tenant_limits,
+        effective_limits=effective_limits,
     )

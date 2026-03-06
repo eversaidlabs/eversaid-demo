@@ -18,8 +18,6 @@ from app.core_client import CoreAPIClient, CoreAPIError, get_core_api
 from app.database import get_db
 from app.middleware.auth import AuthenticatedUser, get_current_user
 from app.models import EntryFeedback, Waitlist
-from app.rate_limit import get_rate_limit_status
-from app.utils.ip import get_client_ip
 from app.utils.logger import get_logger
 
 logger = get_logger("local")
@@ -53,39 +51,6 @@ async def get_config(
             "maxAudioDurationSeconds": settings.MAX_AUDIO_DURATION_SECONDS,
         },
     }
-
-
-# =============================================================================
-# Rate Limit Endpoint
-# =============================================================================
-
-
-@router.get("/api/rate-limits")
-async def get_rate_limits(
-    request: Request,
-    user: AuthenticatedUser = Depends(get_current_user),
-    db: DBSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Get current rate limit status without consuming a request.
-
-    Returns rate limit info via headers (reuses middleware).
-    Call this on page load to display current limits.
-    """
-    # Get transcribe limits (primary action users care about)
-    result = get_rate_limit_status(
-        user_id=user.user_id,
-        ip_address=get_client_ip(request) or "unknown",
-        db=db,
-        action="transcribe",
-        settings=settings,
-    )
-
-    # Store in request state so middleware adds headers
-    request.state.rate_limit_result = result
-
-    # Return empty response - headers contain the data
-    return {}
 
 
 # =============================================================================

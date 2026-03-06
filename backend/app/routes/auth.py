@@ -20,7 +20,6 @@ from app.schemas.auth import (
     TokenResponse,
     UserResponse,
 )
-from app.rate_limit import AuthRateLimitResult, require_auth_rate_limit
 from app.services.auth import (
     AuthService,
     InvalidCredentialsError,
@@ -159,11 +158,8 @@ def login(
     request: Request,
     body: LoginRequest,
     db: Session = Depends(get_db),
-    _rate_limit: AuthRateLimitResult = Depends(require_auth_rate_limit("login")),
 ) -> TokenResponse:
     """Authenticate user and return access/refresh tokens.
-
-    Rate limited: 10 attempts per IP per 15 minutes
 
     Returns access_token, refresh_token, and password_change_required flag.
     If password_change_required is true, client should prompt user to change password.
@@ -200,11 +196,8 @@ def refresh_token(
     request: Request,
     body: RefreshTokenRequest,
     db: Session = Depends(get_db),
-    _rate_limit: AuthRateLimitResult = Depends(require_auth_rate_limit("refresh")),
 ) -> TokenResponse:
     """Refresh access token using refresh token.
-
-    Rate limited: 10 attempts per IP per 15 minutes
 
     Implements token rotation: old refresh token is invalidated,
     new tokens are issued.

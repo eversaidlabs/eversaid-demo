@@ -38,16 +38,6 @@ def test_settings() -> Settings:
     return Settings(
         CORE_API_URL="http://core-api:8000",
         SESSION_DURATION_DAYS=7,
-        # Transcribe rate limits
-        RATE_LIMIT_DAY=20,
-        RATE_LIMIT_IP_DAY=20,
-        RATE_LIMIT_GLOBAL_DAY=1000,
-        # LLM rate limits (10x transcribe)
-        RATE_LIMIT_LLM_DAY=200,
-        RATE_LIMIT_LLM_IP_DAY=200,
-        RATE_LIMIT_LLM_GLOBAL_DAY=10000,
-        # Auth rate limits
-        RATE_LIMIT_AUTH_IP_15MIN=10,
         # Audio validation
         MAX_AUDIO_DURATION_SECONDS=180,
         # Database configuration (PostgreSQL)
@@ -61,6 +51,8 @@ def test_settings() -> Settings:
         JWT_SECRET_KEY="test-secret-key-for-testing-only",
         JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15,
         JWT_REFRESH_TOKEN_EXPIRE_DAYS=30,
+        # Internal API secret for internal endpoint tests
+        INTERNAL_API_SECRET="test-internal-secret",
     )
 
 
@@ -122,13 +114,17 @@ ANONYMOUS_TENANT_ID = "00000000-0000-0000-0000-000000000000"
 
 @pytest.fixture
 def anonymous_tenant(test_db: Session):
-    """Create the anonymous tenant in the test database."""
+    """Create the anonymous tenant in the test database with default quotas."""
     from app.models.auth import Tenant
 
     tenant = Tenant(
         id=ANONYMOUS_TENANT_ID,
         name="anonymous",
         is_active=True,
+        # Default quotas for anonymous tenant
+        transcription_seconds_limit=180,
+        text_cleanup_words_limit=5000,
+        analysis_count_limit=10,
     )
     test_db.add(tenant)
     test_db.commit()
@@ -180,6 +176,7 @@ def client(test_engine, test_settings: Settings) -> Generator[TestClient, None, 
     """
     from app.main import app as fastapi_app
     import app.main as main_module
+    import app.routes.internal as internal_module
     from app.models.auth import Tenant
 
     TestingSessionLocal = sessionmaker(bind=test_engine)
@@ -201,11 +198,15 @@ def client(test_engine, test_settings: Settings) -> Generator[TestClient, None, 
     original_get_settings = main_module.get_settings
     main_module.get_settings = lambda: test_settings
 
+    # Patch get_settings in internal module for internal API secret
+    original_internal_get_settings = internal_module.get_settings
+    internal_module.get_settings = lambda: test_settings
+
     # Patch run_migrations to no-op (test_engine already calls create_all)
     original_run_migrations = main_module.run_migrations
     main_module.run_migrations = lambda: None
 
-    # Create anonymous tenant in the database
+    # Create anonymous tenant in the database with default quotas
     db = TestingSessionLocal()
     try:
         existing = db.query(Tenant).filter(Tenant.id == ANONYMOUS_TENANT_ID).first()
@@ -214,6 +215,10 @@ def client(test_engine, test_settings: Settings) -> Generator[TestClient, None, 
                 id=ANONYMOUS_TENANT_ID,
                 name="anonymous",
                 is_active=True,
+                # Default quotas for anonymous tenant
+                transcription_seconds_limit=180,
+                text_cleanup_words_limit=5000,
+                analysis_count_limit=10,
             )
             db.add(tenant)
             db.commit()
@@ -228,6 +233,7 @@ def client(test_engine, test_settings: Settings) -> Generator[TestClient, None, 
     # Restore originals
     main_module.run_migrations = original_run_migrations
     main_module.get_settings = original_get_settings
+    internal_module.get_settings = original_internal_get_settings
     fastapi_app.dependency_overrides.clear()
     get_settings.cache_clear()
 

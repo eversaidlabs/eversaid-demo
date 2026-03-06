@@ -1,7 +1,8 @@
-"""Core models for waitlist, feedback, and rate limiting.
+"""Core models for waitlist and feedback.
 
 Note: The old Session model has been removed in favor of JWT-based authentication.
 Anonymous users are now stored in the User table with tenant_id=ANONYMOUS_TENANT_ID.
+Rate limiting is now handled by nginx at the edge.
 """
 
 import uuid
@@ -52,17 +53,4 @@ class EntryFeedback(Base):
     feedback_type = Column(String, nullable=False)  # transcription, cleanup, analysis
     rating = Column(Integer, nullable=False)  # 1-5
     feedback_text = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=utc_now)
-
-
-class RateLimitEntry(Base):
-    """Rate limit tracking."""
-
-    __tablename__ = "rate_limit_entries"
-    __table_args__ = {"schema": DB_SCHEMA}
-
-    id = Column(String, primary_key=True, default=generate_uuid)
-    user_id = Column(String, nullable=True)
-    ip_address = Column(String, nullable=True)
-    action = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now)

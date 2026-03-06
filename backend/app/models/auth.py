@@ -32,6 +32,11 @@ class Tenant(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
+    # Quota limits (NULL = unlimited)
+    transcription_seconds_limit = Column(Integer, nullable=True)
+    text_cleanup_words_limit = Column(Integer, nullable=True)
+    analysis_count_limit = Column(Integer, nullable=True)
+
     # Relationships
     users = relationship("User", back_populates="tenant", lazy="dynamic")
 
@@ -55,10 +60,16 @@ class User(Base):
     email = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
     password_change_required = Column(Boolean, default=True, nullable=False)
+    password_changed_at = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     role = Column(Enum(UserRole, schema=DB_SCHEMA), nullable=False, default=UserRole.tenant_user)
     created_at = Column(DateTime(timezone=True), default=utc_now)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    # Quota limits (NULL = unlimited, overrides tenant limits if set)
+    transcription_seconds_limit = Column(Integer, nullable=True)
+    text_cleanup_words_limit = Column(Integer, nullable=True)
+    analysis_count_limit = Column(Integer, nullable=True)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="users")

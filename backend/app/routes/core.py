@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from fastapi import APIRouter, Body, Depends, Form, HTTPException, Query, Request, UploadFile
+from fastapi import APIRouter, Body, Depends, Form, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from starlette.background import BackgroundTask
@@ -10,7 +10,6 @@ from starlette.background import BackgroundTask
 from app.config import Settings, get_settings
 from app.core_client import CoreAPIClient, CoreAPIError, get_core_api
 from app.middleware.auth import AuthenticatedUser, get_current_user
-from app.rate_limit import RateLimitResult, require_rate_limit
 from app.turnstile import require_turnstile
 from app.utils.audio import AudioValidationError, validate_audio_duration, validate_audio_file_size
 
@@ -85,7 +84,6 @@ class ImportTextRequest(BaseModel):
 
 @router.post("/api/transcribe", status_code=202)
 async def transcribe(
-    request: Request,
     file: UploadFile,
     language: str = Form("sl"),
     enable_diarization: bool = Form(True),
@@ -102,7 +100,6 @@ async def transcribe(
     user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
     _turnstile: None = Depends(require_turnstile()),
-    _rate_limit: RateLimitResult = Depends(require_rate_limit("transcribe")),
 ):
     """Upload audio and start transcription + cleanup + analysis.
 
@@ -161,21 +158,15 @@ async def transcribe(
             detail=response.text,
         )
 
-    # Commit rate limit entry only after successful Core API call.
-    # This ensures users aren't locked out due to failed requests.
-    request.state.rate_limit_db.commit()
-
     return response.json()
 
 
 @router.post("/api/import-text", status_code=202)
 async def import_text(
-    request: Request,
     body: ImportTextRequest,
     user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
     _turnstile: None = Depends(require_turnstile()),
-    _rate_limit: RateLimitResult = Depends(require_rate_limit("transcribe")),
 ):
     """Import text and run cleanup (skip transcription).
 
@@ -201,9 +192,6 @@ async def import_text(
 
     if response.status_code >= 400:
         raise CoreAPIError(status_code=response.status_code, detail=response.text)
-
-    # Commit rate limit entry only after successful Core API call.
-    request.state.rate_limit_db.commit()
 
     return response.json()
 
@@ -615,12 +603,10 @@ async def list_analysis_profiles(
 
 @router.post("/api/cleaned-entries/{cleanup_id}/analyze")
 async def trigger_analysis(
-    request: Request,
     cleanup_id: str,
     body: AnalyzeRequest = Body(default=AnalyzeRequest()),
     user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
-    _rate_limit: RateLimitResult = Depends(require_rate_limit("analyze")),
 ):
     """Trigger analysis on a cleaned entry."""
     # Exclude None values to avoid sending nulls to Core API
@@ -636,10 +622,6 @@ async def trigger_analysis(
             status_code=response.status_code,
             detail=response.text,
         )
-
-    # Commit rate limit entry only after successful Core API call.
-    # This ensures users aren't locked out due to failed requests.
-    request.state.rate_limit_db.commit()
 
     return response.json()
 

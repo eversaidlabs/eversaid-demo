@@ -1,4 +1,4 @@
-"""Admin routes for tenant and user management."""
+"""Admin routes for tenant, user, and quota management."""
 
 from typing import Optional
 
@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.middleware.auth import AuthenticatedUser, get_platform_admin, get_tenant_admin
-from app.models.auth import UserRole
+from app.models.auth import User, UserRole
 from app.schemas.auth import (
     CreateTenantRequest,
     CreateUserRequest,
@@ -15,7 +15,9 @@ from app.schemas.auth import (
     TenantResponse,
     UserResponse,
 )
+from app.schemas.quota import QuotaLimits, UpdateQuotaRequest
 from app.services.auth import AuthService
+from app.services.quota import QuotaService
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -136,3 +138,109 @@ def list_users(
 
     users = auth_service.list_users(tenant_id=tenant_id, role=role)
     return [UserResponse.model_validate(u) for u in users]
+
+
+# =============================================================================
+# Quota Management
+# =============================================================================
+
+
+@router.put("/tenants/{tenant_id}/quota", response_model=QuotaLimits)
+def update_tenant_quota(
+    tenant_id: str,
+    body: UpdateQuotaRequest,
+    user: AuthenticatedUser = Depends(get_platform_admin),
+    db: Session = Depends(get_db),
+) -> QuotaLimits:
+    """Update quota limits for a tenant (platform_admin only).
+
+    Set a field to None to remove the limit (make unlimited).
+    Only provided fields will be updated.
+    """
+    quota_service = QuotaService(db)
+
+    # Use ... as sentinel for "not provided" to distinguish from None (unlimited)
+    tenant = quota_service.update_tenant_quota(
+        tenant_id=tenant_id,
+        transcription_seconds_limit=body.transcription_seconds_limit
+        if body.transcription_seconds_limit is not None or "transcription_seconds_limit" in body.model_fields_set
+        else ...,
+        text_cleanup_words_limit=body.text_cleanup_words_limit
+        if body.text_cleanup_words_limit is not None or "text_cleanup_words_limit" in body.model_fields_set
+        else ...,
+        analysis_count_limit=body.analysis_count_limit
+        if body.analysis_count_limit is not None or "analysis_count_limit" in body.model_fields_set
+        else ...,
+    )
+
+    if not tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tenant not found",
+        )
+
+    return QuotaLimits(
+        transcription_seconds_limit=tenant.transcription_seconds_limit,
+        text_cleanup_words_limit=tenant.text_cleanup_words_limit,
+        analysis_count_limit=tenant.analysis_count_limit,
+    )
+
+
+@router.put("/users/{user_id}/quota", response_model=QuotaLimits)
+def update_user_quota(
+    user_id: str,
+    body: UpdateQuotaRequest,
+    user: AuthenticatedUser = Depends(get_tenant_admin),
+    db: Session = Depends(get_db),
+) -> QuotaLimits:
+    """Update quota limits for a user (tenant_admin+).
+
+    - Platform admins can update any user's quota.
+    - Tenant admins can only update users in their own tenant.
+
+    Set a field to None to remove the limit (make unlimited).
+    Only provided fields will be updated.
+    """
+    # Check if target user exists and get their tenant
+    target_user = db.query(User).filter(User.id == user_id).first()
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    # Tenant admins can only update users in their own tenant
+    if user.role != UserRole.platform_admin.value:
+        if target_user.tenant_id != user.tenant_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot update quotas for users in other tenants",
+            )
+
+    quota_service = QuotaService(db)
+
+    # Use ... as sentinel for "not provided" to distinguish from None (unlimited)
+    updated_user = quota_service.update_user_quota(
+        user_id=user_id,
+        transcription_seconds_limit=body.transcription_seconds_limit
+        if body.transcription_seconds_limit is not None or "transcription_seconds_limit" in body.model_fields_set
+        else ...,
+        text_cleanup_words_limit=body.text_cleanup_words_limit
+        if body.text_cleanup_words_limit is not None or "text_cleanup_words_limit" in body.model_fields_set
+        else ...,
+        analysis_count_limit=body.analysis_count_limit
+        if body.analysis_count_limit is not None or "analysis_count_limit" in body.model_fields_set
+        else ...,
+    )
+
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    return QuotaLimits(
+        transcription_seconds_limit=updated_user.transcription_seconds_limit,
+        text_cleanup_words_limit=updated_user.text_cleanup_words_limit,
+        analysis_count_limit=updated_user.analysis_count_limit,
+    )

@@ -171,29 +171,6 @@ class TestTranscribeEndpointDurationValidation:
         assert response.status_code == 422
         assert "exceeds maximum" in response.json()["detail"]
 
-    def test_does_not_consume_rate_limit_on_validation_failure(
-        self, client, test_settings, long_wav_bytes, test_engine, auth_headers
-    ):
-        """Failed validation should not increment rate limit counter."""
-        from sqlalchemy.orm import sessionmaker
-
-        from app.models import RateLimitEntry
-
-        test_settings.MAX_AUDIO_DURATION_SECONDS = 60
-
-        files = {"file": ("test.wav", io.BytesIO(long_wav_bytes), "audio/wav")}
-        response = client.post("/api/transcribe", files=files, headers=auth_headers)
-
-        assert response.status_code == 422
-
-        # Check no rate limit entry was committed
-        TestingSessionLocal = sessionmaker(bind=test_engine)
-        db = TestingSessionLocal()
-        entries = db.query(RateLimitEntry).filter_by(action="transcribe").all()
-        db.close()
-
-        assert len(entries) == 0
-
     def test_accepts_audio_under_limit(self, client, test_settings, short_wav_bytes, auth_headers):
         """Audio under duration limit should proceed to Core API."""
         import respx
@@ -359,30 +336,6 @@ class TestTranscribeEndpointFileSizeValidation:
         assert response.status_code == 422
         assert "exceeds maximum" in response.json()["detail"]
         assert "MB" in response.json()["detail"]
-
-    def test_does_not_consume_rate_limit_on_file_size_failure(
-        self, client, test_settings, test_engine, auth_headers
-    ):
-        """Failed file size validation should not increment rate limit counter."""
-        from sqlalchemy.orm import sessionmaker
-
-        from app.models import RateLimitEntry
-
-        test_settings.MAX_AUDIO_FILE_SIZE_MB = 1
-
-        large_content = b"x" * (2 * 1024 * 1024)
-        files = {"file": ("test.wav", io.BytesIO(large_content), "audio/wav")}
-        response = client.post("/api/transcribe", files=files, headers=auth_headers)
-
-        assert response.status_code == 422
-
-        # Check no rate limit entry was committed
-        TestingSessionLocal = sessionmaker(bind=test_engine)
-        db = TestingSessionLocal()
-        entries = db.query(RateLimitEntry).filter_by(action="transcribe").all()
-        db.close()
-
-        assert len(entries) == 0
 
     def test_accepts_file_under_limit(self, client, test_settings, short_wav_bytes, auth_headers):
         """File under size limit should proceed to duration validation."""
