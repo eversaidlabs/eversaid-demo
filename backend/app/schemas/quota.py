@@ -4,24 +4,43 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from app.models.auth import (
+    MAX_QUOTA_LIMIT,
+    DEFAULT_TRANSCRIPTION_SECONDS,
+    DEFAULT_TEXT_CLEANUP_WORDS,
+    DEFAULT_ANALYSIS_COUNT,
+)
+
+__all__ = [
+    "MAX_QUOTA_LIMIT",
+    "DEFAULT_TRANSCRIPTION_SECONDS",
+    "DEFAULT_TEXT_CLEANUP_WORDS",
+    "DEFAULT_ANALYSIS_COUNT",
+    "QuotaLimits",
+    "QuotaUsage",
+    "QuotaResponse",
+    "InternalUserLimitsResponse",
+    "UpdateQuotaRequest",
+]
+
 
 class QuotaLimits(BaseModel):
     """Quota limit values for a user or tenant.
 
-    NULL values mean unlimited (no quota enforcement).
+    Defaults to pilot limits: 30 min audio, 30k words, 50 analyses.
     """
 
-    transcription_seconds_limit: Optional[int] = Field(
-        default=None,
-        description="Max seconds of audio transcription. NULL = unlimited.",
+    transcription_seconds_limit: int = Field(
+        default=DEFAULT_TRANSCRIPTION_SECONDS,
+        description="Max seconds of audio transcription.",
     )
-    text_cleanup_words_limit: Optional[int] = Field(
-        default=None,
-        description="Max words for text cleanup. NULL = unlimited.",
+    text_cleanup_words_limit: int = Field(
+        default=DEFAULT_TEXT_CLEANUP_WORDS,
+        description="Max words for text cleanup.",
     )
-    analysis_count_limit: Optional[int] = Field(
-        default=None,
-        description="Max number of analyses. NULL = unlimited.",
+    analysis_count_limit: int = Field(
+        default=DEFAULT_ANALYSIS_COUNT,
+        description="Max number of analyses.",
     )
 
 
@@ -85,23 +104,26 @@ class UpdateQuotaRequest(BaseModel):
     """Request body for updating quota limits.
 
     All fields are optional - only provided fields will be updated.
-    Set a field to None to remove the limit (make unlimited).
+    Use MAX_QUOTA_LIMIT (2147483647) to set "effectively unlimited".
     """
 
     transcription_seconds_limit: Optional[int] = Field(
         default=None,
-        description="Max seconds of audio transcription. Set to None for unlimited.",
+        ge=1,
+        description="Max seconds of audio transcription.",
     )
     text_cleanup_words_limit: Optional[int] = Field(
         default=None,
-        description="Max words for text cleanup. Set to None for unlimited.",
+        ge=1,
+        description="Max words for text cleanup.",
     )
     analysis_count_limit: Optional[int] = Field(
         default=None,
-        description="Max number of analyses. Set to None for unlimited.",
+        ge=1,
+        description="Max number of analyses.",
     )
 
     class Config:
-        """Allow extra fields to be explicitly set to None."""
+        """Forbid extra fields."""
 
         extra = "forbid"

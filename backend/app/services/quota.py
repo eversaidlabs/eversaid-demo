@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models.auth import Tenant, User
-from app.schemas.quota import QuotaLimits
+from app.schemas.quota import MAX_QUOTA_LIMIT, QuotaLimits
 
 
 class QuotaService:
@@ -60,10 +60,8 @@ class QuotaService:
     ) -> QuotaLimits:
         """Compute effective limits as the minimum of user and tenant limits.
 
-        For each field:
-        - If both are None (unlimited), result is None (unlimited)
-        - If one is None and other has a value, result is the value
-        - If both have values, result is the minimum
+        Users default to MAX_QUOTA_LIMIT (2147483647), so min(user, tenant) = tenant limit
+        unless the user has an explicit lower limit.
 
         Args:
             user_limits: User-specific quota limits.
@@ -73,41 +71,19 @@ class QuotaService:
             Effective quota limits.
         """
         return QuotaLimits(
-            transcription_seconds_limit=self._min_limit(
+            transcription_seconds_limit=min(
                 user_limits.transcription_seconds_limit,
                 tenant_limits.transcription_seconds_limit,
             ),
-            text_cleanup_words_limit=self._min_limit(
+            text_cleanup_words_limit=min(
                 user_limits.text_cleanup_words_limit,
                 tenant_limits.text_cleanup_words_limit,
             ),
-            analysis_count_limit=self._min_limit(
+            analysis_count_limit=min(
                 user_limits.analysis_count_limit,
                 tenant_limits.analysis_count_limit,
             ),
         )
-
-    def _min_limit(
-        self,
-        limit_a: Optional[int],
-        limit_b: Optional[int],
-    ) -> Optional[int]:
-        """Compute minimum of two limits, treating None as unlimited.
-
-        Args:
-            limit_a: First limit value.
-            limit_b: Second limit value.
-
-        Returns:
-            The minimum limit, or None if both are unlimited.
-        """
-        if limit_a is None and limit_b is None:
-            return None
-        if limit_a is None:
-            return limit_b
-        if limit_b is None:
-            return limit_a
-        return min(limit_a, limit_b)
 
     def get_user_with_tenant_limits(
         self,
@@ -140,17 +116,17 @@ class QuotaService:
     def update_tenant_quota(
         self,
         tenant_id: str,
-        transcription_seconds_limit: Optional[int] = ...,  # Use ... as sentinel for "not provided"
-        text_cleanup_words_limit: Optional[int] = ...,
-        analysis_count_limit: Optional[int] = ...,
+        transcription_seconds_limit: Optional[int] = None,
+        text_cleanup_words_limit: Optional[int] = None,
+        analysis_count_limit: Optional[int] = None,
     ) -> Optional[Tenant]:
         """Update quota limits for a tenant.
 
         Args:
             tenant_id: The tenant ID.
-            transcription_seconds_limit: New limit (None = unlimited, ... = don't change).
-            text_cleanup_words_limit: New limit (None = unlimited, ... = don't change).
-            analysis_count_limit: New limit (None = unlimited, ... = don't change).
+            transcription_seconds_limit: New limit (None = don't change).
+            text_cleanup_words_limit: New limit (None = don't change).
+            analysis_count_limit: New limit (None = don't change).
 
         Returns:
             Updated tenant if found, None otherwise.
@@ -159,11 +135,11 @@ class QuotaService:
         if not tenant:
             return None
 
-        if transcription_seconds_limit is not ...:
+        if transcription_seconds_limit is not None:
             tenant.transcription_seconds_limit = transcription_seconds_limit
-        if text_cleanup_words_limit is not ...:
+        if text_cleanup_words_limit is not None:
             tenant.text_cleanup_words_limit = text_cleanup_words_limit
-        if analysis_count_limit is not ...:
+        if analysis_count_limit is not None:
             tenant.analysis_count_limit = analysis_count_limit
 
         self.db.commit()
@@ -173,17 +149,17 @@ class QuotaService:
     def update_user_quota(
         self,
         user_id: str,
-        transcription_seconds_limit: Optional[int] = ...,  # Use ... as sentinel for "not provided"
-        text_cleanup_words_limit: Optional[int] = ...,
-        analysis_count_limit: Optional[int] = ...,
+        transcription_seconds_limit: Optional[int] = None,
+        text_cleanup_words_limit: Optional[int] = None,
+        analysis_count_limit: Optional[int] = None,
     ) -> Optional[User]:
         """Update quota limits for a user.
 
         Args:
             user_id: The user ID.
-            transcription_seconds_limit: New limit (None = unlimited, ... = don't change).
-            text_cleanup_words_limit: New limit (None = unlimited, ... = don't change).
-            analysis_count_limit: New limit (None = unlimited, ... = don't change).
+            transcription_seconds_limit: New limit (None = don't change).
+            text_cleanup_words_limit: New limit (None = don't change).
+            analysis_count_limit: New limit (None = don't change).
 
         Returns:
             Updated user if found, None otherwise.
@@ -192,11 +168,11 @@ class QuotaService:
         if not user:
             return None
 
-        if transcription_seconds_limit is not ...:
+        if transcription_seconds_limit is not None:
             user.transcription_seconds_limit = transcription_seconds_limit
-        if text_cleanup_words_limit is not ...:
+        if text_cleanup_words_limit is not None:
             user.text_cleanup_words_limit = text_cleanup_words_limit
-        if analysis_count_limit is not ...:
+        if analysis_count_limit is not None:
             user.analysis_count_limit = analysis_count_limit
 
         self.db.commit()

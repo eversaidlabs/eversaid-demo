@@ -67,13 +67,13 @@ class TestQuotaEndpoint:
         assert "effective_limits" in data
         assert "usage" in data
 
-        # Tenant should have default limits (set in conftest)
+        # Tenant should have test limits (set in conftest)
         assert data["tenant_limits"]["transcription_seconds_limit"] == 180
         assert data["tenant_limits"]["text_cleanup_words_limit"] == 5000
         assert data["tenant_limits"]["analysis_count_limit"] == 10
 
-        # User has no limits set (all None = unlimited)
-        assert data["user_limits"]["transcription_seconds_limit"] is None
+        # User has default limits (from model defaults)
+        assert data["user_limits"]["transcription_seconds_limit"] == 1800
 
         # Usage should match mocked response
         assert data["usage"]["transcription_seconds_used"] == 60
@@ -113,7 +113,7 @@ class TestQuotaService:
         from app.schemas.quota import QuotaLimits
         from app.utils.security import hash_password
 
-        # Create user with some limits set
+        # Create user with explicit limits (some lower, some higher than tenant)
         user = User(
             id="quota-test-user",
             tenant_id=ANONYMOUS_TENANT_ID,
@@ -123,8 +123,8 @@ class TestQuotaService:
             role=UserRole.tenant_user,
             is_active=True,
             transcription_seconds_limit=120,  # Lower than tenant's 180
-            text_cleanup_words_limit=None,  # User unlimited, tenant has 5000
-            analysis_count_limit=20,  # Higher than tenant's 10
+            text_cleanup_words_limit=10000,   # Higher than tenant's 5000
+            analysis_count_limit=20,          # Higher than tenant's 10
         )
         test_db.add(user)
         test_db.commit()
@@ -143,37 +143,30 @@ class TestQuotaService:
         # Should be minimum of user (120) and tenant (180)
         assert effective.transcription_seconds_limit == 120
 
-        # User is None (unlimited), tenant is 5000, so effective is 5000
+        # User is 10000, tenant is 5000, so effective is 5000 (minimum)
         assert effective.text_cleanup_words_limit == 5000
 
         # User is 20, tenant is 10, so effective is 10 (minimum)
         assert effective.analysis_count_limit == 10
 
-    def test_null_means_unlimited(self, test_db, anonymous_tenant):
-        """Test that NULL limits mean unlimited."""
+    def test_effective_limit_uses_minimum(self, test_db, anonymous_tenant):
+        """Test that effective limit is min(user, tenant) - tenant wins when user has higher defaults."""
         from app.models.auth import User, UserRole
         from app.services.quota import QuotaService
-        from app.schemas.quota import QuotaLimits
         from app.utils.security import hash_password
 
-        # Create user with no limits set
+        # Create user with model defaults (1800/30000/50 - higher than test tenant's 180/5000/10)
         user = User(
-            id="unlimited-user",
+            id="default-limit-user",
             tenant_id=ANONYMOUS_TENANT_ID,
-            email="unlimited@example.com",
+            email="default@example.com",
             hashed_password=hash_password("password"),
             password_change_required=False,
             role=UserRole.tenant_user,
             is_active=True,
-            # All limits are None (unlimited)
+            # Model defaults apply (1800/30000/50)
         )
         test_db.add(user)
-        test_db.commit()
-
-        # Update tenant to have no limits
-        anonymous_tenant.transcription_seconds_limit = None
-        anonymous_tenant.text_cleanup_words_limit = None
-        anonymous_tenant.analysis_count_limit = None
         test_db.commit()
 
         quota_service = QuotaService(test_db)
@@ -184,10 +177,10 @@ class TestQuotaService:
 
         effective = quota_service.compute_effective_limits(user_limits, tenant_limits)
 
-        # All should be None (unlimited)
-        assert effective.transcription_seconds_limit is None
-        assert effective.text_cleanup_words_limit is None
-        assert effective.analysis_count_limit is None
+        # Effective should be tenant limits (lower than user defaults)
+        assert effective.transcription_seconds_limit == 180
+        assert effective.text_cleanup_words_limit == 5000
+        assert effective.analysis_count_limit == 10
 
 
 class TestAdminQuotaEndpoints:
@@ -452,8 +445,718 @@ class TestInternalLimitsEndpoint:
 class TestAnonymousTenantDefaults:
     """Tests for anonymous tenant default quotas."""
 
-    def test_anonymous_tenant_has_defaults(self, test_db, anonymous_tenant):
-        """Test that anonymous tenant has default quota limits."""
+    def test_anonymous_tenant_has_test_quotas(self, test_db, anonymous_tenant):
+        """Test that anonymous tenant has test quota limits (set in fixture)."""
         assert anonymous_tenant.transcription_seconds_limit == 180
         assert anonymous_tenant.text_cleanup_words_limit == 5000
         assert anonymous_tenant.analysis_count_limit == 10
+
+
+class TestQuotaServiceNotFound:
+    """Tests for QuotaService when entities don't exist."""
+
+    def test_get_user_limits_returns_none_for_nonexistent_user(self, test_db):
+        """Test that get_user_limits returns None for non-existent user."""
+        from app.services.quota import QuotaService
+
+        quota_service = QuotaService(test_db)
+        result = quota_service.get_user_limits("nonexistent-user-id")
+
+        assert result is None
+
+    def test_get_tenant_limits_returns_none_for_nonexistent_tenant(self, test_db):
+        """Test that get_tenant_limits returns None for non-existent tenant."""
+        from app.services.quota import QuotaService
+
+        quota_service = QuotaService(test_db)
+        result = quota_service.get_tenant_limits("nonexistent-tenant-id")
+
+        assert result is None
+
+    def test_get_user_with_tenant_limits_returns_none_for_nonexistent_user(self, test_db):
+        """Test that get_user_with_tenant_limits returns None tuple for non-existent user."""
+        from app.services.quota import QuotaService
+
+        quota_service = QuotaService(test_db)
+        user_limits, tenant_limits, tenant_id = quota_service.get_user_with_tenant_limits(
+            "nonexistent-user-id"
+        )
+
+        assert user_limits is None
+        assert tenant_limits is None
+        assert tenant_id is None
+
+    def test_update_user_quota_returns_none_for_nonexistent_user(self, test_db):
+        """Test that update_user_quota returns None for non-existent user."""
+        from app.services.quota import QuotaService
+
+        quota_service = QuotaService(test_db)
+        result = quota_service.update_user_quota(
+            "nonexistent-user-id",
+            transcription_seconds_limit=100,
+        )
+
+        assert result is None
+
+    def test_update_tenant_quota_returns_none_for_nonexistent_tenant(self, test_db):
+        """Test that update_tenant_quota returns None for non-existent tenant."""
+        from app.services.quota import QuotaService
+
+        quota_service = QuotaService(test_db)
+        result = quota_service.update_tenant_quota(
+            "nonexistent-tenant-id",
+            transcription_seconds_limit=100,
+        )
+
+        assert result is None
+
+
+class TestAdminQuotaNotFound:
+    """Tests for admin quota endpoints when entities don't exist."""
+
+    def test_update_tenant_quota_404_for_nonexistent_tenant(self, client, test_engine):
+        """Test that updating quota for non-existent tenant returns 404."""
+        from app.models.auth import Tenant, User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            # Create a platform admin
+            admin_tenant = Tenant(
+                id="admin-tenant-404",
+                name="Admin Tenant 404",
+                is_active=True,
+            )
+            db.add(admin_tenant)
+
+            admin_user = User(
+                id="platform-admin-404",
+                tenant_id="admin-tenant-404",
+                email="admin404@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.platform_admin,
+                is_active=True,
+            )
+            db.add(admin_user)
+            db.commit()
+
+            admin_token = create_access_token(
+                user_id=admin_user.id,
+                tenant_id=admin_user.tenant_id,
+                email=admin_user.email,
+                role=UserRole.platform_admin.value,
+            )
+
+            response = client.put(
+                "/api/admin/tenants/nonexistent-tenant-id/quota",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={"transcription_seconds_limit": 3600},
+            )
+
+            assert response.status_code == 404
+        finally:
+            db.close()
+
+    def test_update_user_quota_404_for_nonexistent_user(self, client, test_engine):
+        """Test that updating quota for non-existent user returns 404."""
+        from app.models.auth import User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            # Create tenant admin
+            tenant_admin = User(
+                id="tenant-admin-404",
+                tenant_id=ANONYMOUS_TENANT_ID,
+                email="tenant-admin-404@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.tenant_admin,
+                is_active=True,
+            )
+            db.add(tenant_admin)
+            db.commit()
+
+            admin_token = create_access_token(
+                user_id=tenant_admin.id,
+                tenant_id=tenant_admin.tenant_id,
+                email=tenant_admin.email,
+                role=UserRole.tenant_admin.value,
+            )
+
+            response = client.put(
+                "/api/admin/users/nonexistent-user-id/quota",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={"transcription_seconds_limit": 600},
+            )
+
+            assert response.status_code == 404
+        finally:
+            db.close()
+
+
+class TestPartialQuotaUpdates:
+    """Tests for partial quota updates (updating single fields)."""
+
+    def test_update_tenant_single_field_preserves_others(self, client, test_engine):
+        """Test that updating one tenant quota field preserves the others."""
+        from app.models.auth import Tenant, User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            # Create platform admin
+            admin_tenant = Tenant(
+                id="admin-tenant-partial",
+                name="Admin Tenant Partial",
+                is_active=True,
+            )
+            db.add(admin_tenant)
+
+            admin_user = User(
+                id="platform-admin-partial",
+                tenant_id="admin-tenant-partial",
+                email="admin-partial@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.platform_admin,
+                is_active=True,
+            )
+            db.add(admin_user)
+
+            # Create target tenant with known values
+            target_tenant = Tenant(
+                id="target-tenant-partial",
+                name="Target Tenant",
+                is_active=True,
+                transcription_seconds_limit=100,
+                text_cleanup_words_limit=200,
+                analysis_count_limit=300,
+            )
+            db.add(target_tenant)
+            db.commit()
+
+            admin_token = create_access_token(
+                user_id=admin_user.id,
+                tenant_id=admin_user.tenant_id,
+                email=admin_user.email,
+                role=UserRole.platform_admin.value,
+            )
+
+            # Update only transcription_seconds_limit
+            response = client.put(
+                f"/api/admin/tenants/{target_tenant.id}/quota",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={"transcription_seconds_limit": 999},
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+
+            # Updated field changed
+            assert data["transcription_seconds_limit"] == 999
+            # Other fields preserved
+            assert data["text_cleanup_words_limit"] == 200
+            assert data["analysis_count_limit"] == 300
+        finally:
+            db.close()
+
+    def test_update_user_single_field_preserves_others(self, client, test_engine):
+        """Test that updating one user quota field preserves the others."""
+        from app.models.auth import User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            # Create tenant admin
+            tenant_admin = User(
+                id="tenant-admin-partial",
+                tenant_id=ANONYMOUS_TENANT_ID,
+                email="tenant-admin-partial@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.tenant_admin,
+                is_active=True,
+            )
+            db.add(tenant_admin)
+
+            # Create target user with known values
+            target_user = User(
+                id="target-user-partial",
+                tenant_id=ANONYMOUS_TENANT_ID,
+                email="target-partial@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.tenant_user,
+                is_active=True,
+                transcription_seconds_limit=100,
+                text_cleanup_words_limit=200,
+                analysis_count_limit=300,
+            )
+            db.add(target_user)
+            db.commit()
+
+            admin_token = create_access_token(
+                user_id=tenant_admin.id,
+                tenant_id=tenant_admin.tenant_id,
+                email=tenant_admin.email,
+                role=UserRole.tenant_admin.value,
+            )
+
+            # Update only analysis_count_limit
+            response = client.put(
+                f"/api/admin/users/{target_user.id}/quota",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={"analysis_count_limit": 999},
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+
+            # Updated field changed
+            assert data["analysis_count_limit"] == 999
+            # Other fields preserved
+            assert data["transcription_seconds_limit"] == 100
+            assert data["text_cleanup_words_limit"] == 200
+        finally:
+            db.close()
+
+
+class TestPlatformAdminUserQuota:
+    """Tests for platform admin managing user quotas across tenants."""
+
+    def test_platform_admin_can_update_any_user_quota(self, client, test_engine):
+        """Test that platform admins can update any user's quota regardless of tenant."""
+        from app.models.auth import Tenant, User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            # Create platform admin in tenant A
+            admin_tenant = Tenant(
+                id="platform-admin-tenant",
+                name="Platform Admin Tenant",
+                is_active=True,
+            )
+            db.add(admin_tenant)
+
+            platform_admin = User(
+                id="platform-admin-cross",
+                tenant_id="platform-admin-tenant",
+                email="platform-admin-cross@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.platform_admin,
+                is_active=True,
+            )
+            db.add(platform_admin)
+
+            # Create user in different tenant (anonymous tenant)
+            target_user = User(
+                id="target-user-cross-tenant",
+                tenant_id=ANONYMOUS_TENANT_ID,
+                email="target-cross@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.tenant_user,
+                is_active=True,
+            )
+            db.add(target_user)
+            db.commit()
+
+            admin_token = create_access_token(
+                user_id=platform_admin.id,
+                tenant_id=platform_admin.tenant_id,
+                email=platform_admin.email,
+                role=UserRole.platform_admin.value,
+            )
+
+            response = client.put(
+                f"/api/admin/users/{target_user.id}/quota",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={"transcription_seconds_limit": 9999},
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["transcription_seconds_limit"] == 9999
+        finally:
+            db.close()
+
+
+class TestRegularUserBlocked:
+    """Tests that regular users cannot access admin quota endpoints."""
+
+    def test_tenant_user_cannot_update_tenant_quota(self, client, test_engine):
+        """Test that regular tenant_user cannot update tenant quota."""
+        from app.models.auth import User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            regular_user = User(
+                id="regular-user-blocked",
+                tenant_id=ANONYMOUS_TENANT_ID,
+                email="regular-blocked@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.tenant_user,
+                is_active=True,
+            )
+            db.add(regular_user)
+            db.commit()
+
+            user_token = create_access_token(
+                user_id=regular_user.id,
+                tenant_id=regular_user.tenant_id,
+                email=regular_user.email,
+                role=UserRole.tenant_user.value,
+            )
+
+            response = client.put(
+                f"/api/admin/tenants/{ANONYMOUS_TENANT_ID}/quota",
+                headers={"Authorization": f"Bearer {user_token}"},
+                json={"transcription_seconds_limit": 9999},
+            )
+
+            assert response.status_code == 403
+        finally:
+            db.close()
+
+    def test_tenant_user_cannot_update_user_quota(self, client, test_engine):
+        """Test that regular tenant_user cannot update user quota."""
+        from app.models.auth import User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            regular_user = User(
+                id="regular-user-blocked-2",
+                tenant_id=ANONYMOUS_TENANT_ID,
+                email="regular-blocked-2@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.tenant_user,
+                is_active=True,
+            )
+            db.add(regular_user)
+
+            target_user = User(
+                id="target-user-blocked",
+                tenant_id=ANONYMOUS_TENANT_ID,
+                email="target-blocked@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.tenant_user,
+                is_active=True,
+            )
+            db.add(target_user)
+            db.commit()
+
+            user_token = create_access_token(
+                user_id=regular_user.id,
+                tenant_id=regular_user.tenant_id,
+                email=regular_user.email,
+                role=UserRole.tenant_user.value,
+            )
+
+            response = client.put(
+                f"/api/admin/users/{target_user.id}/quota",
+                headers={"Authorization": f"Bearer {user_token}"},
+                json={"transcription_seconds_limit": 9999},
+            )
+
+            assert response.status_code == 403
+        finally:
+            db.close()
+
+    def test_tenant_admin_cannot_update_tenant_quota(self, client, test_engine):
+        """Test that tenant_admin cannot update tenant quota (only platform_admin can)."""
+        from app.models.auth import User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            tenant_admin = User(
+                id="tenant-admin-blocked",
+                tenant_id=ANONYMOUS_TENANT_ID,
+                email="tenant-admin-blocked@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.tenant_admin,
+                is_active=True,
+            )
+            db.add(tenant_admin)
+            db.commit()
+
+            admin_token = create_access_token(
+                user_id=tenant_admin.id,
+                tenant_id=tenant_admin.tenant_id,
+                email=tenant_admin.email,
+                role=UserRole.tenant_admin.value,
+            )
+
+            response = client.put(
+                f"/api/admin/tenants/{ANONYMOUS_TENANT_ID}/quota",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={"transcription_seconds_limit": 9999},
+            )
+
+            assert response.status_code == 403
+        finally:
+            db.close()
+
+
+class TestInternalEndpointNotFound:
+    """Tests for internal endpoint 404 cases."""
+
+    def test_internal_limits_404_for_nonexistent_user(self, client):
+        """Test that internal limits endpoint returns 404 for non-existent user."""
+        response = client.get(
+            "/api/internal/user/nonexistent-user-id/limits",
+            headers={"X-Internal-Secret": "test-internal-secret"},
+        )
+
+        assert response.status_code == 404
+
+
+class TestQuotaEdgeCases:
+    """Tests for edge cases in quota handling."""
+
+    def test_update_quota_to_zero_rejected(self, client, test_engine):
+        """Test that quota cannot be set to zero (validation requires ge=1)."""
+        from app.models.auth import Tenant, User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            # Create platform admin
+            admin_tenant = Tenant(
+                id="admin-tenant-zero",
+                name="Admin Tenant Zero",
+                is_active=True,
+            )
+            db.add(admin_tenant)
+
+            admin_user = User(
+                id="platform-admin-zero",
+                tenant_id="admin-tenant-zero",
+                email="admin-zero@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.platform_admin,
+                is_active=True,
+            )
+            db.add(admin_user)
+
+            # Create target tenant
+            target_tenant = Tenant(
+                id="target-tenant-zero",
+                name="Target Tenant Zero",
+                is_active=True,
+                transcription_seconds_limit=100,
+            )
+            db.add(target_tenant)
+            db.commit()
+
+            admin_token = create_access_token(
+                user_id=admin_user.id,
+                tenant_id=admin_user.tenant_id,
+                email=admin_user.email,
+                role=UserRole.platform_admin.value,
+            )
+
+            response = client.put(
+                f"/api/admin/tenants/{target_tenant.id}/quota",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={"transcription_seconds_limit": 0},
+            )
+
+            # Zero is rejected - minimum is 1
+            assert response.status_code == 422
+        finally:
+            db.close()
+
+    def test_update_quota_to_minimum_value(self, client, test_engine):
+        """Test that quota can be set to minimum allowed value (1)."""
+        from app.models.auth import Tenant, User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            # Create platform admin
+            admin_tenant = Tenant(
+                id="admin-tenant-min",
+                name="Admin Tenant Min",
+                is_active=True,
+            )
+            db.add(admin_tenant)
+
+            admin_user = User(
+                id="platform-admin-min",
+                tenant_id="admin-tenant-min",
+                email="admin-min@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.platform_admin,
+                is_active=True,
+            )
+            db.add(admin_user)
+
+            # Create target tenant
+            target_tenant = Tenant(
+                id="target-tenant-min",
+                name="Target Tenant Min",
+                is_active=True,
+                transcription_seconds_limit=100,
+            )
+            db.add(target_tenant)
+            db.commit()
+
+            admin_token = create_access_token(
+                user_id=admin_user.id,
+                tenant_id=admin_user.tenant_id,
+                email=admin_user.email,
+                role=UserRole.platform_admin.value,
+            )
+
+            response = client.put(
+                f"/api/admin/tenants/{target_tenant.id}/quota",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={"transcription_seconds_limit": 1},
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["transcription_seconds_limit"] == 1
+        finally:
+            db.close()
+
+    def test_update_all_quota_fields_at_once(self, client, test_engine):
+        """Test that all quota fields can be updated in a single request."""
+        from app.models.auth import Tenant, User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            # Create platform admin
+            admin_tenant = Tenant(
+                id="admin-tenant-all",
+                name="Admin Tenant All",
+                is_active=True,
+            )
+            db.add(admin_tenant)
+
+            admin_user = User(
+                id="platform-admin-all",
+                tenant_id="admin-tenant-all",
+                email="admin-all@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.platform_admin,
+                is_active=True,
+            )
+            db.add(admin_user)
+
+            # Create target tenant
+            target_tenant = Tenant(
+                id="target-tenant-all",
+                name="Target Tenant All",
+                is_active=True,
+            )
+            db.add(target_tenant)
+            db.commit()
+
+            admin_token = create_access_token(
+                user_id=admin_user.id,
+                tenant_id=admin_user.tenant_id,
+                email=admin_user.email,
+                role=UserRole.platform_admin.value,
+            )
+
+            response = client.put(
+                f"/api/admin/tenants/{target_tenant.id}/quota",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={
+                    "transcription_seconds_limit": 111,
+                    "text_cleanup_words_limit": 222,
+                    "analysis_count_limit": 333,
+                },
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["transcription_seconds_limit"] == 111
+            assert data["text_cleanup_words_limit"] == 222
+            assert data["analysis_count_limit"] == 333
+        finally:
+            db.close()
+
+    def test_effective_limits_with_user_zero_limit(self, test_db, anonymous_tenant):
+        """Test effective limits when user has zero (blocks usage)."""
+        from app.models.auth import User, UserRole
+        from app.services.quota import QuotaService
+        from app.utils.security import hash_password
+
+        # Create user with zero transcription limit
+        user = User(
+            id="zero-limit-user",
+            tenant_id=ANONYMOUS_TENANT_ID,
+            email="zero-limit@example.com",
+            hashed_password=hash_password("password"),
+            password_change_required=False,
+            role=UserRole.tenant_user,
+            is_active=True,
+            transcription_seconds_limit=0,  # Zero limit
+            text_cleanup_words_limit=1000,
+            analysis_count_limit=10,
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        quota_service = QuotaService(test_db)
+
+        user_limits, tenant_limits, _ = quota_service.get_user_with_tenant_limits(
+            user.id
+        )
+        effective = quota_service.compute_effective_limits(user_limits, tenant_limits)
+
+        # Zero should win as minimum
+        assert effective.transcription_seconds_limit == 0
+        # Other limits should be min(user, tenant)
+        assert effective.text_cleanup_words_limit == min(1000, 5000)  # tenant is 5000
+        assert effective.analysis_count_limit == min(10, 10)  # tenant is 10

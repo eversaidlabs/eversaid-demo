@@ -114,14 +114,14 @@ ANONYMOUS_TENANT_ID = "00000000-0000-0000-0000-000000000000"
 
 @pytest.fixture
 def anonymous_tenant(test_db: Session):
-    """Create the anonymous tenant in the test database with default quotas."""
+    """Create the anonymous tenant in the test database."""
     from app.models.auth import Tenant
 
     tenant = Tenant(
         id=ANONYMOUS_TENANT_ID,
         name="anonymous",
         is_active=True,
-        # Default quotas for anonymous tenant
+        # Test quotas
         transcription_seconds_limit=180,
         text_cleanup_words_limit=5000,
         analysis_count_limit=10,
@@ -206,7 +206,7 @@ def client(test_engine, test_settings: Settings) -> Generator[TestClient, None, 
     original_run_migrations = main_module.run_migrations
     main_module.run_migrations = lambda: None
 
-    # Create anonymous tenant in the database with default quotas
+    # Create anonymous tenant in the database
     db = TestingSessionLocal()
     try:
         existing = db.query(Tenant).filter(Tenant.id == ANONYMOUS_TENANT_ID).first()
@@ -215,7 +215,7 @@ def client(test_engine, test_settings: Settings) -> Generator[TestClient, None, 
                 id=ANONYMOUS_TENANT_ID,
                 name="anonymous",
                 is_active=True,
-                # Default quotas for anonymous tenant
+                # Test quotas
                 transcription_seconds_limit=180,
                 text_cleanup_words_limit=5000,
                 analysis_count_limit=10,

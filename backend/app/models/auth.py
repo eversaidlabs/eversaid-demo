@@ -9,6 +9,14 @@ from app.config import get_settings
 from app.database import Base
 from app.models.core import generate_uuid, utc_now
 
+# Max signed 32-bit int - "effectively unlimited" value for quotas
+MAX_QUOTA_LIMIT = 2147483647
+
+# Default pilot limits
+DEFAULT_TRANSCRIPTION_SECONDS = 1800   # 30 minutes
+DEFAULT_TEXT_CLEANUP_WORDS = 30000     # 30k words
+DEFAULT_ANALYSIS_COUNT = 50            # 50 analyses
+
 DB_SCHEMA = get_settings().DB_SCHEMA
 
 
@@ -32,10 +40,23 @@ class Tenant(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
-    # Quota limits (NULL = unlimited)
-    transcription_seconds_limit = Column(Integer, nullable=True)
-    text_cleanup_words_limit = Column(Integer, nullable=True)
-    analysis_count_limit = Column(Integer, nullable=True)
+    # Quota limits (pilot defaults)
+    # Both default (Python ORM) and server_default (raw SQL) ensure consistency
+    transcription_seconds_limit = Column(
+        Integer, nullable=False,
+        default=DEFAULT_TRANSCRIPTION_SECONDS,
+        server_default=str(DEFAULT_TRANSCRIPTION_SECONDS),
+    )
+    text_cleanup_words_limit = Column(
+        Integer, nullable=False,
+        default=DEFAULT_TEXT_CLEANUP_WORDS,
+        server_default=str(DEFAULT_TEXT_CLEANUP_WORDS),
+    )
+    analysis_count_limit = Column(
+        Integer, nullable=False,
+        default=DEFAULT_ANALYSIS_COUNT,
+        server_default=str(DEFAULT_ANALYSIS_COUNT),
+    )
 
     # Relationships
     users = relationship("User", back_populates="tenant", lazy="dynamic")
@@ -66,10 +87,23 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
-    # Quota limits (NULL = unlimited, overrides tenant limits if set)
-    transcription_seconds_limit = Column(Integer, nullable=True)
-    text_cleanup_words_limit = Column(Integer, nullable=True)
-    analysis_count_limit = Column(Integer, nullable=True)
+    # Quota limits (pilot defaults, effective limit = min of user and tenant)
+    # Both default (Python ORM) and server_default (raw SQL) ensure consistency
+    transcription_seconds_limit = Column(
+        Integer, nullable=False,
+        default=DEFAULT_TRANSCRIPTION_SECONDS,
+        server_default=str(DEFAULT_TRANSCRIPTION_SECONDS),
+    )
+    text_cleanup_words_limit = Column(
+        Integer, nullable=False,
+        default=DEFAULT_TEXT_CLEANUP_WORDS,
+        server_default=str(DEFAULT_TEXT_CLEANUP_WORDS),
+    )
+    analysis_count_limit = Column(
+        Integer, nullable=False,
+        default=DEFAULT_ANALYSIS_COUNT,
+        server_default=str(DEFAULT_ANALYSIS_COUNT),
+    )
 
     # Relationships
     tenant = relationship("Tenant", back_populates="users")

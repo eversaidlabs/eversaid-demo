@@ -154,23 +154,15 @@ def update_tenant_quota(
 ) -> QuotaLimits:
     """Update quota limits for a tenant (platform_admin only).
 
-    Set a field to None to remove the limit (make unlimited).
     Only provided fields will be updated.
     """
     quota_service = QuotaService(db)
 
-    # Use ... as sentinel for "not provided" to distinguish from None (unlimited)
     tenant = quota_service.update_tenant_quota(
         tenant_id=tenant_id,
-        transcription_seconds_limit=body.transcription_seconds_limit
-        if body.transcription_seconds_limit is not None or "transcription_seconds_limit" in body.model_fields_set
-        else ...,
-        text_cleanup_words_limit=body.text_cleanup_words_limit
-        if body.text_cleanup_words_limit is not None or "text_cleanup_words_limit" in body.model_fields_set
-        else ...,
-        analysis_count_limit=body.analysis_count_limit
-        if body.analysis_count_limit is not None or "analysis_count_limit" in body.model_fields_set
-        else ...,
+        transcription_seconds_limit=body.transcription_seconds_limit,
+        text_cleanup_words_limit=body.text_cleanup_words_limit,
+        analysis_count_limit=body.analysis_count_limit,
     )
 
     if not tenant:
@@ -198,7 +190,6 @@ def update_user_quota(
     - Platform admins can update any user's quota.
     - Tenant admins can only update users in their own tenant.
 
-    Set a field to None to remove the limit (make unlimited).
     Only provided fields will be updated.
     """
     # Check if target user exists and get their tenant
@@ -219,18 +210,11 @@ def update_user_quota(
 
     quota_service = QuotaService(db)
 
-    # Use ... as sentinel for "not provided" to distinguish from None (unlimited)
     updated_user = quota_service.update_user_quota(
         user_id=user_id,
-        transcription_seconds_limit=body.transcription_seconds_limit
-        if body.transcription_seconds_limit is not None or "transcription_seconds_limit" in body.model_fields_set
-        else ...,
-        text_cleanup_words_limit=body.text_cleanup_words_limit
-        if body.text_cleanup_words_limit is not None or "text_cleanup_words_limit" in body.model_fields_set
-        else ...,
-        analysis_count_limit=body.analysis_count_limit
-        if body.analysis_count_limit is not None or "analysis_count_limit" in body.model_fields_set
-        else ...,
+        transcription_seconds_limit=body.transcription_seconds_limit,
+        text_cleanup_words_limit=body.text_cleanup_words_limit,
+        analysis_count_limit=body.analysis_count_limit,
     )
 
     if not updated_user:
