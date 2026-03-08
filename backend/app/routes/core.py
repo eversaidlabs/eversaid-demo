@@ -227,14 +227,16 @@ async def get_transcription(
 async def list_entries(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    entry_type: Optional[str] = Query(default=None),
     user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
-    """List all entries for the current user."""
+    """List all entries for the current user.
+
+    Returns entries with is_transcript_only field which can be used for client-side filtering:
+    - is_transcript_only=false: audio entries (has audio file)
+    - is_transcript_only=true: text entries (text-only import, no audio)
+    """
     params = {"limit": limit, "offset": offset}
-    if entry_type:
-        params["entry_type"] = entry_type
 
     response = await core_api.request(
         "GET",
@@ -388,6 +390,45 @@ async def delete_entry(
         "DELETE",
         f"/api/v1/entries/{entry_id}",
         access_token=user.access_token,
+    )
+
+    if response.status_code >= 400:
+        raise CoreAPIError(
+            status_code=response.status_code,
+            detail=response.text,
+        )
+
+    return response.json()
+
+
+class UpdateEntryRequest(BaseModel):
+    """Request body for updating entry metadata."""
+
+    original_filename: Optional[str] = None
+
+
+@router.patch("/api/entries/{entry_id}")
+async def update_entry(
+    entry_id: str,
+    body: UpdateEntryRequest,
+    user: AuthenticatedUser = Depends(get_current_user),
+    core_api: CoreAPIClient = Depends(get_core_api),
+):
+    """Update entry metadata (e.g., rename).
+
+    Currently supports updating original_filename only.
+    """
+    # Build request body with only provided fields
+    update_data = body.model_dump(exclude_none=True)
+
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    response = await core_api.request(
+        "PATCH",
+        f"/api/v1/entries/{entry_id}",
+        access_token=user.access_token,
+        json=update_data,
     )
 
     if response.status_code >= 400:

@@ -4,9 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Eversaid is an audio transcription demo application with AI-powered cleanup and analysis. It consists of:
+EverSaid is an audio transcription application with AI-powered cleanup and analysis. It consists of:
 - **frontend/** - Next.js 16 with App Router, Tailwind CSS v4, shadcn/ui
 - **backend/** - FastAPI wrapper that proxies to a private Core API
+
+Two user modes:
+- **Demo mode**: Anonymous users get auto-generated accounts, rate-limited access
+- **Dashboard mode**: Authenticated users with tenant/user quotas
 
 ## Development Commands
 
@@ -72,19 +76,23 @@ The wrapper backend handles:
 ### Key Directories
 ```
 src/
-├── app/[locale]/     # Next.js routes with i18n
-├── components/       # Presentation components (demo/, landing/, ui/)
-├── features/         # Business logic hooks
-│   └── transcription/
-│       ├── api.ts           # All API calls
-│       ├── types.ts         # TypeScript types
-│       ├── useTranscription.ts
-│       ├── useAudioPlayer.ts
-│       ├── useAnalysis.ts
-│       └── ...
-├── lib/              # Utilities (session, storage, diff-utils)
-├── i18n/             # Internationalization config
-└── messages/         # Translation files (sl.json, en.json)
+├── app/[locale]/           # Next.js routes with i18n
+│   ├── (dashboard)/        # Authenticated dashboard routes (uses route group)
+│   │   ├── audio/          # Audio transcription entries
+│   │   └── text/           # Text cleanup entries
+│   ├── demo/               # Demo mode pages
+│   ├── login/              # Auth pages
+│   └── change-password/
+├── components/             # Presentation components (demo/, dashboard/, landing/, ui/)
+├── features/               # Business logic hooks
+│   ├── transcription/      # Demo mode hooks and API
+│   │   ├── api.ts          # All demo API calls
+│   │   └── types.ts        # TypeScript types
+│   ├── auth/               # Authentication (login, tokens, context)
+│   └── dashboard/          # Dashboard hooks (entry list, quota, actions)
+├── lib/                    # Utilities (session, storage, diff-utils)
+├── i18n/                   # Internationalization config
+└── messages/               # Translation files (sl.json, en.json)
 ```
 
 ### i18n
@@ -114,24 +122,25 @@ backend/app/
 ├── config.py        # Pydantic Settings (env vars)
 ├── database.py      # PostgreSQL connection with schema isolation
 ├── core_client.py   # HTTP client for Core API
-├── session.py       # Anonymous session management (demo)
-├── rate_limit.py    # Multi-tier rate limiting
 ├── middleware/
 │   ├── auth.py      # JWT authentication dependencies
 │   └── logging.py   # Request/response logging
 ├── services/
-│   └── auth.py      # Auth business logic (login, tokens, users)
+│   ├── auth.py      # Auth business logic (login, tokens, users)
+│   └── quota.py     # Quota limits computation (user + tenant)
 ├── models/
 │   ├── core.py      # Session, RateLimitEntry, Feedback, Waitlist
 │   └── auth.py      # Tenant, User, AuthSession, UserRole
 ├── utils/
 │   ├── jwt.py       # JWT token creation/verification
-│   └── security.py  # Password hashing (argon2)
+│   └── security.py  # Password hashing (bcrypt)
 └── routes/
-    ├── core.py      # Core API proxy endpoints
+    ├── core.py      # Core API proxy endpoints (transcription, cleanup, analysis)
     ├── local.py     # Local endpoints (feedback, waitlist)
     ├── auth.py      # /api/auth/* (login, refresh, logout, me)
-    └── admin.py     # /api/admin/* (tenants, users)
+    ├── admin.py     # /api/admin/* (tenants, users)
+    ├── quota.py     # /api/quota (user quota limits and usage)
+    └── api_keys.py  # /api/api-keys/* (API key management)
 ```
 
 ### Environment Variables
@@ -151,13 +160,20 @@ Key backend configuration (see `docker-compose.yml` for full list):
 - **JWT tokens**: Access tokens (15min) + refresh tokens (30 days) with rotation
 - **Password hashing**: bcrypt via `bcrypt` library
 
-### Rate Limiting
+### Rate Limiting (Demo Mode)
 - Multi-tier: per-session/day, per-IP/day, global/day
 - LLM limits are 10x higher than transcription limits
 - "Count successes, not attempts": Rate limits committed only after successful Core API calls (small race window accepted for better UX)
 - Auth endpoints have separate IP-based rate limiting (15-minute window)
 
-### Session Management
+### Quota System (Dashboard Mode)
+- **Tenant limits**: Organization-wide limits (transcription_seconds, text_cleanup_words, analysis_count)
+- **User limits**: Per-user limits within a tenant
+- **Effective limits**: Minimum of user and tenant limits per field
+- `2147483647` (INT_MAX) = effectively unlimited
+- Usage tracked in Core API, limits stored in wrapper backend
+
+### Session Management (Demo Mode)
 - Anonymous sessions via cookies (`eversaid_session_id`)
 - Auto-registration with Core API using `anon-{uuid}@anon.eversaid.example`
 - Token refresh when within 1 hour of expiry
@@ -213,8 +229,8 @@ python scripts/seed_demo_content.py --demo-audio /path # Custom audio directory
 
 Workarounds for Core API limitations identified during development:
 
-- Entry detail missing related resources — 5 API calls instead of 1 (`backend/app/routes/core.py:147-243`)
-- Analyses list missing `result` field — requires extra fetch per profile (`frontend/src/features/transcription/useAnalysis.ts:295-355`)
+- Entry detail missing related resources — 5 API calls instead of 1 (`backend/app/routes/core.py` GET entry detail)
+- Analyses list missing `result` field — requires extra fetch per profile (`frontend/src/features/transcription/useAnalysis.ts`)
 - No `?profile_id=` filter on analyses endpoint — must fetch all and filter client-side
 
 These add latency but allowed shipping fast to validate demand first.

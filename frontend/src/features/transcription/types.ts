@@ -314,6 +314,12 @@ export interface EntrySummary {
   uploaded_at: string
   primary_transcription: TranscriptionSummary | null
   latest_cleaned_entry: CleanedEntrySummary | null
+  /**
+   * True if entry was created via text import (no audio file).
+   * False if entry was created via audio upload (has audio file).
+   * Used to differentiate audio vs text entries for dashboard filtering.
+   */
+  is_transcript_only: boolean
 }
 
 /**
@@ -510,7 +516,6 @@ export class ApiError extends Error {
 export interface PaginationParams {
   limit?: number
   offset?: number
-  entry_type?: string
 }
 
 // =============================================================================

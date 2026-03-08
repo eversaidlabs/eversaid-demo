@@ -129,6 +129,12 @@ export default function HomePage() {
           >
             {tNav('getEarlyAccess')}
           </button>
+          <Link
+            href="/login"
+            className="px-4 py-2 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white rounded-lg text-[13px] font-semibold transition-all hover:-translate-y-0.5 shadow-[0_4px_16px_rgba(56,189,248,0.3)] hover:shadow-[0_6px_20px_rgba(56,189,248,0.4)]"
+          >
+            {tNav('login')}
+          </Link>
           <LanguageSwitcher />
         </div>
       </nav>

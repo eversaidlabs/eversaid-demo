@@ -24,7 +24,8 @@
     "howItWorks": "How It Works",
     "apiDocs": "API Docs",
     "joinWaitlist": "Join Waitlist",
-    "getEarlyAccess": "Get Early Access"
+    "getEarlyAccess": "Get Early Access",
+    "login": "Login"
   },
   "landing": {
     "hero": {
@@ -824,6 +825,140 @@
       "curl": "cURL",
       "python": "Python",
       "javascript": "JavaScript"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Sign in to your EverSaid account",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Sign In",
+      "submitting": "Signing in...",
+      "error": "Invalid email or password"
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "subtitle": "Please create a new password for",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter your current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter a new password (min 8 characters)",
+      "confirmPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Confirm your new password",
+      "submit": "Change Password",
+      "submitting": "Changing password...",
+      "error": "Failed to change password",
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 8 characters"
+    }
+  },
+  "dashboard": {
+    "loading": "Loading...",
+    "sidebar": {
+      "content": "Content",
+      "audioTranscriptions": "Audio Transcriptions",
+      "textCleanups": "Text Cleanups",
+      "newUpload": "New Upload",
+      "newText": "New Text",
+      "logout": "Log out"
+    },
+    "quota": {
+      "audioRemaining": "Audio quota remaining",
+      "textRemaining": "Text quota remaining",
+      "hours": "hours",
+      "minutes": "min",
+      "words": "words"
+    },
+    "audio": {
+      "title": "Audio Transcriptions",
+      "subtitle": "{count, plural, =0 {No transcriptions} one {# transcription} other {# transcriptions}}"
+    },
+    "text": {
+      "title": "Text Cleanups",
+      "subtitle": "{count, plural, =0 {No entries} one {# entry} other {# entries}}"
+    },
+    "card": {
+      "audio": "Audio",
+      "text": "Text",
+      "processing": "Processing",
+      "failed": "Failed"
+    },
+    "dropdown": {
+      "rename": "Rename",
+      "downloadTranscript": "Download transcript",
+      "downloadAudio": "Download audio",
+      "delete": "Delete"
+    },
+    "empty": {
+      "audioTitle": "No audio transcriptions yet",
+      "audioDescription": "Upload an audio file to get started with transcription and AI cleanup.",
+      "textTitle": "No text entries yet",
+      "textDescription": "Import text to get started with AI cleanup and analysis.",
+      "uploadAudio": "Upload Audio",
+      "importText": "Import Text"
+    },
+    "rename": {
+      "title": "Rename Entry",
+      "label": "Name",
+      "placeholder": "Enter a new name",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "delete": {
+      "title": "Delete Entry?",
+      "description": "This will permanently delete this entry and all associated data. This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleting": "Deleting..."
+    },
+    "toast": {
+      "renamed": "Entry renamed",
+      "renameFailed": "Failed to rename entry",
+      "deleted": "Entry deleted",
+      "deleteFailed": "Failed to delete entry"
+    },
+    "detail": {
+      "backToAudio": "Back to Audio",
+      "backToText": "Back to Text",
+      "notFound": "Entry not found",
+      "processing": "Processing in progress...",
+      "transcript": "Transcript",
+      "cleanedText": "Cleaned Text",
+      "analysis": "Analysis",
+      "noTranscript": "No transcript available",
+      "noText": "No text available"
+    },
+    "upload": {
+      "title": "Upload Audio",
+      "backToList": "Back to list",
+      "dropHere": "Drop your audio file here",
+      "or": "or",
+      "browse": "Browse Files",
+      "formats": "MP3, WAV, M4A, FLAC supported",
+      "changeFile": "Change file",
+      "speakerCount": "Number of speakers",
+      "submit": "Upload & Transcribe",
+      "uploading": "Uploading...",
+      "success": "Upload successful! Processing started.",
+      "failed": "Upload failed. Please try again.",
+      "invalidType": "Invalid file type. Please upload an audio file.",
+      "tooLarge": "File too large. Maximum size is {maxSize} MB."
+    },
+    "import": {
+      "title": "Import Text",
+      "backToList": "Back to list",
+      "label": "Paste your text",
+      "placeholder": "Paste the text you want to clean up...",
+      "hint": "Speaker labels like \"Speaker 1:\" will be detected automatically.",
+      "submit": "Import & Clean Up",
+      "importing": "Importing...",
+      "success": "Import successful! Processing started.",
+      "failed": "Import failed. Please try again.",
+      "emptyText": "Please enter some text to import."
     }
   },
   "metadata": {

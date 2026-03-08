@@ -2,7 +2,7 @@
 
 import { Link } from "@/i18n/routing"
 import { useTranslations } from 'next-intl'
-import { Bell } from "lucide-react"
+import { Bell, LogIn } from "lucide-react"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
 
 export interface DemoNavigationProps {
@@ -64,6 +64,13 @@ export function DemoNavigation({ currentPage = "demo", onWaitlistClick }: DemoNa
             <span className="hidden md:inline">{t('getEarlyAccess')}</span>
           </button>
         )}
+        <Link
+          href="/login"
+          className="p-2.5 md:px-4 md:py-2 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white rounded-lg text-[13px] font-semibold transition-all hover:-translate-y-0.5 shadow-[0_4px_16px_rgba(56,189,248,0.3)] hover:shadow-[0_6px_20px_rgba(56,189,248,0.4)]"
+        >
+          <LogIn className="w-5 h-5 md:hidden" />
+          <span className="hidden md:inline">{t('login')}</span>
+        </Link>
         <LanguageSwitcher />
       </div>
     </nav>

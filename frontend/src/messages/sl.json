@@ -24,7 +24,8 @@
     "howItWorks": "Kako deluje",
     "apiDocs": "API dokumentacija",
     "joinWaitlist": "Pridruži se čakalni listi",
-    "getEarlyAccess": "Pridruži se čakalni listi"
+    "getEarlyAccess": "Pridruži se čakalni listi",
+    "login": "Prijava"
   },
   "landing": {
     "hero": {
@@ -824,6 +825,140 @@
       "curl": "cURL",
       "python": "Python",
       "javascript": "JavaScript"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Prijava",
+      "subtitle": "Prijavite se v svoj EverSaid račun",
+      "email": "E-pošta",
+      "emailPlaceholder": "vi@primer.si",
+      "password": "Geslo",
+      "passwordPlaceholder": "Vnesite geslo",
+      "submit": "Prijava",
+      "submitting": "Prijavljanje...",
+      "error": "Napačna e-pošta ali geslo"
+    },
+    "changePassword": {
+      "title": "Sprememba gesla",
+      "subtitle": "Ustvarite novo geslo za",
+      "currentPassword": "Trenutno geslo",
+      "currentPasswordPlaceholder": "Vnesite trenutno geslo",
+      "newPassword": "Novo geslo",
+      "newPasswordPlaceholder": "Vnesite novo geslo (min 8 znakov)",
+      "confirmPassword": "Potrdite novo geslo",
+      "confirmPasswordPlaceholder": "Potrdite novo geslo",
+      "submit": "Spremeni geslo",
+      "submitting": "Spreminjanje gesla...",
+      "error": "Sprememba gesla ni uspela",
+      "passwordMismatch": "Gesli se ne ujemata",
+      "passwordTooShort": "Geslo mora imeti vsaj 8 znakov"
+    }
+  },
+  "dashboard": {
+    "loading": "Nalaganje...",
+    "sidebar": {
+      "content": "Vsebina",
+      "audioTranscriptions": "Zvočne transkripcije",
+      "textCleanups": "Čiščenje besedil",
+      "newUpload": "Nov prenos",
+      "newText": "Novo besedilo",
+      "logout": "Odjava"
+    },
+    "quota": {
+      "audioRemaining": "Preostala zvočna kvota",
+      "textRemaining": "Preostala kvota besedila",
+      "hours": "ur",
+      "minutes": "min",
+      "words": "besed"
+    },
+    "audio": {
+      "title": "Zvočne transkripcije",
+      "subtitle": "{count, plural, =0 {Ni transkripcij} one {# transkripcija} two {# transkripciji} few {# transkripcije} other {# transkripcij}}"
+    },
+    "text": {
+      "title": "Čiščenje besedil",
+      "subtitle": "{count, plural, =0 {Ni vnosov} one {# vnos} two {# vnosa} few {# vnosi} other {# vnosov}}"
+    },
+    "card": {
+      "audio": "Zvok",
+      "text": "Besedilo",
+      "processing": "V obdelavi",
+      "failed": "Neuspelo"
+    },
+    "dropdown": {
+      "rename": "Preimenuj",
+      "downloadTranscript": "Prenesi transkripcijo",
+      "downloadAudio": "Prenesi zvok",
+      "delete": "Izbriši"
+    },
+    "empty": {
+      "audioTitle": "Ni še zvočnih transkripcij",
+      "audioDescription": "Naložite zvočno datoteko za začetek transkripcije in AI čiščenja.",
+      "textTitle": "Ni še besedilnih vnosov",
+      "textDescription": "Uvozite besedilo za začetek AI čiščenja in analize.",
+      "uploadAudio": "Naloži zvok",
+      "importText": "Uvozi besedilo"
+    },
+    "rename": {
+      "title": "Preimenuj vnos",
+      "label": "Ime",
+      "placeholder": "Vnesite novo ime",
+      "cancel": "Prekliči",
+      "save": "Shrani",
+      "saving": "Shranjevanje..."
+    },
+    "delete": {
+      "title": "Izbriši vnos?",
+      "description": "To bo trajno izbrisalo ta vnos in vse povezane podatke. Tega dejanja ni mogoče razveljaviti.",
+      "cancel": "Prekliči",
+      "confirm": "Izbriši",
+      "deleting": "Brisanje..."
+    },
+    "toast": {
+      "renamed": "Vnos preimenovan",
+      "renameFailed": "Preimenovanje vnosa ni uspelo",
+      "deleted": "Vnos izbrisan",
+      "deleteFailed": "Brisanje vnosa ni uspelo"
+    },
+    "detail": {
+      "backToAudio": "Nazaj na zvok",
+      "backToText": "Nazaj na besedilo",
+      "notFound": "Vnos ni najden",
+      "processing": "Obdelava v teku...",
+      "transcript": "Transkripcija",
+      "cleanedText": "Očiščeno besedilo",
+      "analysis": "Analiza",
+      "noTranscript": "Transkripcija ni na voljo",
+      "noText": "Besedilo ni na voljo"
+    },
+    "upload": {
+      "title": "Naloži zvok",
+      "backToList": "Nazaj na seznam",
+      "dropHere": "Spustite zvočno datoteko sem",
+      "or": "ali",
+      "browse": "Prebrskaj datoteke",
+      "formats": "Podprti formati: MP3, WAV, M4A, FLAC",
+      "changeFile": "Spremeni datoteko",
+      "speakerCount": "Število govorcev",
+      "submit": "Naloži in transkribir",
+      "uploading": "Nalaganje...",
+      "success": "Nalaganje uspešno! Obdelava se je začela.",
+      "failed": "Nalaganje ni uspelo. Poskusite znova.",
+      "invalidType": "Neveljavna vrsta datoteke. Naložite zvočno datoteko.",
+      "tooLarge": "Datoteka je prevelika. Največja velikost je {maxSize} MB."
+    },
+    "import": {
+      "title": "Uvozi besedilo",
+      "backToList": "Nazaj na seznam",
+      "label": "Prilepite besedilo",
+      "placeholder": "Prilepite besedilo, ki ga želite očistiti...",
+      "hint": "Oznake govorcev kot \"Govorec 1:\" bodo samodejno zaznane.",
+      "submit": "Uvozi in očisti",
+      "importing": "Uvažanje...",
+      "success": "Uvoz uspešen! Obdelava se je začela.",
+      "failed": "Uvoz ni uspel. Poskusite znova.",
+      "emptyText": "Vnesite besedilo za uvoz."
     }
   },
   "metadata": {

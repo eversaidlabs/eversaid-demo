@@ -336,7 +336,6 @@ export async function getEntries(
   const searchParams = new URLSearchParams()
   if (params.limit) searchParams.append('limit', String(params.limit))
   if (params.offset) searchParams.append('offset', String(params.offset))
-  if (params.entry_type) searchParams.append('entry_type', params.entry_type)
 
   const query = searchParams.toString()
   const endpoint = query ? `/api/entries?${query}` : '/api/entries'
