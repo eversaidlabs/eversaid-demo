@@ -3,6 +3,7 @@
 import { useState } from 'react'
 
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/ui/logo'
 import { Sidebar } from './sidebar'
 
 /**
@@ -14,26 +15,29 @@ export function MobileSidebar() {
 
   return (
     <>
-      {/* Hamburger button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed left-4 top-4 z-40 flex size-10 items-center justify-center rounded-lg bg-slate-900 text-white shadow-lg md:hidden"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-          className="size-5"
+      {/* Mobile header with hamburger and logo */}
+      <div className="fixed left-0 right-0 top-0 z-40 flex items-center gap-3 bg-slate-50 px-4 py-3 md:hidden">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flex size-10 items-center justify-center rounded-lg bg-slate-900 text-white shadow-lg"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="size-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+        <Logo size="sm" variant="dark" />
+      </div>
 
       {/* Overlay */}
       <div

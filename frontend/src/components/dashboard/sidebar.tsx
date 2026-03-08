@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/ui/logo'
 import { SidebarNav } from './sidebar-nav'
 import { SidebarQuota } from './sidebar-quota'
 import { SidebarUserCard } from './sidebar-user-card'
@@ -30,9 +31,8 @@ export function Sidebar({ className, onClose }: SidebarProps) {
     >
       {/* Header with logo */}
       <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
-        <Link href={`/${locale}/audio`} className="flex items-center gap-2.5">
-          <div className="size-8 rounded-lg bg-gradient-to-br from-sky-400 to-purple-500" />
-          <span className="text-xl font-bold text-white">EverSaid</span>
+        <Link href={`/${locale}/audio`}>
+          <Logo size="md" variant="light" />
         </Link>
         {/* Close button for mobile */}
         {onClose && (

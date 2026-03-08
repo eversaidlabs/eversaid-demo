@@ -7,6 +7,7 @@ import { AuthProvider } from '@/features/auth/context'
 import { useAuth } from '@/features/auth/hooks'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { MobileSidebar } from '@/components/dashboard/mobile-sidebar'
+import { Logo } from '@/components/ui/logo'
 
 /**
  * Dashboard layout wrapper that handles:
@@ -51,9 +52,9 @@ function DashboardContent({ children }: { children: ReactNode }) {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-8 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500" />
-          <span className="text-sm text-slate-500">Loading...</span>
+        <div className="flex flex-col items-center gap-6">
+          <Logo size="lg" variant="dark" />
+          <div className="size-6 animate-spin rounded-full border-3 border-slate-200 border-t-sky-500" />
         </div>
       </div>
     )

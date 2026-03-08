@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Logo } from '@/components/ui/logo'
 import { changePassword, getMe, AuthError } from '@/features/auth/api'
 import { getAccessToken } from '@/lib/auth'
 
@@ -100,11 +101,8 @@ export default function ChangePasswordPage({
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           {/* Logo */}
-          <Link href={`/${locale}`} className="mx-auto mb-4 flex items-center gap-2">
-            <div className="size-8 rounded-lg bg-gradient-to-br from-sky-400 to-purple-500" />
-            <span className="font-logo text-xl font-bold text-slate-900">
-              EverSaid
-            </span>
+          <Link href={`/${locale}`} className="mx-auto mb-4">
+            <Logo size="md" variant="dark" />
           </Link>
           <CardTitle className="text-xl">{t('changePassword.title')}</CardTitle>
           <CardDescription>

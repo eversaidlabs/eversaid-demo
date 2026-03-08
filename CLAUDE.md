@@ -113,6 +113,10 @@ src/
 - **Frontend E2E tests**: `e2e/*.spec.ts` (Playwright, mocks in `e2e/mocks/setup-mocks.ts`)
 - **Backend tests**: `tests/*.py` (pytest)
 
+### CI/CD
+- **PR Tests** (`.github/workflows/pr-tests.yml`): Runs on every PR — frontend unit tests, E2E tests, Storybook build; backend unit tests with PostgreSQL service
+- **Deploy** (`.github/workflows/deploy.yml`): Runs unit tests only (E2E already passed in PR)
+
 ## Backend Architecture
 
 ### Key Files

@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Logo } from '@/components/ui/logo'
 import { login, AuthError, getMe, refreshTokens } from '@/features/auth/api'
 import { getAccessToken, getRefreshToken, isTokenExpired } from '@/lib/auth'
 
@@ -108,8 +109,9 @@ export default function LoginPage({
   if (isCheckingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-8 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500" />
+        <div className="flex flex-col items-center gap-6">
+          <Logo size="lg" variant="dark" />
+          <div className="size-6 animate-spin rounded-full border-3 border-slate-200 border-t-sky-500" />
         </div>
       </div>
     )
@@ -120,11 +122,8 @@ export default function LoginPage({
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           {/* Logo */}
-          <Link href={`/${locale}`} className="mx-auto mb-4 flex items-center gap-2">
-            <div className="size-8 rounded-lg bg-gradient-to-br from-sky-400 to-purple-500" />
-            <span className="font-logo text-xl font-bold text-slate-900">
-              EverSaid
-            </span>
+          <Link href={`/${locale}`} className="mx-auto mb-4">
+            <Logo size="md" variant="dark" />
           </Link>
           <CardTitle className="text-xl">{t('login.title')}</CardTitle>
           <CardDescription>{t('login.subtitle')}</CardDescription>
