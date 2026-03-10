@@ -32,6 +32,7 @@ export function EntryCard({
 
   const isAudio = entry.entry_type === 'audio'
   const status = getEntryStatus(entry)
+  const displayName = entry.title || entry.original_filename
 
   // Format date
   const date = new Date(entry.uploaded_at)
@@ -78,15 +79,15 @@ export function EntryCard({
         <div onClick={(e) => e.preventDefault()}>
           <EntryCardDropdown
             entryId={entry.id}
-            filename={entry.original_filename}
+            filename={displayName}
             isAudio={isAudio}
-            onRename={() => onRename(entry.id, entry.original_filename)}
+            onRename={() => onRename(entry.id, displayName)}
             onDownloadTranscript={() =>
-              onDownloadTranscript(entry.id, entry.original_filename)
+              onDownloadTranscript(entry.id, displayName)
             }
             onDownloadAudio={
               isAudio && onDownloadAudio
-                ? () => onDownloadAudio(entry.id, entry.original_filename)
+                ? () => onDownloadAudio(entry.id, displayName)
                 : undefined
             }
             onDelete={() => onDelete(entry.id)}
@@ -96,7 +97,7 @@ export function EntryCard({
 
       {/* Title */}
       <h3 className="mb-2 text-base font-semibold text-slate-900 line-clamp-2 group-hover:text-sky-600">
-        {entry.original_filename}
+        {displayName}
       </h3>
 
       {/* Meta info */}

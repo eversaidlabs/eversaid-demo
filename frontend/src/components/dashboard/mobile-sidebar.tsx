@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
@@ -12,6 +14,11 @@ import { Sidebar } from './sidebar'
  */
 export function MobileSidebar() {
   const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
+
+  // Extract locale from pathname
+  const localeMatch = pathname.match(/^\/(en|sl)/)
+  const locale = localeMatch ? localeMatch[1] : 'en'
 
   return (
     <>
@@ -36,7 +43,9 @@ export function MobileSidebar() {
             />
           </svg>
         </button>
-        <Logo size="sm" variant="dark" />
+        <Link href={`/${locale}`}>
+          <Logo size="sm" variant="dark" />
+        </Link>
       </div>
 
       {/* Overlay */}

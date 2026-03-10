@@ -31,7 +31,7 @@ export function Sidebar({ className, onClose }: SidebarProps) {
     >
       {/* Header with logo */}
       <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
-        <Link href={`/${locale}/audio`}>
+        <Link href={`/${locale}`}>
           <Logo size="md" variant="light" />
         </Link>
         {/* Close button for mobile */}

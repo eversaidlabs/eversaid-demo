@@ -49,7 +49,7 @@ export function useEntryActions(): UseEntryActionsResult {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ original_filename: newName }),
+        body: JSON.stringify({ title: newName }),
       })
 
       if (!response.ok) {

@@ -310,6 +310,8 @@ export interface EntrySummary {
   original_filename: string
   saved_filename: string
   entry_type: string
+  /** User-editable title. If set, display this instead of original_filename. */
+  title?: string | null
   duration_seconds: number
   uploaded_at: string
   primary_transcription: TranscriptionSummary | null
@@ -345,6 +347,8 @@ export interface EntryDetails {
   id: string
   original_filename: string
   saved_filename: string
+  /** User-editable title. If set, display this instead of original_filename. */
+  title?: string | null
   duration_seconds: number
   entry_type: string
   uploaded_at: string

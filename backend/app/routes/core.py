@@ -404,7 +404,7 @@ async def delete_entry(
 class UpdateEntryRequest(BaseModel):
     """Request body for updating entry metadata."""
 
-    original_filename: Optional[str] = None
+    title: Optional[str] = None
 
 
 @router.patch("/api/entries/{entry_id}")
@@ -416,7 +416,7 @@ async def update_entry(
 ):
     """Update entry metadata (e.g., rename).
 
-    Currently supports updating original_filename only.
+    Currently supports updating title only.
     """
     # Build request body with only provided fields
     update_data = body.model_dump(exclude_none=True)
