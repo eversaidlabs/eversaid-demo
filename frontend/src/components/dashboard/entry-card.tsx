@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -25,6 +26,7 @@ export function EntryCard({
 }: EntryCardProps) {
   const t = useTranslations('dashboard')
   const pathname = usePathname()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   // Extract locale from pathname
   const localeMatch = pathname.match(/^\/(en|sl)/)
@@ -53,7 +55,10 @@ export function EntryCard({
   return (
     <Link
       href={href}
-      className="group relative block rounded-2xl border border-slate-200 bg-white p-6 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg"
+      className={cn(
+        'group relative block rounded-2xl border border-slate-200 bg-white p-6 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg',
+        isDropdownOpen && 'z-10'
+      )}
     >
       {/* Header with badges and menu */}
       <div className="mb-4 flex items-start justify-between">
@@ -81,6 +86,8 @@ export function EntryCard({
             entryId={entry.id}
             filename={displayName}
             isAudio={isAudio}
+            isOpen={isDropdownOpen}
+            onOpenChange={setIsDropdownOpen}
             onRename={() => onRename(entry.id, displayName)}
             onDownloadTranscript={() =>
               onDownloadTranscript(entry.id, displayName)

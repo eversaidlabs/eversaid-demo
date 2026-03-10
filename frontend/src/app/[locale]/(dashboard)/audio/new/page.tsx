@@ -74,7 +74,7 @@ export default function NewAudioPage({
       })
 
       toast.success(t('upload.success'))
-      router.push(`/${locale}/audio/${data.entry_id}`)
+      router.push(`/${locale}/audio`)
     } catch (err) {
       const message = err instanceof Error ? err.message : t('upload.failed')
       setError(message)

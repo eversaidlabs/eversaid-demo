@@ -41,7 +41,7 @@ export default function NewTextPage({
       })
 
       toast.success(t('import.success'))
-      router.push(`/${locale}/text/${data.entry_id}`)
+      router.push(`/${locale}/text`)
     } catch (err) {
       const message = err instanceof Error ? err.message : t('import.failed')
       setError(message)

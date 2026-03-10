@@ -52,6 +52,18 @@ export function useEntryList({
     })
   }, [allEntries, entryType])
 
+  // Check if any entry is still processing (for auto-polling)
+  const hasProcessingEntries = useMemo(() => {
+    return filteredEntries.some((entry) => {
+      const transcriptionStatus = entry.primary_transcription?.status
+      const cleanupStatus = entry.latest_cleaned_entry?.status
+      return (
+        ['pending', 'processing'].includes(transcriptionStatus || '') ||
+        ['pending', 'processing'].includes(cleanupStatus || '')
+      )
+    })
+  }, [filteredEntries])
+
   // Fetch entries (no server-side filtering, filter client-side)
   const fetchEntries = useCallback(
     async (newOffset: number, append: boolean = false) => {
@@ -84,6 +96,17 @@ export function useEntryList({
   useEffect(() => {
     fetchEntries(0, false)
   }, [fetchEntries])
+
+  // Poll for updates when entries are processing
+  useEffect(() => {
+    if (!hasProcessingEntries) return
+
+    const interval = setInterval(() => {
+      fetchEntries(0, false)
+    }, 5000) // Poll every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [hasProcessingEntries, fetchEntries])
 
   // Refresh entries
   const refresh = useCallback(async () => {

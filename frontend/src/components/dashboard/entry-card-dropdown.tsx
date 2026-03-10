@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 
 import { cn } from '@/lib/utils'
@@ -9,6 +9,8 @@ interface EntryCardDropdownProps {
   entryId: string
   filename: string
   isAudio: boolean
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
   onRename: () => void
   onDownloadTranscript: () => void
   onDownloadAudio?: () => void
@@ -19,13 +21,14 @@ export function EntryCardDropdown({
   entryId: _entryId,
   filename: _filename,
   isAudio,
+  isOpen,
+  onOpenChange,
   onRename,
   onDownloadTranscript,
   onDownloadAudio,
   onDelete,
 }: EntryCardDropdownProps) {
   const t = useTranslations('dashboard')
-  const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close on click outside
@@ -35,7 +38,7 @@ export function EntryCardDropdown({
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false)
+        onOpenChange(false)
       }
     }
 
@@ -43,13 +46,13 @@ export function EntryCardDropdown({
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isOpen])
+  }, [isOpen, onOpenChange])
 
   // Close on escape
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setIsOpen(false)
+        onOpenChange(false)
       }
     }
 
@@ -57,7 +60,7 @@ export function EntryCardDropdown({
       document.addEventListener('keydown', handleEscape)
       return () => document.removeEventListener('keydown', handleEscape)
     }
-  }, [isOpen])
+  }, [isOpen, onOpenChange])
 
   return (
     <div ref={dropdownRef} className="relative">
@@ -66,7 +69,7 @@ export function EntryCardDropdown({
         onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
-          setIsOpen(!isOpen)
+          onOpenChange(!isOpen)
         }}
         className="flex size-7 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
       >
@@ -80,7 +83,7 @@ export function EntryCardDropdown({
             icon={<RenameIcon />}
             label={t('dropdown.rename')}
             onClick={() => {
-              setIsOpen(false)
+              onOpenChange(false)
               onRename()
             }}
           />
@@ -89,7 +92,7 @@ export function EntryCardDropdown({
             icon={<DownloadIcon />}
             label={t('dropdown.downloadTranscript')}
             onClick={() => {
-              setIsOpen(false)
+              onOpenChange(false)
               onDownloadTranscript()
             }}
           />
@@ -99,7 +102,7 @@ export function EntryCardDropdown({
               icon={<AudioIcon />}
               label={t('dropdown.downloadAudio')}
               onClick={() => {
-                setIsOpen(false)
+                onOpenChange(false)
                 onDownloadAudio()
               }}
             />
@@ -112,7 +115,7 @@ export function EntryCardDropdown({
             label={t('dropdown.delete')}
             variant="danger"
             onClick={() => {
-              setIsOpen(false)
+              onOpenChange(false)
               onDelete()
             }}
           />
