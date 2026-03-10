@@ -6,8 +6,7 @@ import { toast } from 'sonner'
 
 import { useEntryList } from '@/features/dashboard/useEntryList'
 import { useEntryActions } from '@/features/dashboard/useEntryActions'
-import { EntryCard } from '@/components/dashboard/entry-card'
-import { EntryGrid } from '@/components/dashboard/entry-grid'
+import { EntryTable } from '@/components/dashboard/entry-table'
 import { EmptyState } from '@/components/dashboard/empty-state'
 import { RenameDialog } from '@/components/dashboard/rename-dialog'
 import { DeleteDialog } from '@/components/dashboard/delete-dialog'
@@ -117,17 +116,12 @@ export default function TextListPage() {
       {entries.length === 0 ? (
         <EmptyState type="text" />
       ) : (
-        <EntryGrid>
-          {entries.map((entry) => (
-            <EntryCard
-              key={entry.id}
-              entry={entry}
-              onRename={handleOpenRename}
-              onDownloadTranscript={handleDownloadTranscript}
-              onDelete={handleOpenDelete}
-            />
-          ))}
-        </EntryGrid>
+        <EntryTable
+          entries={entries}
+          onRename={handleOpenRename}
+          onDownloadTranscript={handleDownloadTranscript}
+          onDelete={handleOpenDelete}
+        />
       )}
 
       {/* Rename dialog */}

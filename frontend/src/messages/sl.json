@@ -886,6 +886,15 @@
       "processing": "V obdelavi",
       "failed": "Neuspelo"
     },
+    "table": {
+      "type": "Vrsta",
+      "title": "Naslov",
+      "status": "Status",
+      "date": "Datum",
+      "duration": "Trajanje",
+      "actions": "Dejanja",
+      "complete": "Končano"
+    },
     "dropdown": {
       "rename": "Preimenuj",
       "downloadTranscript": "Prenesi transkripcijo",

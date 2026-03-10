@@ -886,6 +886,15 @@
       "processing": "Processing",
       "failed": "Failed"
     },
+    "table": {
+      "type": "Type",
+      "title": "Title",
+      "status": "Status",
+      "date": "Date",
+      "duration": "Duration",
+      "actions": "Actions",
+      "complete": "Complete"
+    },
     "dropdown": {
       "rename": "Rename",
       "downloadTranscript": "Download transcript",
