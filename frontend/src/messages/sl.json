@@ -488,17 +488,24 @@
     },
     "modal": {
       "titleApi": "Pridruži se API čakalni listi",
-      "titleExtended": "Pridruži se čakalni listi",
+      "titleExtended": "Pridruži se pilotu",
       "subtitleApi": "Pridobite zgodnji dostop za integracijo EverSaid v vašo aplikacijo",
-      "subtitleExtended": "Pridobite polno šifriranje, višje omejitve in ekskluziven zgodnji dostop",
+      "subtitleExtended": "Bodite del prve skupine, ki bo uporabljala celotno platformo. Vaše povratne informacije oblikujejo, kaj gradimo naprej.",
       "emailLabel": "E-poštni naslov",
       "emailPlaceholder": "vi@primer.com",
       "useCaseLabelApi": "Kaj boste zgradili?",
       "useCaseLabelExtended": "Kako boste uporabljali EverSaid?",
       "useCasePlaceholderApi": "npr. Glasovni dnevnik, avtomatizacija zapiskov sestankov",
-      "useCasePlaceholderExtended": "npr. Terapevtski zapiski, transkripcija intervjujev",
+      "useCasePlaceholderExtended": "Izberite primer uporabe",
       "useCaseHelpApi": "Pomagajte nam razumeti vaše integracijske potrebe",
       "useCaseHelpExtended": "To nam pomaga prioritizirati funkcije",
+      "useCaseOptions": {
+        "therapy": "Terapija / Coaching",
+        "research": "Raziskave / Akademija",
+        "journalism": "Novinarstvo",
+        "podcasting": "Podkasti / Ustvarjanje vsebin",
+        "other": "Drugo"
+      },
       "volumeLabel": "Pričakovani mesečni obseg",
       "volumeOptional": "(neobvezno)",
       "volumePlaceholder": "Izberite obseg",
@@ -521,7 +528,8 @@
         "other": "Drugo"
       },
       "languageOtherPlaceholder": "npr. japonščina, arabščina, mandarinščina",
-      "submit": "Pridruži se čakalni listi",
+      "languageHelp": "To nam pomaga določiti prioriteto naslednjega jezika, ki ga bomo podprli",
+      "submit": "Pridruži se pilotu",
       "submitting": "Pridruževanje...",
       "privacyNote": "Z oddajo se strinjate z našo",
       "privacyLink": "Politiko zasebnosti"

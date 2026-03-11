@@ -488,17 +488,24 @@
     },
     "modal": {
       "titleApi": "Join API Waitlist",
-      "titleExtended": "Join the Waitlist",
+      "titleExtended": "Join the Pilot",
       "subtitleApi": "Get early access to integrate EverSaid into your application",
-      "subtitleExtended": "Get full encryption, higher limits, and exclusive early access",
+      "subtitleExtended": "Be part of the first group to use the full platform. Your feedback shapes what we build next.",
       "emailLabel": "Email Address",
       "emailPlaceholder": "you@example.com",
       "useCaseLabelApi": "What will you build?",
       "useCaseLabelExtended": "How will you use EverSaid?",
       "useCasePlaceholderApi": "e.g., Voice journal app, meeting notes automation",
-      "useCasePlaceholderExtended": "e.g., Therapy notes, interview transcription",
+      "useCasePlaceholderExtended": "Select your use case",
       "useCaseHelpApi": "Help us understand your integration needs",
       "useCaseHelpExtended": "This helps us prioritize features",
+      "useCaseOptions": {
+        "therapy": "Therapy / Coaching",
+        "research": "Research / Academia",
+        "journalism": "Journalism",
+        "podcasting": "Podcasting / Content creation",
+        "other": "Other"
+      },
       "volumeLabel": "Expected monthly volume",
       "volumeOptional": "(optional)",
       "volumePlaceholder": "Select volume",
@@ -521,7 +528,8 @@
         "other": "Other"
       },
       "languageOtherPlaceholder": "e.g., Japanese, Arabic, Mandarin",
-      "submit": "Join Waitlist",
+      "languageHelp": "This helps us prioritize the next language we support",
+      "submit": "Join Pilot",
       "submitting": "Joining...",
       "privacyNote": "By submitting, you agree to our",
       "privacyLink": "Privacy Policy"

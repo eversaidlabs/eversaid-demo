@@ -181,6 +181,9 @@ export function WaitlistFlow({
                     <option value="sl">{t("waitlist.modal.languageOptions.sl")}</option>
                     <option value="other">{t("waitlist.modal.languageOptions.other")}</option>
                   </select>
+                  <div className="mt-1.5 text-[12px] text-[#64748B]">
+                    {t("waitlist.modal.languageHelp")}
+                  </div>
                 </div>
 
                 {/* Language Other Input (shown when "other" is selected) */}
@@ -210,19 +213,33 @@ export function WaitlistFlow({
                       *
                     </span>
                   </label>
-                  <textarea
-                    id="waitlist-usecase"
-                    required
-                    aria-required="true"
-                    value={useCase}
-                    onChange={(e) => onUseCaseChange?.(e.target.value)}
-                    placeholder={
-                      isApiAccess
-                        ? t("waitlist.modal.useCasePlaceholderApi")
-                        : t("waitlist.modal.useCasePlaceholderExtended")
-                    }
-                    className="w-full px-4 py-3 border-2 border-[#E2E8F0] rounded-xl text-[15px] bg-[#F8FAFC] min-h-[80px] resize-vertical transition-all focus:outline-none focus:border-[#38BDF8] focus:bg-white focus:shadow-[0_0_0_4px_rgba(56,189,248,0.1)] placeholder:text-[#94A3B8]"
-                  />
+                  {isApiAccess ? (
+                    <textarea
+                      id="waitlist-usecase"
+                      required
+                      aria-required="true"
+                      value={useCase}
+                      onChange={(e) => onUseCaseChange?.(e.target.value)}
+                      placeholder={t("waitlist.modal.useCasePlaceholderApi")}
+                      className="w-full px-4 py-3 border-2 border-[#E2E8F0] rounded-xl text-[15px] bg-[#F8FAFC] min-h-[80px] resize-vertical transition-all focus:outline-none focus:border-[#38BDF8] focus:bg-white focus:shadow-[0_0_0_4px_rgba(56,189,248,0.1)] placeholder:text-[#94A3B8]"
+                    />
+                  ) : (
+                    <select
+                      id="waitlist-usecase"
+                      required
+                      aria-required="true"
+                      value={useCase}
+                      onChange={(e) => onUseCaseChange?.(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-[#E2E8F0] rounded-xl text-[15px] bg-[#F8FAFC] transition-all focus:outline-none focus:border-[#38BDF8] focus:bg-white focus:shadow-[0_0_0_4px_rgba(56,189,248,0.1)]"
+                    >
+                      <option value="">{t("waitlist.modal.useCasePlaceholderExtended")}</option>
+                      <option value="therapy">{t("waitlist.modal.useCaseOptions.therapy")}</option>
+                      <option value="research">{t("waitlist.modal.useCaseOptions.research")}</option>
+                      <option value="journalism">{t("waitlist.modal.useCaseOptions.journalism")}</option>
+                      <option value="podcasting">{t("waitlist.modal.useCaseOptions.podcasting")}</option>
+                      <option value="other">{t("waitlist.modal.useCaseOptions.other")}</option>
+                    </select>
+                  )}
                   <div className="mt-1.5 text-[12px] text-[#64748B]">
                     {isApiAccess ? t("waitlist.modal.useCaseHelpApi") : t("waitlist.modal.useCaseHelpExtended")}
                   </div>
