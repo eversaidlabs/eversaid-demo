@@ -8,7 +8,7 @@ import time
 from datetime import datetime, timezone
 from typing import Any, List, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from sqlalchemy.orm import Session as DBSession
@@ -18,6 +18,7 @@ from app.core_client import CoreAPIClient, CoreAPIError, get_core_api
 from app.database import get_db
 from app.middleware.auth import AuthenticatedUser, get_current_user
 from app.models import EntryFeedback, Waitlist
+from app.services.email import get_email_service
 from app.utils.logger import get_logger
 
 logger = get_logger("local")
@@ -213,18 +214,21 @@ async def get_feedback(
 @router.post("/api/waitlist", response_model=WaitlistResponse)
 async def join_waitlist(
     body: WaitlistRequest,
+    background_tasks: BackgroundTasks,
     db: DBSession = Depends(get_db),
 ):
     """Join the waitlist.
 
     Handles duplicate emails silently (returns success without leaking info).
     Does NOT require a session - this is a public endpoint.
+    Sends email notification on new signups (non-blocking).
     """
     # Check for existing email
     existing = db.query(Waitlist).filter(Waitlist.email == body.email).first()
 
     if existing:
         # Return success without leaking that email already exists
+        logger.info("Waitlist signup skipped - email already exists", email=body.email)
         return WaitlistResponse(message="Thank you for joining the waitlist!")
 
     # Create new waitlist entry
@@ -237,6 +241,20 @@ async def join_waitlist(
     )
     db.add(waitlist_entry)
     db.commit()
+
+    logger.info("New waitlist signup", email=body.email, waitlist_type=body.waitlist_type)
+
+    # Send notification email in background (non-blocking)
+    email_service = get_email_service()
+    logger.debug("Adding email notification to background tasks", to=email_service.settings.NOTIFICATION_EMAIL)
+    background_tasks.add_task(
+        email_service.send_waitlist_notification,
+        signup_email=body.email,
+        use_case=body.use_case,
+        waitlist_type=body.waitlist_type,
+        source_page=body.source_page,
+        language_preference=body.language_preference,
+    )
 
     return WaitlistResponse(message="Thank you for joining the waitlist!")
 

@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Optional
 from urllib.parse import quote_plus
 
 from pydantic import model_validator
@@ -50,6 +51,10 @@ class Settings(BaseSettings):
     # Analytics (PostHog) - served via /api/config for runtime configuration
     POSTHOG_KEY: str = ""
     POSTHOG_HOST: str = "/ingest"
+
+    # Email notifications (Brevo)
+    BREVO_API_KEY: Optional[str] = None
+    NOTIFICATION_EMAIL: str = "waitlist@eversaid.ai"
 
     model_config = SettingsConfigDict(env_file=".env")
 

@@ -52,6 +52,12 @@ docker compose up                        # Dev: frontend + backend
 docker compose --profile production up   # Prod: adds nginx reverse proxy
 ```
 
+**Important**: When adding new environment variables to `docker-compose.yml`, you MUST also add them to:
+- `docker-compose.staging.yml`
+- `docker-compose.prod.yml`
+
+All three files must stay in sync for environment variables.
+
 ## Architecture
 
 ```

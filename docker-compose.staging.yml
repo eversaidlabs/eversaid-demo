@@ -74,6 +74,9 @@ services:
       # Analytics (PostHog) - served via /api/config
       POSTHOG_KEY: ${POSTHOG_KEY:-}
       POSTHOG_HOST: ${POSTHOG_HOST:-/ingest}
+      # Email notifications (Brevo)
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      NOTIFICATION_EMAIL: ${NOTIFICATION_EMAIL:-}
       # Cloudflare Turnstile (bot protection)
       TURNSTILE_ENABLED: ${TURNSTILE_ENABLED:-false}
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}

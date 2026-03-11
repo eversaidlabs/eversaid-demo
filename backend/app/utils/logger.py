@@ -234,6 +234,11 @@ def setup_logging(settings: "Settings") -> None:
     print(f"POSTHOG_KEY:               {mask(settings.POSTHOG_KEY)}")
     print(f"POSTHOG_HOST:              {settings.POSTHOG_HOST}")
     print("=" * 60)
+    print("EMAIL (BREVO)")
+    print("=" * 60)
+    print(f"BREVO_API_KEY:             {mask(settings.BREVO_API_KEY or '')}")
+    print(f"NOTIFICATION_EMAIL:        {settings.NOTIFICATION_EMAIL}")
+    print("=" * 60)
 
 
 def get_logger(name: str) -> StructuredLogger:

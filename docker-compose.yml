@@ -79,6 +79,9 @@ services:
       # Analytics (PostHog)
       POSTHOG_KEY: ${POSTHOG_KEY:-}
       POSTHOG_HOST: ${POSTHOG_HOST:-/ingest}
+      # Email notifications (Brevo)
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      NOTIFICATION_EMAIL: ${NOTIFICATION_EMAIL:-}
     volumes:
       - ./backend:/app
     healthcheck:
