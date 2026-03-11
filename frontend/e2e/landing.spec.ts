@@ -32,8 +32,7 @@ test.describe("Landing Page", () => {
     await expect(page.getByRole("link", { name: "Features" })).toBeVisible()
     await expect(page.getByRole("link", { name: "Use Cases" })).toBeVisible()
     await expect(page.getByRole("link", { name: "How It Works" })).toBeVisible()
-    // AI Insights link is in the navigation
-    await expect(page.getByRole("link", { name: "AI Insights" })).toBeVisible()
+    await expect(page.getByRole("link", { name: "API Docs" })).toBeVisible()
   })
 
   test("displays feature sections", async ({ page }) => {
@@ -42,7 +41,7 @@ test.describe("Landing Page", () => {
     await expect(page.getByText("Every edit visible. Every word verifiable.")).toBeVisible()
 
     // Features section
-    await expect(page.getByText("Why Choose eversaid?")).toBeVisible()
+    await expect(page.getByText("What You Get")).toBeVisible()
 
     // Use Cases section
     await expect(page.getByText("Who It's For")).toBeVisible()
@@ -51,11 +50,10 @@ test.describe("Landing Page", () => {
     await expect(page.getByRole("heading", { name: "How It Works" })).toBeVisible()
   })
 
-  test("displays AI insights section", async ({ page }) => {
-    await expect(page.getByText("AI-Powered Insights")).toBeVisible()
-    await expect(page.getByText("Conversation Summary")).toBeVisible()
-    await expect(page.getByText("Action Items & Decisions")).toBeVisible()
-    await expect(page.getByText("Reflection & Insights")).toBeVisible()
+  test("displays What's Next section", async ({ page }) => {
+    await expect(page.getByText("What's Next")).toBeVisible()
+    await expect(page.getByText("Conversation Intelligence")).toBeVisible()
+    await expect(page.getByText(/Ask questions across months of sessions/)).toBeVisible()
   })
 
   test("footer contains expected links", async ({ page }) => {
@@ -66,13 +64,12 @@ test.describe("Landing Page", () => {
   })
 
   test("Join waitlist link opens waitlist modal", async ({ page }) => {
-    // Scroll to the CTA section at the bottom
-    const ctaSection = page.getByText("Ready to try smarter transcription?")
+    // Scroll to the What's Next section at the bottom
+    const ctaSection = page.getByText("Conversation Intelligence")
     await ctaSection.scrollIntoViewIfNeeded()
 
-    // Click the "Join the waitlist →" link within the CTA section
-    // The link is a button with arrow at the end
-    const waitlistLink = page.locator("button").filter({ hasText: "Join the waitlist →" })
+    // Click the "Join Waitlist for Early Access" button
+    const waitlistLink = page.locator("button").filter({ hasText: "Join Waitlist for Early Access" })
     await waitlistLink.click()
 
     // Modal should open

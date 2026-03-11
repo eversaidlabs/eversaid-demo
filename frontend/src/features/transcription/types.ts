@@ -433,7 +433,7 @@ export interface Feedback {
 /**
  * Waitlist types
  */
-export type WaitlistType = 'api_access' | 'extended_usage'
+export type WaitlistType = 'api_access' | 'extended_usage' | 'conversation_intelligence'
 
 /**
  * Waitlist submission payload

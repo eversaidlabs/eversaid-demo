@@ -19,12 +19,12 @@
     "home": "Domov",
     "demo": "Demo",
     "features": "Funkcije",
-    "insights": "AI analiza",
     "useCases": "Primeri uporabe",
     "howItWorks": "Kako deluje",
     "apiDocs": "API dokumentacija",
     "joinWaitlist": "Pridruži se čakalni listi",
-    "getEarlyAccess": "Pridruži se čakalni listi",
+    "getEarlyAccess": "Pridruži se pilotu",
+    "tryFreeDemo": "Brezplačni demo",
     "login": "Prijava"
   },
   "landing": {
@@ -119,105 +119,50 @@
         "cleaned": "Osredotočili se bomo na tri glavna področja: domačo stran, stran izdelkov in blagajno."
       }
     },
-    "insights": {
-      "sectionLabel": "Analiza",
-      "title": "AI vpogledi",
-      "subtitle": "Ponujamo več kot le očiščeno transkripcijo. Izberite analizo, ki ustreza vašemu načinu dela.",
-      "summary": {
-        "title": "Povzetek pogovora",
-        "description": "Teme, ključne točke in jedrnat pregled celotnega pogovora."
-      },
-      "actionItems": {
-        "title": "Naloge in odločitve",
-        "description": "Naloge za izvedbo, sprejete odločitve in nadaljnji koraki, samodejno izvlečeni."
-      },
-      "reflection": {
-        "title": "Refleksija in vpogledi",
-        "description": "Teme, osnovna vprašanja in spodbude h globljemu razmisleku."
-      },
-      "comingSoon": "Kmalu: Profili analize po meri, prilagojeni vašim potrebam"
-    },
     "features": {
       "sectionLabel": "Funkcije",
-      "title": "Zakaj izbrati EverSaid?",
-      "subtitle": "Preverite vsako spremembo in ohranite nadzor.",
-      "verifyEveryWord": "Preverite vsako besedo",
-      "dataProtected": "Vaši podatki, zaščiteni",
-      "sideBySide": {
-        "title": "Primerjava",
-        "description": "Poglejte, kaj je AI spremenil."
+      "title": "Kaj dobite",
+      "subtitle": "Transkripcija, čiščenje in analiza — vse preverljivo",
+      "transparentEditing": {
+        "title": "Transparentno urejanje",
+        "item1": "Primerjava surovega in očiščenega drug ob drugem",
+        "item2": "Kliknite kateri koli segment za poslušanje originala",
+        "item3": "Oznake govorcev z barvnim označevanjem",
+        "item4": "Uredite kateri koli segment ali povrnite na original"
       },
-      "speakerLabels": {
-        "title": "Oznake govorcev",
-        "description": "Barvno označeni govorci.",
-        "comingSoon": "Preimenovanje govorcev"
+      "aiAnalysis": {
+        "title": "AI analiza",
+        "item1": "Povzetek s temami in ključnimi točkami",
+        "item2": "Izvlečene naloge in odločitve",
+        "item3": "Spodbude za razmislek za terapevte in mentorje"
       },
-      "audioLinked": {
-        "title": "Povezano z zvokom",
-        "description": "Kliknite za skok na zvok."
+      "privateSecure": {
+        "title": "Zasebno in varno",
+        "item1": "Skladno z GDPR, infrastruktura v EU",
+        "item2": "Šifrirano med prenosom in v mirovanju",
+        "item3": "Nikoli uporabljeno za učenje AI modelov"
       },
-      "editRevert": {
-        "title": "Urejanje in povrnitev",
-        "description": "AI se je zmotil? Popravite sami ali povrnite na izvirnik. Vedno imate nadzor.",
-        "comingSoon": "Premikanje besedila med segmenti"
-      },
-      "cleanupLevels": {
-        "title": "Izberite raven",
-        "description": "Pozive nenehno izboljšujemo, da vam ni treba. Od samo ločil do popolnoma urejenega."
-      },
-      "gdpr": {
-        "title": "GDPR",
-        "description": "Evropski standardi zasebnosti."
-      },
-      "encrypted": {
-        "title": "Šifrirano",
-        "description": "Med prenosom in v mirovanju."
-      },
-      "isolated": {
-        "title": "Izolirano",
-        "description": "Vaši podatki ostanejo zasebni."
-      },
-      "noTraining": {
-        "title": "Brez učenja",
-        "description": "Nikoli uporabljeno za učenje AI."
-      },
-      "disclaimerDemo": "Brezplačni demo uporablja varno povezavo. Polno šifriranje, obdelava samo v EU in GDPR skladnost so vključeni z računi."
+      "disclaimerDemo": "Brezplačni demo uporablja varno povezavo. Polno šifriranje in obdelava samo v EU sta vključena z računi."
     },
     "useCases": {
       "sectionLabel": "Primeri uporabe",
       "title": "Za koga je namenjeno",
-      "subtitle": "Strokovnjaki, ki potrebujejo prepise, ki jim lahko zaupajo, in vpoglede, ki jih lahko uporabijo",
+      "subtitle": "Strokovnjaki, ki potrebujejo prepise, ki jim lahko zaupajo, in vpoglede, ki jih lahko preverijo",
       "therapists": {
         "title": "Terapevti in mentorji",
-        "description": "Natančno dokumentirajte seje. Napake AI v kliničnih zapisih imajo resne posledice."
+        "description": "Nehajte ročno pisati med sejo. Posnemite, dobite očiščen prepis in AI-izvlečene teme ter preglejte pred naslednjim klientom."
       },
-      "sales": {
-        "title": "Prodajne ekipe",
-        "description": "Ujemite natančne ugovore in zaveze. AI povzetki izgubijo podrobnosti, ki zaključijo posel."
+      "researchers": {
+        "title": "Raziskovalci",
+        "description": "Intervjuji so vaši podatki. Vedite točno, kaj je AI spremenil. Začnite analizo s prepisom, ki ga dejansko lahko berete in mu zaupate."
       },
       "journalists": {
         "title": "Novinarji",
-        "description": "Citati, ki jih lahko preverite z zvokom. Napačno citiranje uniči kariero."
+        "description": "Natančni citati, preverjeni z originalnim zvokom. Poglejte vsako AI spremembo, preden gre vaše ime na to."
       },
-      "uxResearch": {
-        "title": "UX raziskave",
-        "description": "Izberite stopnjo čiščenja. Ohranite surovi govor udeležencev za analizo ali polirajte za poročila."
-      },
-      "hr": {
-        "title": "HR in zaposlovanje",
-        "description": "Pošteni, dosledni zapisi brez AI-vnesene pristranskosti."
-      },
-      "lawyers": {
-        "title": "Odvetniki",
-        "description": "Vsaka beseda šteje pri pričevanjih. Poglejte, kaj se je spremenilo, preden podpišete."
-      },
-      "meetings": {
-        "title": "Zapiski sestankov",
-        "description": "Pretvorite posnetke v uporabne zapiske."
-      },
-      "accessibility": {
-        "title": "Dostopnost",
-        "description": "Naredite zvočne vsebine dostopne kot besedilo."
+      "podcasters": {
+        "title": "Podkasterji in ustvarjalci",
+        "description": "Od surove epizode do opomb za oddajo v minutah. Očiščen prepis, AI povzetek in primerjava za zaznavo napak."
       }
     },
     "howItWorks": {
@@ -241,68 +186,11 @@
         "description": "Preizkusite različne profile vpogledov na vašem prepisu."
       }
     },
-    "comingSoon": {
-      "badge": "Prihaja kmalu",
-      "sectionLabel": "Vaš arhiv pogovorov",
-      "title": "Vaše transkribcije. Urejene. Inteligentne.",
-      "subtitle": "Vsi pogovori na enem mestu, razvrščeni po stranki ali temi.\nAI vam pomaga najti preverljive odgovore.",
-      "library": {
-        "toolbar": "EverSaid",
-        "sidebarLabel": "Stranke",
-        "client1Initials": "AK",
-        "client1Name": "Ana Kovač",
-        "client1Sessions": "5 sej",
-        "client2Initials": "MN",
-        "client2Name": "Marko Novak",
-        "client2Sessions": "3 seje",
-        "client3Initials": "EZ",
-        "client3Name": "Eva Zupančič",
-        "client3Sessions": "2 seji",
-        "mainTitle": "Ana Kovač",
-        "mainSubtitle": "5 sej · Zadnja: 29. jan. 2026",
-        "session5Name": "Seja 5: Pregled napredka",
-        "session5Duration": "42 min",
-        "session5Date": "29. jan. 2026",
-        "session4Name": "Seja 4: Postavljanje meja",
-        "session4Duration": "38 min",
-        "session4Date": "22. jan. 2026",
-        "session3Name": "Seja 3: Strategije spoprijemanja",
-        "session3Duration": "45 min",
-        "session3Date": "15. jan. 2026",
-        "session2Name": "Seja 2: Delovni stres, težave s spanjem",
-        "session2Duration": "50 min",
-        "session2Date": "8. jan. 2026",
-        "session1Name": "Seja 1: Sprejem",
-        "session1Duration": "55 min",
-        "session1Date": "2. jan. 2026"
-      },
-      "connector": "Vprašajte AI",
-      "chat": {
-        "description": "Postavljajte vprašanja o pogovorih. AI uporabi kontekst prejšnjih pogovorov za utemeljene odgovore, katere lahko preverite z enim klikom.",
-        "toolbar": "EverSaid AI",
-        "contextName": "Ana Kovač",
-        "contextBadge": "5 sej v kontekstu",
-        "q1": "Katere ponavljajoče se teme so se pojavile skozi Anine seje?",
-        "aiLabel": "EverSaid AI",
-        "responseIntro": "Tri ponavljajoče se teme izstopajo skozi Anine seje:",
-        "theme1Label": "Ravnovesje med delom in zasebnim življenjem",
-        "theme1Text": "Ana je razpravljala o incidentu s postavljanjem meja s sodelavcem in omenila, da je to stalen izziv",
-        "theme2Label": "Kakovost spanja",
-        "theme2Text": "omenila je, da se njena rutina v zadnjih tednih dosledno izboljšuje",
-        "theme3Label": "Samozavest",
-        "theme3Text": "novejša tema, povezana s prihajajočim pogovorom o napredovanju, na katerega se pripravlja",
-        "sessionRef": "Seja {number}",
-        "responseFooter": "Kliknite na referenco seje za ogled vira",
-        "q2": "Na kaj se je Ana želela osredotočiti naslednjič?",
-        "inputPlaceholder": "Vprašajte o Aninih sejah..."
-      }
-    },
-    "finalCta": {
-      "title": "Pripravljeni na pametnejšo transkripcijo?",
-      "subtitle": "Brez registracije. Poglejte razliko sami.",
-      "cta": "Preizkusite brezplačni demo",
-      "waitlistPrompt": "Želite polno šifriranje in višje omejitve?",
-      "waitlistCta": "Pridružite se čakalni listi →"
+    "whatsNext": {
+      "badge": "Kaj sledi",
+      "title": "Pogovorna inteligenca",
+      "subtitle": "Postavljajte vprašanja skozi mesece sej. Vsak odgovor citiran, vsaka trditev povezana z originalnim zvokom.",
+      "cta": "Pridruži se čakalni listi za zgodnji dostop"
     },
     "footer": {
       "copyright": "© {year} EverSaid",

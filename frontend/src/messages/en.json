@@ -19,12 +19,12 @@
     "home": "Home",
     "demo": "Demo",
     "features": "Features",
-    "insights": "AI Insights",
     "useCases": "Use Cases",
     "howItWorks": "How It Works",
     "apiDocs": "API Docs",
     "joinWaitlist": "Join Waitlist",
-    "getEarlyAccess": "Get Early Access",
+    "getEarlyAccess": "Join the Pilot",
+    "tryFreeDemo": "Try Free Demo",
     "login": "Login"
   },
   "landing": {
@@ -119,105 +119,50 @@
         "cleaned": "We're going to focus on three main areas: the homepage, the product pages, and checkout."
       }
     },
-    "insights": {
-      "sectionLabel": "Analysis",
-      "title": "AI-Powered Insights",
-      "subtitle": "Get more than just text. Choose the analysis that fits your workflow.",
-      "summary": {
-        "title": "Conversation Summary",
-        "description": "Topics, key points, and a concise overview of the entire conversation."
-      },
-      "actionItems": {
-        "title": "Action Items & Decisions",
-        "description": "Tasks to complete, decisions made, and follow-ups extracted automatically."
-      },
-      "reflection": {
-        "title": "Reflection & Insights",
-        "description": "Themes, underlying questions, and prompts for deeper self-reflection."
-      },
-      "comingSoon": "Coming soon: Custom analysis profiles tailored to your specific needs"
-    },
     "features": {
       "sectionLabel": "Features",
-      "title": "Why Choose EverSaid?",
-      "subtitle": "Verification, control, and transparency built in.",
-      "verifyEveryWord": "Verify Every Word",
-      "dataProtected": "Your Data, Protected",
-      "sideBySide": {
-        "title": "Side-by-Side",
-        "description": "See exactly what AI changed."
+      "title": "What You Get",
+      "subtitle": "Transcription, cleanup, and analysis — all verifiable",
+      "transparentEditing": {
+        "title": "Transparent Editing",
+        "item1": "Side-by-side comparison of raw and cleaned",
+        "item2": "Click any segment to hear the original audio",
+        "item3": "Speaker labels with color-coded attribution",
+        "item4": "Edit any segment or revert to original"
       },
-      "speakerLabels": {
-        "title": "Speaker Labels",
-        "description": "Color-coded speaker attribution.",
-        "comingSoon": "Speaker renaming"
+      "aiAnalysis": {
+        "title": "AI Analysis",
+        "item1": "Summary with topics and key points",
+        "item2": "Action items and decisions extracted",
+        "item3": "Reflection prompts for coaches and therapists"
       },
-      "audioLinked": {
-        "title": "Audio-Linked",
-        "description": "Click to jump to audio."
+      "privateSecure": {
+        "title": "Private & Secure",
+        "item1": "GDPR compliant, EU-hosted infrastructure",
+        "item2": "Encrypted in transit and at rest",
+        "item3": "Never used for AI model training"
       },
-      "editRevert": {
-        "title": "Edit & Revert",
-        "description": "AI got it wrong? Fix it yourself or revert to the original. You're always in control.",
-        "comingSoon": "Move text between segments"
-      },
-      "cleanupLevels": {
-        "title": "Choose Your Level",
-        "description": "Prompts we continuously refine, so you don't have to. From punctuation-only to fully edited."
-      },
-      "gdpr": {
-        "title": "GDPR",
-        "description": "European privacy standards."
-      },
-      "encrypted": {
-        "title": "Encrypted",
-        "description": "In transit and at rest."
-      },
-      "isolated": {
-        "title": "Isolated",
-        "description": "Your data stays private."
-      },
-      "noTraining": {
-        "title": "No Training",
-        "description": "Never used for AI training."
-      },
-      "disclaimerDemo": "Free demo uses secure connection. Full encryption, EU-only processing & GDPR compliance included with accounts."
+      "disclaimerDemo": "Free demo uses secure connection. Full encryption & EU-only processing included with accounts."
     },
     "useCases": {
       "sectionLabel": "Use Cases",
       "title": "Who It's For",
-      "subtitle": "Professionals who need transcripts they can trust and insights they can use",
+      "subtitle": "Professionals who need transcripts they can trust and insights they can verify",
       "therapists": {
         "title": "Therapists & Coaches",
-        "description": "Document sessions accurately. AI errors in clinical notes have real consequences."
+        "description": "Stop taking manual notes mid-session. Record, get a clean transcript and AI-extracted themes, and review it before your next client."
       },
-      "sales": {
-        "title": "Sales Teams",
-        "description": "Capture exact objections and commitments. AI summaries lose the details that close deals."
+      "researchers": {
+        "title": "Researchers",
+        "description": "Interviews are your data. Know exactly what the AI changed. Start your analysis with a transcript you can actually read and trust."
       },
       "journalists": {
         "title": "Journalists",
-        "description": "Quotes you can verify against audio. Misquoting is a career-ender."
+        "description": "Exact quotes, verified against the original audio. See every AI edit before your name goes on it."
       },
-      "uxResearch": {
-        "title": "UX Research",
-        "description": "Choose how much to clean. Keep raw participant speech for analysis, or polish for reports."
-      },
-      "hr": {
-        "title": "HR & Recruiting",
-        "description": "Fair, consistent records without AI introducing bias."
-      },
-      "lawyers": {
-        "title": "Lawyers",
-        "description": "Every word matters in depositions. See what changed before you sign off."
-      },
-      "meetings": {
-        "title": "Meeting Notes",
-        "description": "Turn recordings into actionable notes."
-      },
-      "accessibility": {
-        "title": "Accessibility",
-        "description": "Make audio content accessible as text."
+      "podcasters": {
+        "title": "Podcasters & Creators",
+        "description": "Raw episode to show notes in minutes. Clean transcript, AI summary, and side-by-side diff to catch anything off."
       }
     },
     "howItWorks": {
@@ -241,68 +186,11 @@
         "description": "Try different insight profiles on your transcript."
       }
     },
-    "comingSoon": {
-      "badge": "Coming soon",
-      "sectionLabel": "Your conversation archive",
-      "title": "Your transcriptions. Organized. Intelligent.",
-      "subtitle": "All conversations in one place, grouped by client or topic.\nAI helps you find verifiable answers.",
-      "library": {
-        "toolbar": "EverSaid",
-        "sidebarLabel": "Clients",
-        "client1Initials": "AC",
-        "client1Name": "Anna Cooper",
-        "client1Sessions": "5 sessions",
-        "client2Initials": "MD",
-        "client2Name": "Mark Davis",
-        "client2Sessions": "3 sessions",
-        "client3Initials": "EZ",
-        "client3Name": "Emily Zhang",
-        "client3Sessions": "2 sessions",
-        "mainTitle": "Anna Cooper",
-        "mainSubtitle": "5 sessions · Last: Jan 29, 2026",
-        "session5Name": "Session 5: Progress check-in",
-        "session5Duration": "42 min",
-        "session5Date": "Jan 29, 2026",
-        "session4Name": "Session 4: Boundary-setting",
-        "session4Duration": "38 min",
-        "session4Date": "Jan 22, 2026",
-        "session3Name": "Session 3: Coping strategies",
-        "session3Duration": "45 min",
-        "session3Date": "Jan 15, 2026",
-        "session2Name": "Session 2: Work stress, sleep issues",
-        "session2Duration": "50 min",
-        "session2Date": "Jan 8, 2026",
-        "session1Name": "Session 1: Intake",
-        "session1Duration": "55 min",
-        "session1Date": "Jan 2, 2026"
-      },
-      "connector": "Ask AI",
-      "chat": {
-        "description": "Ask questions about conversations. AI uses the context of previous conversations for grounded answers you can verify with one click.",
-        "toolbar": "EverSaid AI",
-        "contextName": "Anna Cooper",
-        "contextBadge": "5 sessions in context",
-        "q1": "What recurring themes came up across Anna's sessions?",
-        "aiLabel": "EverSaid AI",
-        "responseIntro": "Three recurring themes stand out across Anna's sessions:",
-        "theme1Label": "Work-life balance",
-        "theme1Text": "Anna discussed a boundary-setting incident with a colleague, noting this has been an ongoing challenge",
-        "theme2Label": "Sleep quality",
-        "theme2Text": "she mentioned her routine has improved consistently over the last few weeks",
-        "theme3Label": "Self-confidence",
-        "theme3Text": "a newer theme tied to an upcoming promotion conversation she is preparing for",
-        "sessionRef": "Session {number}",
-        "responseFooter": "Click any session reference to see the source",
-        "q2": "What did Anna say she wanted to focus on next time?",
-        "inputPlaceholder": "Ask about Anna's sessions..."
-      }
-    },
-    "finalCta": {
-      "title": "Ready to try smarter transcription?",
-      "subtitle": "No sign-up required. See the difference for yourself.",
-      "cta": "Try Free Demo",
-      "waitlistPrompt": "Want full encryption and higher limits?",
-      "waitlistCta": "Join the waitlist →"
+    "whatsNext": {
+      "badge": "What's Next",
+      "title": "Conversation Intelligence",
+      "subtitle": "Ask questions across months of sessions. Every answer cited, every claim linked to the original audio.",
+      "cta": "Join Waitlist for Early Access"
     },
     "footer": {
       "copyright": "© {year} EverSaid",

@@ -11,8 +11,8 @@ test.describe("Waitlist Flow - Network Integration", () => {
     )
 
     // Open waitlist modal
-    await page.getByText("Ready to try smarter transcription?").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join the waitlist →" }).click()
+    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
+    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
 
     // Fill the form
     await page.getByLabel(/Email Address/).fill("network-test@example.com")
@@ -26,7 +26,7 @@ test.describe("Waitlist Flow - Network Integration", () => {
     const request = await waitlistRequestPromise
     const postData = request.postDataJSON()
     expect(postData.email).toBe("network-test@example.com")
-    expect(postData.waitlist_type).toBe("extended_usage")
+    expect(postData.waitlist_type).toBe("conversation_intelligence")
     expect(postData.use_case).toBe("Testing API integration")
     expect(postData.language_preference).toBe("en")
   })
@@ -71,8 +71,8 @@ test.describe("Waitlist Flow - Network Integration", () => {
     )
 
     // Open waitlist modal
-    await page.getByText("Ready to try smarter transcription?").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join the waitlist →" }).click()
+    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
+    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
 
     // Fill the form
     await page.getByLabel(/Email Address/).fill("other-lang@example.com")
@@ -100,8 +100,8 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
 
   test("complete waitlist signup flow from landing page", async ({ page }) => {
     // Scroll to and click the waitlist link
-    await page.getByText("Ready to try smarter transcription?").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join the waitlist →" }).click()
+    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
+    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
 
     // Modal opens
     const dialog = page.getByRole("dialog")
@@ -126,8 +126,8 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
 
   test("can close modal with Done button after signup", async ({ page }) => {
     // Open waitlist modal
-    await page.getByText("Ready to try smarter transcription?").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join the waitlist →" }).click()
+    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
+    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
 
     // Fill and submit
     await page.getByLabel(/Email Address/).fill("close-test@example.com")
@@ -147,8 +147,8 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
 
   test("can close modal with X button", async ({ page }) => {
     // Open waitlist modal
-    await page.getByText("Ready to try smarter transcription?").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join the waitlist →" }).click()
+    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
+    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
 
     await expect(page.getByRole("dialog")).toBeVisible()
 
@@ -161,8 +161,8 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
 
   test("form validates required fields", async ({ page }) => {
     // Open waitlist modal
-    await page.getByText("Ready to try smarter transcription?").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join the waitlist →" }).click()
+    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
+    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
 
     await expect(page.getByRole("dialog")).toBeVisible()
 

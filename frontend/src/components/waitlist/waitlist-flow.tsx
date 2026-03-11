@@ -4,7 +4,7 @@ import { X, UserPlus, Check, AlertCircle } from "lucide-react"
 
 export interface WaitlistFlowProps {
   state: "hidden" | "toast" | "form" | "success"
-  type: "extended_usage" | "api_access"
+  type: "extended_usage" | "api_access" | "conversation_intelligence"
   email: string
   useCase?: string
   volume?: string
@@ -45,7 +45,7 @@ export function WaitlistFlow({
   onOpenForm: _onOpenForm,
   t,
 }: WaitlistFlowProps) {
-  const isExtendedUsage = type === "extended_usage"
+  const isExtendedUsage = type === "extended_usage" || type === "conversation_intelligence"
   const isApiAccess = type === "api_access"
 
   return (

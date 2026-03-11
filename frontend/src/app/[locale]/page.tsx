@@ -11,7 +11,6 @@ import { HeroTranscript } from "@/components/landing/hero-transcript"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { MotionDiv } from "@/components/motion"
 import { SectionDivider, DIVIDER_COLORS } from "@/components/landing/section-divider"
-import { ComingSoonSection } from "@/components/landing/coming-soon-section"
 import { ProblemSection } from "@/components/landing/problem-section"
 import {
   heroTitle,
@@ -52,7 +51,7 @@ export default function HomePage() {
 
   // Waitlist modal state
   const [waitlistState, setWaitlistState] = useState<"hidden" | "toast" | "form" | "success">("hidden")
-  const [waitlistType, setWaitlistType] = useState<"extended_usage" | "api_access">("extended_usage")
+  const [waitlistType, setWaitlistType] = useState<"extended_usage" | "api_access" | "conversation_intelligence">("extended_usage")
 
   // Form fields (not managed by hook)
   const [useCase, setUseCase] = useState("")
@@ -67,7 +66,7 @@ export default function HomePage() {
     sourcePage: '/'
   })
 
-  const handleWaitlistClick = useCallback((type: "extended_usage" | "api_access") => {
+  const handleWaitlistClick = useCallback((type: "extended_usage" | "api_access" | "conversation_intelligence") => {
     setWaitlistType(type)
     setWaitlistState("form")
   }, [])
@@ -101,41 +100,50 @@ export default function HomePage() {
             EverSaid
           </span>
         </Link>
-        <div className="hidden md:flex gap-10 items-center">
-          <Link href="#features" className="text-white/80 hover:text-white text-[15px] font-medium transition-colors">
-            {tNav('features')}
-          </Link>
-          <Link href="#insights" className="text-white/80 hover:text-white text-[15px] font-medium transition-colors">
-            {tNav('insights')}
-          </Link>
-          <Link href="#use-cases" className="text-white/80 hover:text-white text-[15px] font-medium transition-colors">
-            {tNav('useCases')}
-          </Link>
-          <Link
-            href="#how-it-works"
-            className="text-white/80 hover:text-white text-[15px] font-medium transition-colors"
-          >
-            {tNav('howItWorks')}
-          </Link>
-          <Link
-            href="/api-docs"
-            className="text-white/80 hover:text-white text-[15px] font-medium transition-colors"
-          >
-            {tNav('apiDocs')}
-          </Link>
-          <button
-            onClick={() => handleWaitlistClick("extended_usage")}
-            className="px-4 py-2 border border-transparent [background:linear-gradient(135deg,#0F172A,#1E3A5F)_padding-box,linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)_border-box] hover:[background:linear-gradient(135deg,#1a2744,#264a6e)_padding-box,linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)_border-box] text-white rounded-lg text-[13px] font-semibold transition-all"
-          >
-            {tNav('getEarlyAccess')}
-          </button>
-          <Link
-            href="/login"
-            className="px-4 py-2 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white rounded-lg text-[13px] font-semibold transition-all hover:-translate-y-0.5 shadow-[0_4px_16px_rgba(56,189,248,0.3)] hover:shadow-[0_6px_20px_rgba(56,189,248,0.4)]"
-          >
-            {tNav('login')}
-          </Link>
-          <LanguageSwitcher />
+        <div className="hidden md:flex items-center">
+          <div className="flex gap-6 items-center">
+            <Link href="#features" className="text-white/80 hover:text-white text-[15px] font-medium transition-colors">
+              {tNav('features')}
+            </Link>
+            <Link href="#use-cases" className="text-white/80 hover:text-white text-[15px] font-medium transition-colors">
+              {tNav('useCases')}
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="text-white/80 hover:text-white text-[15px] font-medium transition-colors"
+            >
+              {tNav('howItWorks')}
+            </Link>
+          </div>
+          <div className="flex gap-10 items-center ml-12">
+            <Link
+              href="/api-docs"
+              className="text-white/80 hover:text-white text-[15px] font-medium transition-colors"
+            >
+              {tNav('apiDocs')}
+            </Link>
+            <Link
+              href="/demo"
+              className="text-white/80 hover:text-white text-[15px] font-bold transition-colors"
+            >
+              {tNav('tryFreeDemo')}
+            </Link>
+          </div>
+          <div className="flex gap-3 items-center ml-10">
+            <button
+              onClick={() => handleWaitlistClick("extended_usage")}
+              className="px-4 py-2 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white rounded-lg text-[13px] font-semibold transition-all hover:-translate-y-0.5 shadow-[0_4px_16px_rgba(56,189,248,0.3)] hover:shadow-[0_6px_20px_rgba(56,189,248,0.4)]"
+            >
+              {tNav('getEarlyAccess')}
+            </button>
+            <Link
+              href="/login"
+              className="px-4 py-2 border border-transparent [background:linear-gradient(135deg,#0F172A,#1E3A5F)_padding-box,linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)_border-box] hover:[background:linear-gradient(135deg,#1a2744,#264a6e)_padding-box,linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)_border-box] text-white rounded-lg text-[13px] font-semibold transition-all"
+            >
+              {tNav('login')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
         </div>
       </nav>
 
@@ -257,7 +265,7 @@ export default function HomePage() {
       {/* Divider: Proof Visual → Features */}
       <SectionDivider fillColor={DIVIDER_COLORS.white} />
 
-      {/* Features Section */}
+      {/* Features Section - Combined "What You Get" */}
       <section className="snap-start snap-always min-h-screen flex items-center px-8 md:px-16 py-20" id="features">
         <div className="max-w-[1200px] mx-auto w-full">
           <MotionDiv
@@ -281,202 +289,81 @@ export default function HomePage() {
             </MotionDiv>
           </MotionDiv>
 
-          {/* Verify Every Word */}
-          <div className="mb-12">
-            <MotionDiv
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeUp}
-              className="text-sm font-bold text-[#38BDF8] uppercase tracking-wider mb-6 text-center"
-            >
-              {t('features.verifyEveryWord')}
-            </MotionDiv>
-            <MotionDiv
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              variants={staggerContainer}
-            >
-              <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-7 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-                <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                  🔍
-                </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-3">{t('features.sideBySide.title')}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{t('features.sideBySide.description')}</p>
-              </MotionDiv>
-
-              <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-7 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-                <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                  👥
-                </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-3">{t('features.speakerLabels.title')}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{t('features.speakerLabels.description')}</p>
-                <span className="inline-flex items-center gap-1.5 bg-[#fef3c7] text-[#92400e] text-xs font-medium px-3 py-1.5 rounded-full mt-3">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M5 3h14M5 21h14M7 3v4l5 5-5 5v4M17 3v4l-5 5 5 5v4"/>
-                  </svg>
-                  {t('features.speakerLabels.comingSoon')}
-                </span>
-              </MotionDiv>
-
-              <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-7 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-                <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                  🎧
-                </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-3">{t('features.audioLinked.title')}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{t('features.audioLinked.description')}</p>
-              </MotionDiv>
-
-              <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-7 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-                <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                  ✏️
-                </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-3">{t('features.editRevert.title')}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{t('features.editRevert.description')}</p>
-                <span className="inline-flex items-center gap-1.5 bg-[#fef3c7] text-[#92400e] text-xs font-medium px-3 py-1.5 rounded-full mt-3">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M5 3h14M5 21h14M7 3v4l5 5-5 5v4M17 3v4l-5 5 5 5v4"/>
-                  </svg>
-                  {t('features.editRevert.comingSoon')}
-                </span>
-              </MotionDiv>
-
-              <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-7 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-                <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                  🎚️
-                </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-3">{t('features.cleanupLevels.title')}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{t('features.cleanupLevels.description')}</p>
-              </MotionDiv>
-            </MotionDiv>
-          </div>
-
-          {/* Your Data, Protected */}
-          <div className="mb-6">
-            <MotionDiv
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeUp}
-              className="text-sm font-bold text-[#38BDF8] uppercase tracking-wider mb-6 text-center"
-            >
-              {t('features.dataProtected')}
-            </MotionDiv>
-            <MotionDiv
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              variants={staggerContainer}
-            >
-              <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-7 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-                <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                  🇪🇺
-                </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-3">{t('features.gdpr.title')}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{t('features.gdpr.description')}</p>
-              </MotionDiv>
-
-              <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-7 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-                <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                  🔒
-                </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-3">{t('features.encrypted.title')}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{t('features.encrypted.description')}</p>
-              </MotionDiv>
-
-              <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-7 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-                <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                  🛡️
-                </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-3">{t('features.isolated.title')}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{t('features.isolated.description')}</p>
-              </MotionDiv>
-
-              <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-7 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-                <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                  🚫
-                </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-3">{t('features.noTraining.title')}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{t('features.noTraining.description')}</p>
-              </MotionDiv>
-            </MotionDiv>
-            <MotionDiv
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeUp}
-            >
-              <p className="text-center text-sm text-[#1D3557] mt-5 italic">
-                {t('features.disclaimerDemo')}
-              </p>
-            </MotionDiv>
-          </div>
-
-        </div>
-      </section>
-
-      {/* AI Insights Section */}
-      <section className="snap-start snap-always min-h-screen flex items-center px-8 md:px-16 py-20" id="insights">
-        <div className="max-w-[1200px] mx-auto w-full">
           <MotionDiv
-            className="text-center"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-          >
-            <MotionDiv variants={sectionHeader}>
-              <div className="text-[13px] font-semibold text-[#38BDF8] uppercase tracking-[2px] mb-4">
-                {t('insights.sectionLabel')}
-              </div>
-              <h2 className="text-[32px] md:text-[40px] font-extrabold text-[#0F172A] mb-4 tracking-[-0.02em]">
-                {t('insights.title')}
-              </h2>
-            </MotionDiv>
-            <MotionDiv variants={sectionSubtitle}>
-              <p className="text-lg text-[#64748B] mb-12 max-w-[600px] mx-auto">
-                {t('insights.subtitle')}
-              </p>
-            </MotionDiv>
-          </MotionDiv>
-
-          <MotionDiv
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             variants={staggerContainer}
           >
-            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[linear-gradient(135deg,rgba(56,189,248,0.1)_0%,rgba(168,85,247,0.1)_100%)] border border-[rgba(56,189,248,0.3)] rounded-[20px] p-8 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-              <div className="w-[84px] h-[84px] bg-white rounded-[20px] flex items-center justify-center text-[40px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                📋
+            {/* Transparent Editing */}
+            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-8 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+              <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mb-6 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                🔍
               </div>
-              <h3 className="text-lg font-bold text-[#0F172A] mb-3">{t('insights.summary.title')}</h3>
-              <p className="text-[15px] text-[#64748B] leading-relaxed">
-                {t('insights.summary.description')}
-              </p>
+              <h3 className="text-xl font-bold text-[#0F172A] mb-4">{t('features.transparentEditing.title')}</h3>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
+                  <span className="text-[15px] text-[#64748B]">{t('features.transparentEditing.item1')}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
+                  <span className="text-[15px] text-[#64748B]">{t('features.transparentEditing.item2')}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
+                  <span className="text-[15px] text-[#64748B]">{t('features.transparentEditing.item3')}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
+                  <span className="text-[15px] text-[#64748B]">{t('features.transparentEditing.item4')}</span>
+                </li>
+              </ul>
             </MotionDiv>
 
-            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-8 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-              <div className="w-[84px] h-[84px] bg-white rounded-[20px] flex items-center justify-center text-[40px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                ✅
+            {/* AI Analysis (highlighted) */}
+            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[linear-gradient(135deg,rgba(56,189,248,0.08)_0%,rgba(168,85,247,0.08)_100%)] border border-purple-200 rounded-[20px] p-8 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+              <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mb-6 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                ✨
               </div>
-              <h3 className="text-lg font-bold text-[#0F172A] mb-3">{t('insights.actionItems.title')}</h3>
-              <p className="text-[15px] text-[#64748B] leading-relaxed">
-                {t('insights.actionItems.description')}
-              </p>
+              <h3 className="text-xl font-bold text-[#0F172A] mb-4">{t('features.aiAnalysis.title')}</h3>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
+                  <span className="text-[15px] text-[#64748B]">{t('features.aiAnalysis.item1')}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
+                  <span className="text-[15px] text-[#64748B]">{t('features.aiAnalysis.item2')}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
+                  <span className="text-[15px] text-[#64748B]">{t('features.aiAnalysis.item3')}</span>
+                </li>
+              </ul>
             </MotionDiv>
 
-            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-8 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-              <div className="w-[84px] h-[84px] bg-white rounded-[20px] flex items-center justify-center text-[40px] mx-auto mb-5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                💭
+            {/* Privacy & Security */}
+            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-8 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+              <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mb-6 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                🔒
               </div>
-              <h3 className="text-lg font-bold text-[#0F172A] mb-3">{t('insights.reflection.title')}</h3>
-              <p className="text-[15px] text-[#64748B] leading-relaxed">
-                {t('insights.reflection.description')}
-              </p>
+              <h3 className="text-xl font-bold text-[#0F172A] mb-4">{t('features.privateSecure.title')}</h3>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
+                  <span className="text-[15px] text-[#64748B]">{t('features.privateSecure.item1')}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
+                  <span className="text-[15px] text-[#64748B]">{t('features.privateSecure.item2')}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
+                  <span className="text-[15px] text-[#64748B]">{t('features.privateSecure.item3')}</span>
+                </li>
+              </ul>
             </MotionDiv>
           </MotionDiv>
 
@@ -486,8 +373,8 @@ export default function HomePage() {
             viewport={{ once: true }}
             variants={fadeUp}
           >
-            <p className="text-center text-sm text-[#94A3B8] mt-8">
-              {t('insights.comingSoon')}
+            <p className="text-center text-sm text-[#64748B] mt-8 italic">
+              {t('features.disclaimerDemo')}
             </p>
           </MotionDiv>
         </div>
@@ -525,23 +412,22 @@ export default function HomePage() {
             variants={staggerContainer}
           >
             {([
-              { icon: '🧠', key: 'therapists', hasDescription: true },
-              { icon: '💼', key: 'sales', hasDescription: true },
-              { icon: '🎤', key: 'journalists', hasDescription: true },
-              { icon: '🔬', key: 'uxResearch', hasDescription: true },
-              { icon: '👥', key: 'hr', hasDescription: true },
-              { icon: '⚖️', key: 'lawyers', hasDescription: true },
-              { icon: '📝', key: 'meetings', hasDescription: true },
-              { icon: '👂', key: 'accessibility', hasDescription: true },
-            ] as const).map(({ icon, key, hasDescription }) => (
-              <MotionDiv key={key} variants={cardItem} whileHover={{ y: -4 }} className="bg-white border border-[#E2E8F0] rounded-[20px] p-8 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+              { icon: '🧠', key: 'therapists' },
+              { icon: '🔬', key: 'researchers' },
+              { icon: '🎤', key: 'journalists' },
+              { icon: '🎙️', key: 'podcasters' },
+            ] as const).map(({ icon, key }) => (
+              <MotionDiv
+                key={key}
+                variants={cardItem}
+                whileHover={{ y: -4 }}
+                className="bg-white border border-[#E2E8F0] rounded-[20px] p-8 text-center transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]"
+              >
                 <div className="w-[100px] h-[100px] bg-[linear-gradient(135deg,rgba(56,189,248,0.1)_0%,rgba(168,85,247,0.1)_100%)] rounded-[24px] flex items-center justify-center text-[44px] mx-auto mb-5">
                   {icon}
                 </div>
-                <h3 className={`text-lg font-bold text-[#0F172A] ${hasDescription ? 'mb-3' : ''}`}>{t(`useCases.${key}.title`)}</h3>
-                {hasDescription && (
-                  <p className="text-sm text-[#64748B] leading-relaxed">{t(`useCases.${key}.description`)}</p>
-                )}
+                <h3 className="text-lg font-bold text-[#0F172A] mb-3">{t(`useCases.${key}.title`)}</h3>
+                <p className="text-sm text-[#64748B] leading-relaxed">{t(`useCases.${key}.description`)}</p>
               </MotionDiv>
             ))}
           </MotionDiv>
@@ -626,51 +512,46 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Divider: How It Works → Coming Soon */}
-      <SectionDivider fillColor={DIVIDER_COLORS.white} />
-
-      {/* Coming Soon Section */}
-      <ComingSoonSection />
-
-      {/* Divider: Coming Soon → Final CTA */}
+      {/* Divider: How It Works → What's Next */}
       <SectionDivider fillColor={DIVIDER_COLORS.dark} />
 
-      {/* Final CTA Section */}
-      <section className="snap-start snap-always min-h-[60vh] flex items-center relative px-8 md:px-16 py-16 text-center overflow-hidden bg-[linear-gradient(135deg,#0F172A_0%,#1E3A5F_100%)]">
+      {/* What's Next Section */}
+      <section className="snap-start snap-always px-8 md:px-16 py-24 bg-[linear-gradient(135deg,#0F172A_0%,#1E3A5F_100%)] relative overflow-hidden">
         <div className="absolute top-[-50%] right-[-20%] w-[60%] h-[200%] bg-[radial-gradient(ellipse,rgba(56,189,248,0.1)_0%,transparent_60%)] pointer-events-none" />
+        <div className="absolute bottom-[-50%] left-[-20%] w-[50%] h-[150%] bg-[radial-gradient(ellipse,rgba(168,85,247,0.08)_0%,transparent_60%)] pointer-events-none" />
 
         <MotionDiv
-          className="relative z-10 max-w-[600px] mx-auto w-full"
+          className="max-w-[600px] mx-auto text-center relative z-10"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.5 }}
         >
+          <MotionDiv variants={fadeUp}>
+            <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 mb-8">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+              {t('whatsNext.badge')}
+            </div>
+          </MotionDiv>
+
           <MotionDiv variants={sectionHeader}>
             <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-[-0.02em]">
-              {t('finalCta.title')}
+              {t('whatsNext.title')}
             </h2>
           </MotionDiv>
+
           <MotionDiv variants={sectionSubtitle}>
-            <p className="text-lg text-white/70 mb-8">{t('finalCta.subtitle')}</p>
+            <p className="text-lg text-white/70 mb-10 leading-relaxed">
+              {t('whatsNext.subtitle')}
+            </p>
           </MotionDiv>
+
           <MotionDiv variants={scaleFade}>
-            <Link
-              href="/demo"
-              className="inline-block bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white px-12 py-5 rounded-xl font-bold text-lg transition-all hover:-translate-y-0.5 shadow-[0_8px_32px_rgba(56,189,248,0.3)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.4)]"
+            <button
+              onClick={() => handleWaitlistClick("conversation_intelligence")}
+              className="inline-block bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white px-8 py-4 rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5 shadow-[0_8px_32px_rgba(56,189,248,0.3)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.4)]"
             >
-              {t('finalCta.cta')}
-            </Link>
-          </MotionDiv>
-          <MotionDiv variants={fadeUp}>
-            <div className="mt-6 text-[15px] text-white/60">
-              {t('finalCta.waitlistPrompt')}{" "}
-              <button
-                onClick={() => handleWaitlistClick("extended_usage")}
-                className="text-[#38BDF8] hover:text-white font-medium transition-colors"
-              >
-                {t('finalCta.waitlistCta')}
-              </button>
-            </div>
+              {t('whatsNext.cta')}
+            </button>
           </MotionDiv>
         </MotionDiv>
       </section>
@@ -692,17 +573,6 @@ export default function HomePage() {
           </Link>
           <a href="mailto:hello@eversaid.ai" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
             hello@eversaid.ai
-          </a>
-          <a
-            href="https://github.com/eversaidlabs/eversaid"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
-            </svg>
-            GitHub
           </a>
         </div>
       </footer>
