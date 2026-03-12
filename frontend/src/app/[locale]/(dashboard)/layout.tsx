@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useMemo, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 
 import { AuthProvider } from '@/features/auth/context'
@@ -8,6 +8,16 @@ import { useAuth } from '@/features/auth/hooks'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { MobileSidebar } from '@/components/dashboard/mobile-sidebar'
 import { Logo } from '@/components/ui/logo'
+
+/**
+ * Check if the current path is an entry detail view (side-by-side).
+ * These pages use full-screen layout and should hide the sidebar.
+ */
+function isEntryDetailPath(pathname: string): boolean {
+  // Match /[locale]/audio/[id] or /[locale]/text/[id]
+  // but not /[locale]/audio/new or /[locale]/text/new
+  return /^\/(en|sl)\/(audio|text)\/(?!new)[^/]+$/.test(pathname)
+}
 
 /**
  * Dashboard layout wrapper that handles:
@@ -28,6 +38,9 @@ function DashboardContent({ children }: { children: ReactNode }) {
   const { isLoading, isAuthenticated, isAnonymous, user } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+
+  // Check if we're on an entry detail page (full-screen side-by-side view)
+  const isFullscreenView = useMemo(() => isEntryDetailPath(pathname), [pathname])
 
   // Redirect to login if not authenticated, or to demo if anonymous user
   useEffect(() => {
@@ -68,6 +81,15 @@ function DashboardContent({ children }: { children: ReactNode }) {
   // Don't render if not authenticated or anonymous (will redirect)
   if (!isAuthenticated || isAnonymous) {
     return null
+  }
+
+  // Full-screen view: hide sidebar, no margins
+  if (isFullscreenView) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        {children}
+      </div>
+    )
   }
 
   return (

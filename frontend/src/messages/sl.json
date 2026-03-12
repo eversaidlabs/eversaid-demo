@@ -839,7 +839,11 @@
       "cleanedText": "Očiščeno besedilo",
       "analysis": "Analiza",
       "noTranscript": "Transkripcija ni na voljo",
-      "noText": "Besedilo ni na voljo"
+      "noText": "Besedilo ni na voljo",
+      "audioEntry": "Zvočni vnos",
+      "textEntry": "Besedilni vnos",
+      "close": "Zapri",
+      "loadingAudio": "Nalaganje zvoka..."
     },
     "upload": {
       "title": "Naloži zvok",

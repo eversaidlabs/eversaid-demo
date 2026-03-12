@@ -570,3 +570,32 @@ export async function joinWaitlist(
   })
 }
 
+// =============================================================================
+// Audio Endpoints (Authenticated)
+// =============================================================================
+
+/**
+ * Fetch audio as blob with authentication.
+ * For use with HTML audio element in authenticated contexts where
+ * the audio endpoint requires JWT authentication.
+ *
+ * HTML <audio> elements cannot send Authorization headers, so this
+ * function fetches the audio as a blob which can be converted to
+ * an object URL for playback.
+ */
+export async function fetchAudioBlob(entryId: string): Promise<Blob> {
+  const accessToken = await ensureAuthenticated()
+
+  const response = await fetch(`${API_BASE_URL}/api/entries/${entryId}/audio`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new ApiError(response.status, 'Failed to fetch audio')
+  }
+
+  return response.blob()
+}
+

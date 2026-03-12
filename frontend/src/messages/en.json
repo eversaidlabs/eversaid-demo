@@ -839,7 +839,11 @@
       "cleanedText": "Cleaned Text",
       "analysis": "Analysis",
       "noTranscript": "No transcript available",
-      "noText": "No text available"
+      "noText": "No text available",
+      "audioEntry": "Audio Entry",
+      "textEntry": "Text Entry",
+      "close": "Close",
+      "loadingAudio": "Loading audio..."
     },
     "upload": {
       "title": "Upload Audio",

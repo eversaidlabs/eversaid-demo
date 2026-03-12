@@ -167,8 +167,8 @@ export function TranscriptComparisonLayout({
   }, [segments, showDiff, editingSegmentId])
 
   return (
-    <div className="relative flex flex-col flex-1 min-h-0">
-      <div className="grid grid-cols-2 border-b border-border">
+    <div className="relative flex flex-col flex-1 min-h-0 h-full">
+      <div className="grid grid-cols-2 border-b border-border flex-shrink-0">
         <TranscriptHeader
           title={t('rawTitle')}
           segments={segments}
@@ -187,7 +187,7 @@ export function TranscriptComparisonLayout({
         />
       </div>
 
-      <div className="grid grid-cols-2 overflow-hidden flex-1">
+      <div className="grid grid-cols-2 overflow-hidden flex-1 min-h-0">
         <RawSegmentList
           ref={rawScrollRef}
           segments={segments}

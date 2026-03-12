@@ -28,6 +28,17 @@ export interface UseAudioPlayerOptions {
   onSegmentChange?: (segmentId: string | null, index: number) => void
   /** Fallback duration from API (used when audio element can't determine duration from streaming) */
   fallbackDuration?: number
+  /**
+   * Whether audio endpoint requires authentication.
+   * When true, fetches audio as blob with JWT auth and creates object URL.
+   * Required for dashboard mode where audio endpoint needs Bearer token.
+   */
+  requiresAuth?: boolean
+  /**
+   * Function to fetch audio blob with authentication.
+   * Required when requiresAuth is true.
+   */
+  fetchAudioBlob?: (entryId: string) => Promise<Blob>
 }
 
 export interface UseAudioPlayerReturn {
@@ -49,6 +60,16 @@ export interface UseAudioPlayerReturn {
   activeSegmentId: string | null
   /** Index of the currently active segment (-1 if none) */
   activeSegmentIndex: number
+
+  // Audio URL for authenticated playback
+  /**
+   * Effective audio URL to use in the audio element.
+   * When requiresAuth is true, this will be a blob URL after authentication.
+   * Otherwise, it's the original audioUrl.
+   */
+  effectiveAudioUrl: string | null
+  /** Whether authenticated audio is still loading */
+  isLoadingAudio: boolean
 
   // Controls
   /** Start playback */
@@ -161,6 +182,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions): UseAudioPlayerRe
     boundaryTolerance = BOUNDARY_TOLERANCE_MS,
     onSegmentChange,
     fallbackDuration = 0,
+    requiresAuth = false,
+    fetchAudioBlob,
   } = options
 
   // Audio element ref - we use a mutable ref that we update via callback ref
@@ -241,6 +264,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions): UseAudioPlayerRe
   // Active segment tracking
   const [activeSegmentId, setActiveSegmentId] = useState<string | null>(null)
   const [activeSegmentIndex, setActiveSegmentIndex] = useState(-1)
+
+  // Authenticated audio blob URL state
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false)
 
   // Ref to track previous segment index for hysteresis
   const previousSegmentIndexRef = useRef(-1)
@@ -469,15 +496,79 @@ export function useAudioPlayer(options: UseAudioPlayerOptions): UseAudioPlayerRe
   // This avoids multiple setState calls in effects which trigger cascading renders
   useEffect(() => {
     dispatchPlayback({ type: "SYNC_AUDIO_URL", audioUrl })
-    // Force reload of audio metadata when URL changes
-    if (audioUrl) {
+    // Force reload of audio metadata when URL changes (only for non-authenticated audio)
+    if (audioUrl && !requiresAuth) {
       audioRef.current?.load()
     }
-  }, [audioUrl])
+  }, [audioUrl, requiresAuth])
+
+  // Fetch authenticated audio as blob and create object URL
+  useEffect(() => {
+    // Skip if auth not required or no URL
+    if (!requiresAuth || !audioUrl || !fetchAudioBlob) {
+      return
+    }
+
+    // Extract entry ID from audioUrl (format: /api/entries/{entryId}/audio)
+    const entryIdMatch = audioUrl.match(/\/entries\/([^/]+)\/audio/)
+    if (!entryIdMatch) {
+      console.error('Could not extract entry ID from audio URL:', audioUrl)
+      return
+    }
+    const entryId = entryIdMatch[1]
+
+    let cancelled = false
+    const currentBlobUrl = blobUrl
+
+    // Loading state is set synchronously before async operation - this is intentional
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsLoadingAudio(true)
+
+    fetchAudioBlob(entryId)
+      .then(blob => {
+        if (cancelled) return
+        const url = URL.createObjectURL(blob)
+        setBlobUrl(url)
+        setIsLoadingAudio(false)
+        // Trigger reload once blob URL is set
+        setTimeout(() => {
+          audioRef.current?.load()
+        }, 0)
+      })
+      .catch(error => {
+        if (cancelled) return
+        console.error('Failed to fetch authenticated audio:', error)
+        setIsLoadingAudio(false)
+      })
+
+    return () => {
+      cancelled = true
+      // Revoke old blob URL on cleanup
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl)
+      }
+    }
+  }, [audioUrl, requiresAuth, fetchAudioBlob]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset blob URL when auth is disabled or URL is cleared
+  useEffect(() => {
+    if (!requiresAuth || !audioUrl) {
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setBlobUrl(null)
+      }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsLoadingAudio(false)
+    }
+  }, [requiresAuth, audioUrl]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Use fallbackDuration from API when audio element can't determine duration
   // This happens when audio is streamed without Content-Length header
   const effectiveDuration = duration > 0 ? duration : fallbackDuration
+
+  // Compute effective audio URL - use blob URL for authenticated, original for non-authenticated
+  const effectiveAudioUrl = requiresAuth ? blobUrl : (audioUrl ?? null)
 
   return {
     audioRef,
@@ -487,6 +578,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions): UseAudioPlayerRe
     playbackSpeed,
     activeSegmentId,
     activeSegmentIndex,
+    effectiveAudioUrl,
+    isLoadingAudio,
     play,
     pause,
     togglePlayPause,

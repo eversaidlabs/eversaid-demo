@@ -3,16 +3,27 @@
 import type React from 'react'
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import Link from 'next/link'
 
 import { useTranscription } from '@/features/transcription/useTranscription'
 import { useAudioPlayer } from '@/features/transcription/useAudioPlayer'
 import { useWordHighlight } from '@/features/transcription/useWordHighlight'
 import { useAnalysis } from '@/features/transcription/useAnalysis'
 import { useFeedback } from '@/features/transcription/useFeedback'
-import { getEntryAudioUrl } from '@/features/transcription/api'
+import { useProcessingStages } from '@/features/transcription/useProcessingStages'
+import {
+  getEntryAudioUrl,
+  getOptions,
+  getCleanedEntries,
+  getCleanedEntry,
+  triggerCleanup,
+  fetchAudioBlob,
+} from '@/features/transcription/api'
 import type { SpellcheckError, TextMoveSelection, ActiveSuggestion } from '@/components/demo/types'
+import type { ModelInfo, CleanupType, CleanupSummary } from '@/features/transcription/types'
+import { getCleanupModels } from '@/lib/model-config'
+import { DEFAULT_CLEANUP_LEVEL, getDefaultModelForLevel } from '@/lib/level-config'
 
+import { ProcessingStages } from '@/components/demo/processing-stages'
 import {
   TranscriptComparisonLayout,
   AudioPlayer,
@@ -30,6 +41,8 @@ export interface EntryDetailContainerProps {
   entryType: EntryType
   /** Locale for date formatting and translations */
   locale: string
+  /** Callback when close button is clicked */
+  onClose?: () => void
 }
 
 /**
@@ -44,6 +57,7 @@ export function EntryDetailContainer({
   entryId,
   entryType,
   locale,
+  onClose,
 }: EntryDetailContainerProps) {
   const t = useTranslations('dashboard')
 
@@ -57,7 +71,7 @@ export function EntryDetailContainer({
     }
   }, [entryId, transcription.status, transcription.loadEntry])
 
-  // Audio playback hook (only for audio entries)
+  // Audio playback hook (only for audio entries) with authenticated audio
   const audioUrl = entryType === 'audio' && transcription.entryId
     ? getEntryAudioUrl(transcription.entryId)
     : null
@@ -67,6 +81,8 @@ export function EntryDetailContainer({
     audioUrl,
     onSegmentChange: (segmentId) => setActiveSegmentId(segmentId),
     fallbackDuration: transcription.durationSeconds,
+    requiresAuth: true,
+    fetchAudioBlob,
   })
 
   // Word highlighting hook for playback
@@ -84,11 +100,26 @@ export function EntryDetailContainer({
     analysisId: transcription.analysisId,
   })
 
+  // Processing stages hook for visual stepper during processing
+  const processingStages = useProcessingStages({
+    status: transcription.status,
+    isAnalyzing: analysisHook.isLoading,
+    hasError: transcription.status === 'error',
+  })
+
   // Feedback hook
   const feedbackHook = useFeedback({
     entryId: transcription.entryId ?? '',
     feedbackType: 'transcription',
   })
+
+  // Cleanup options state
+  const [cleanupModels, setCleanupModels] = useState<ModelInfo[]>([])
+  const [selectedCleanupModel, setSelectedCleanupModel] = useState<string>('')
+  const [selectedCleanupLevel, setSelectedCleanupLevel] = useState<CleanupType>(DEFAULT_CLEANUP_LEVEL)
+  const [cleanupCache, setCleanupCache] = useState<CleanupSummary[]>([])
+  const [hasManualCleanupModelSelection, setHasManualCleanupModelSelection] = useState(false)
+  const [isReprocessingCleanup, setIsReprocessingCleanup] = useState(false)
 
   // Load analysis profiles on mount
   useEffect(() => {
@@ -103,6 +134,41 @@ export function EntryDetailContainer({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcription.analyses])
+
+  // Fetch cleanup models on mount
+  useEffect(() => {
+    getOptions()
+      .then(({ data }) => {
+        const models = getCleanupModels(data.llm.models)
+        setCleanupModels(models)
+        if (models.length > 0 && !selectedCleanupModel) {
+          const defaultModel = getDefaultModelForLevel(selectedCleanupLevel)
+          if (defaultModel) {
+            setSelectedCleanupModel(defaultModel)
+          }
+        }
+      })
+      .catch(console.error)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Fetch cleanup cache when entry changes
+  useEffect(() => {
+    if (!transcription.entryId) return
+
+    getCleanedEntries(transcription.entryId)
+      .then(({ data }) => {
+        setCleanupCache(data)
+      })
+      .catch(console.error)
+  }, [transcription.entryId])
+
+  // Sync selected cleanup level with current entry's cleanup type
+  useEffect(() => {
+    if (transcription.cleanupTypeName) {
+      setSelectedCleanupLevel(transcription.cleanupTypeName as CleanupType)
+    }
+  }, [transcription.cleanupTypeName])
 
   // UI State
   const [activeTab, setActiveTab] = useState<'transcript' | 'analysis'>('transcript')
@@ -406,12 +472,102 @@ export function EntryDetailContainer({
     [analysisHook]
   )
 
+  // Cleanup level change handler
+  const handleCleanupLevelChange = useCallback(
+    async (level: CleanupType, forceRerun?: boolean) => {
+      setSelectedCleanupLevel(level)
+
+      // Get the model to use (default for this level if no manual selection)
+      const defaultModel = getDefaultModelForLevel(level)
+      const modelToUse = hasManualCleanupModelSelection
+        ? selectedCleanupModel
+        : (defaultModel || selectedCleanupModel)
+
+      if (!hasManualCleanupModelSelection && defaultModel) {
+        setSelectedCleanupModel(defaultModel)
+      }
+
+      // Check if we have a cached cleanup for this level/model combination
+      const cachedCleanup = cleanupCache.find(c =>
+        c.llm_model === modelToUse &&
+        c.cleanup_type === level &&
+        c.status === 'completed'
+      )
+
+      if (cachedCleanup && !forceRerun) {
+        // Load the cached cleanup
+        try {
+          const { data: cleanedEntry } = await getCleanedEntry(cachedCleanup.id)
+          transcription.loadCleanupData(cleanedEntry)
+        } catch (error) {
+          console.error('Failed to load cached cleanup:', error)
+        }
+      } else if (transcription.transcriptionId) {
+        // Trigger new cleanup
+        setIsReprocessingCleanup(true)
+        try {
+          await triggerCleanup(transcription.transcriptionId, {
+            cleanupType: level,
+            llmModel: modelToUse,
+          })
+          // Reload entry to get updated status
+          await transcription.loadEntry(entryId)
+          // Refresh cleanup cache
+          if (transcription.entryId) {
+            const { data: cache } = await getCleanedEntries(transcription.entryId)
+            setCleanupCache(cache)
+          }
+        } catch (error) {
+          console.error('Failed to trigger cleanup:', error)
+        } finally {
+          setIsReprocessingCleanup(false)
+        }
+      }
+    },
+    [
+      hasManualCleanupModelSelection,
+      selectedCleanupModel,
+      cleanupCache,
+      transcription,
+      entryId,
+    ]
+  )
+
+  // Cleanup model change handler
+  const handleCleanupModelChange = useCallback(
+    (modelId: string) => {
+      setSelectedCleanupModel(modelId)
+      setHasManualCleanupModelSelection(true)
+    },
+    []
+  )
+
+  // Close handler
+  const handleClose = useCallback(() => {
+    if (onClose) {
+      onClose()
+    }
+  }, [onClose])
+
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [handleClose])
+
   // Loading state
   if (transcription.status === 'loading' || transcription.status === 'idle') {
     return (
-      <div className="flex flex-col h-full">
-        <BackLink locale={locale} type={entryType} />
-        <TranscriptLoadingSkeleton />
+      <div className="bg-card border-b border-border overflow-hidden flex flex-col fixed inset-0 z-30">
+        <div className="flex-1 flex items-center justify-center">
+          <TranscriptLoadingSkeleton />
+        </div>
       </div>
     )
   }
@@ -419,12 +575,13 @@ export function EntryDetailContainer({
   // Processing state (check BEFORE error state to handle empty segments during processing)
   if (transcription.status === 'transcribing' || transcription.status === 'cleaning') {
     return (
-      <div>
-        <BackLink locale={locale} type={entryType} />
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-700">
-          <div className="flex items-center gap-2">
-            <div className="size-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
-            {t('detail.processing')}
+      <div className="bg-card border-b border-border overflow-hidden flex flex-col fixed inset-0 z-30">
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="w-[65%] h-[40%] bg-white rounded-xl border border-[#E2E8F0] shadow-lg flex items-center justify-center">
+            <ProcessingStages
+              stages={processingStages.stages}
+              currentStageId={processingStages.currentStageId}
+            />
           </div>
         </div>
       </div>
@@ -434,10 +591,11 @@ export function EntryDetailContainer({
   // Error state
   if (transcription.status === 'error') {
     return (
-      <div>
-        <BackLink locale={locale} type={entryType} />
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-          {transcription.error || t('detail.notFound')}
+      <div className="bg-card border-b border-border overflow-hidden flex flex-col fixed inset-0 z-30">
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 max-w-md">
+            {transcription.error || t('detail.notFound')}
+          </div>
         </div>
       </div>
     )
@@ -446,30 +604,35 @@ export function EntryDetailContainer({
   // No segments after loading completed
   if (!transcription.segments.length) {
     return (
-      <div>
-        <BackLink locale={locale} type={entryType} />
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-          {t('detail.notFound')}
+      <div className="bg-card border-b border-border overflow-hidden flex flex-col fixed inset-0 z-30">
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 max-w-md">
+            {t('detail.notFound')}
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <BackLink locale={locale} type={entryType} />
+    <div className="bg-card border-b border-border overflow-hidden flex flex-col fixed inset-0 z-30">
 
       {/* Audio Player (only for audio entries) */}
-      {entryType === 'audio' && audioUrl && (
+      {entryType === 'audio' && audioPlayer.effectiveAudioUrl && (
         <>
-          <audio src={audioUrl} {...audioPlayer.audioProps} preload="metadata" className="hidden" />
+          <audio
+            src={audioPlayer.effectiveAudioUrl}
+            {...audioPlayer.audioProps}
+            preload="metadata"
+            className="hidden"
+          />
           <div className="flex-shrink-0">
             <AudioPlayer
               isPlaying={audioPlayer.isPlaying}
               currentTime={audioPlayer.currentTime}
               duration={audioPlayer.duration}
               playbackSpeed={audioPlayer.playbackSpeed}
-              isFullscreen={false}
+              isFullscreen={true}
               onPlayPause={handlePlayPause}
               onSeek={handleSeek}
               onSpeedChange={handleSpeedChange}
@@ -477,6 +640,16 @@ export function EntryDetailContainer({
             />
           </div>
         </>
+      )}
+
+      {/* Audio loading state */}
+      {entryType === 'audio' && audioPlayer.isLoadingAudio && (
+        <div className="flex-shrink-0 px-6 py-2 bg-muted/50 border-b border-border">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            {t('detail.loadingAudio')}
+          </div>
+        </div>
       )}
 
       {/* Tab Navigation */}
@@ -504,7 +677,7 @@ export function EntryDetailContainer({
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 min-h-0 overflow-hidden border border-border rounded-b-lg bg-background">
+      <div className="flex-1 min-h-0 overflow-hidden bg-background">
         {activeTab === 'transcript' ? (
           <TranscriptComparisonLayout
             segments={transcription.segments}
@@ -537,6 +710,18 @@ export function EntryDetailContainer({
             onCleanedTextSelect={handleCleanedTextSelect}
             onRawMoveTargetClick={handleRawMoveTargetClick}
             onCleanedMoveTargetClick={handleCleanedMoveTargetClick}
+            cleanupOptions={{
+              models: cleanupModels,
+              selectedModel: selectedCleanupModel,
+              selectedLevel: selectedCleanupLevel,
+              isProcessing: isReprocessingCleanup,
+              onModelChange: handleCleanupModelChange,
+              onLevelChange: handleCleanupLevelChange,
+              cachedCleanups: cleanupCache,
+              hasManualSelection: hasManualCleanupModelSelection,
+              currentPromptName: transcription.cleanupPromptName,
+              currentTemperature: transcription.cleanupTemperature,
+            }}
           />
         ) : (
           <div className="h-full overflow-y-auto p-6">
@@ -572,38 +757,5 @@ export function EntryDetailContainer({
         disabled={!transcription.entryId}
       />
     </div>
-  )
-}
-
-function BackLink({ locale, type }: { locale: string; type: 'audio' | 'text' }) {
-  const t = useTranslations('dashboard')
-
-  return (
-    <Link
-      href={`/${locale}/${type}`}
-      className="mb-4 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
-    >
-      <ArrowLeftIcon />
-      {type === 'audio' ? t('detail.backToAudio') : t('detail.backToText')}
-    </Link>
-  )
-}
-
-function ArrowLeftIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={2}
-      stroke="currentColor"
-      className="size-4"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
-      />
-    </svg>
   )
 }
