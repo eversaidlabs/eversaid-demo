@@ -76,6 +76,8 @@ services:
       API_KEY_DEFAULT_RATE_LIMIT_RPM: ${API_KEY_DEFAULT_RATE_LIMIT_RPM:-60}
       # CORS
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      # Cookie domain (empty for localhost, ".eversaid.ai" for prod)
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
       # Analytics (PostHog)
       POSTHOG_KEY: ${POSTHOG_KEY:-}
       POSTHOG_HOST: ${POSTHOG_HOST:-/ingest}

@@ -70,7 +70,9 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DB_SCHEMA: ${DB_SCHEMA:-platform_prod}
       # CORS - allow production domains
-      CORS_ORIGINS: ${CORS_ORIGINS:-https://eversaid.ai,https://www.eversaid.ai}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://eversaid.ai,https://www.eversaid.ai,https://app.eversaid.ai}
+      # Cookie domain for cross-subdomain auth
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-.eversaid.ai}
       # Analytics (PostHog) - served via /api/config
       POSTHOG_KEY: ${POSTHOG_KEY:-}
       POSTHOG_HOST: ${POSTHOG_HOST:-/ingest}

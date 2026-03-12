@@ -52,6 +52,9 @@ def get_client_info(request: Request) -> tuple[Optional[str], Optional[str]]:
 
 def _set_token_cookies(response: Response, access_token: str, refresh_token: str) -> None:
     """Set httpOnly cookies for tokens."""
+    settings = get_settings()
+    cookie_domain = settings.COOKIE_DOMAIN or None
+
     response.set_cookie(
         key=ACCESS_TOKEN_COOKIE,
         value=access_token,
@@ -59,6 +62,7 @@ def _set_token_cookies(response: Response, access_token: str, refresh_token: str
         httponly=True,
         samesite="lax",
         secure=False,  # Set to True in production via reverse proxy
+        domain=cookie_domain,
     )
     response.set_cookie(
         key=REFRESH_TOKEN_COOKIE,
@@ -67,13 +71,17 @@ def _set_token_cookies(response: Response, access_token: str, refresh_token: str
         httponly=True,
         samesite="lax",
         secure=False,  # Set to True in production via reverse proxy
+        domain=cookie_domain,
     )
 
 
 def _clear_token_cookies(response: Response) -> None:
     """Clear token cookies."""
-    response.delete_cookie(key=ACCESS_TOKEN_COOKIE)
-    response.delete_cookie(key=REFRESH_TOKEN_COOKIE)
+    settings = get_settings()
+    cookie_domain = settings.COOKIE_DOMAIN or None
+
+    response.delete_cookie(key=ACCESS_TOKEN_COOKIE, domain=cookie_domain)
+    response.delete_cookie(key=REFRESH_TOKEN_COOKIE, domain=cookie_domain)
 
 
 @router.post("/anonymous", response_model=TokenResponse)

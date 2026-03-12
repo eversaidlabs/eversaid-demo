@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    # Cookie settings
+    COOKIE_DOMAIN: Optional[str] = None  # Set to ".eversaid.ai" in prod for cross-subdomain cookies
+
     # API Key settings (for Core API integration)
     INTERNAL_API_SECRET: str = ""  # Shared secret for internal endpoints (Core API -> EverSaid)
     API_KEY_DEFAULT_RATE_LIMIT_RPM: int = 60  # Default requests per minute for API keys
