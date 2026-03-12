@@ -2,7 +2,7 @@
  * Authentication API client for dashboard users.
  *
  * Unlike the demo's anonymous auth flow, this handles explicit login
- * with email/password for pilot users.
+ * with email/password for early access users.
  */
 
 import {

@@ -24,7 +24,7 @@
     "howItWorks": "How It Works",
     "apiDocs": "API Docs",
     "joinWaitlist": "Join Waitlist",
-    "getEarlyAccess": "Join the Pilot",
+    "getEarlyAccess": "Get Early Access",
     "tryFreeDemo": "Try Free Demo",
     "login": "Login"
   },
@@ -492,7 +492,7 @@
     },
     "modal": {
       "titleApi": "Join API Waitlist",
-      "titleExtended": "Join the Pilot",
+      "titleExtended": "Get Early Access",
       "subtitleApi": "Get early access to integrate EverSaid into your application",
       "subtitleExtended": "Be part of the first group to use the full platform. Your feedback shapes what we build next.",
       "emailLabel": "Email Address",
@@ -533,7 +533,7 @@
       },
       "languageOtherPlaceholder": "e.g., Japanese, Arabic, Mandarin",
       "languageHelp": "This helps us prioritize the next language we support",
-      "submit": "Join Pilot",
+      "submit": "Get Early Access",
       "submitting": "Joining...",
       "privacyNote": "By submitting, you agree to our",
       "privacyLink": "Privacy Policy"

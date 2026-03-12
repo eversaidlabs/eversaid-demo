@@ -24,7 +24,7 @@
     "howItWorks": "Kako deluje",
     "apiDocs": "API dokumentacija",
     "joinWaitlist": "Pridruži se čakalni listi",
-    "getEarlyAccess": "Pridruži se pilotu",
+    "getEarlyAccess": "Želim dostop",
     "tryFreeDemo": "Brezplačni demo",
     "login": "Prijava"
   },
@@ -492,7 +492,7 @@
     },
     "modal": {
       "titleApi": "Pridruži se API čakalni listi",
-      "titleExtended": "Pridruži se pilotu",
+      "titleExtended": "Želim dostop",
       "subtitleApi": "Pridobite zgodnji dostop za integracijo EverSaid v vašo aplikacijo",
       "subtitleExtended": "Bodite del prve skupine, ki bo uporabljala celotno platformo. Vaše povratne informacije oblikujejo, kaj gradimo naprej.",
       "emailLabel": "E-poštni naslov",
@@ -533,7 +533,7 @@
       },
       "languageOtherPlaceholder": "npr. japonščina, arabščina, mandarinščina",
       "languageHelp": "To nam pomaga določiti prioriteto naslednjega jezika, ki ga bomo podprli",
-      "submit": "Pridruži se pilotu",
+      "submit": "Želim dostop",
       "submitting": "Pridruževanje...",
       "privacyNote": "Z oddajo se strinjate z našo",
       "privacyLink": "Politiko zasebnosti"

@@ -20,7 +20,7 @@ test.describe("Waitlist Flow - Network Integration", () => {
     await page.getByLabel(/How will you use EverSaid/i).fill("Testing API integration")
 
     // Submit
-    await page.getByRole("dialog").getByRole("button", { name: "Join Waitlist" }).click()
+    await page.getByRole("dialog").getByRole("button", { name: "Get Early Access" }).click()
 
     // Verify API was actually called with correct payload
     const request = await waitlistRequestPromise
@@ -50,7 +50,7 @@ test.describe("Waitlist Flow - Network Integration", () => {
     await page.getByLabel(/Expected monthly volume/).selectOption("100-500")
 
     // Submit
-    await page.getByRole("dialog").getByRole("button", { name: "Join Waitlist" }).click()
+    await page.getByRole("dialog").getByRole("button", { name: "Get Early Access" }).click()
 
     // Verify API was actually called with correct payload
     const request = await waitlistRequestPromise
@@ -84,7 +84,7 @@ test.describe("Waitlist Flow - Network Integration", () => {
     await page.getByLabel(/How will you use EverSaid/i).fill("Testing other language")
 
     // Submit
-    await page.getByRole("dialog").getByRole("button", { name: "Join Waitlist" }).click()
+    await page.getByRole("dialog").getByRole("button", { name: "Get Early Access" }).click()
 
     // Verify payload contains "other: Japanese"
     const request = await waitlistRequestPromise
@@ -106,7 +106,7 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
     // Modal opens
     const dialog = page.getByRole("dialog")
     await expect(dialog).toBeVisible()
-    await expect(page.getByRole("heading", { name: "Join the Waitlist" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Get Early Access" })).toBeVisible()
 
     // Fill the form
     await page.getByLabel(/Email Address/).fill("test@example.com")
@@ -117,7 +117,7 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
     await page.getByLabel(/How did you hear about us/).fill("Twitter")
 
     // Submit - use the button inside the dialog form
-    await page.getByRole("dialog").getByRole("button", { name: "Join Waitlist" }).click()
+    await page.getByRole("dialog").getByRole("button", { name: "Get Early Access" }).click()
 
     // Success state
     await expect(page.getByText("You're on the list!")).toBeVisible()
@@ -133,7 +133,7 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
     await page.getByLabel(/Email Address/).fill("close-test@example.com")
     await page.getByLabel(/Language you need most/).selectOption("en")
     await page.getByLabel(/How will you use EverSaid/i).fill("Testing close")
-    await page.getByRole("dialog").getByRole("button", { name: "Join Waitlist" }).click()
+    await page.getByRole("dialog").getByRole("button", { name: "Get Early Access" }).click()
 
     // Wait for success
     await expect(page.getByText("You're on the list!")).toBeVisible()
@@ -167,7 +167,7 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
     await expect(page.getByRole("dialog")).toBeVisible()
 
     // Try to submit without filling required fields
-    await page.getByRole("dialog").getByRole("button", { name: "Join Waitlist" }).click()
+    await page.getByRole("dialog").getByRole("button", { name: "Get Early Access" }).click()
 
     // Form should not submit (modal still visible with form)
     await expect(page.getByLabel(/Email Address/)).toBeVisible()
@@ -201,7 +201,7 @@ test.describe("Waitlist Flow - API Access", () => {
     await page.getByLabel(/How did you hear about us/).fill("Search")
 
     // Submit - use the button inside the dialog
-    await dialog.getByRole("button", { name: "Join Waitlist" }).click()
+    await dialog.getByRole("button", { name: "Get Early Access" }).click()
 
     // Success state
     await expect(page.getByText("You're on the list!")).toBeVisible()

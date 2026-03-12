@@ -154,7 +154,7 @@ describe('API Client', () => {
       const formData = callArgs[1].body as FormData
       expect(formData.get('language')).toBe('sl')
       expect(formData.get('enable_diarization')).toBe('true')
-      expect(formData.get('speaker_count')).toBe('2')
+      expect(formData.get('speaker_count')).toBeNull()
     })
   })
 

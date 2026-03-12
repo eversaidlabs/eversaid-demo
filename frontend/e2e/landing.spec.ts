@@ -74,7 +74,7 @@ test.describe("Landing Page", () => {
 
     // Modal should open
     await expect(page.getByRole("dialog")).toBeVisible()
-    await expect(page.getByRole("heading", { name: "Join the Waitlist" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Get Early Access" })).toBeVisible()
     await expect(page.getByLabel(/Email Address/)).toBeVisible()
   })
 })
