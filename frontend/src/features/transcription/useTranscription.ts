@@ -139,7 +139,7 @@ export interface UseTranscriptionReturn {
    * @param language - Audio language code
    * @param turnstileToken - Turnstile CAPTCHA token (optional)
    */
-  uploadAudio: (file: File, speakerCount: number, language?: string, turnstileToken?: string | null) => Promise<void>
+  uploadAudio: (file: File, speakerCount: number | null, language?: string, turnstileToken?: string | null) => Promise<void>
 
   /**
    * Load an existing entry by ID.
@@ -792,7 +792,7 @@ export function useTranscription(
    * Upload audio and start transcription
    */
   const uploadAudio = useCallback(
-    async (file: File, speakerCount: number, language?: string, turnstileToken?: string | null): Promise<void> => {
+    async (file: File, speakerCount: number | null, language?: string, turnstileToken?: string | null): Promise<void> => {
       // Clean up any existing polling
       if (pollingRef.current) {
         clearTimeout(pollingRef.current)
@@ -810,7 +810,8 @@ export function useTranscription(
         const { data: response } = await uploadAndTranscribe(file, {
           speakerCount,
           language,
-          enableDiarization: speakerCount > 1,
+          // Enable diarization when auto (null) or more than 1 speaker
+          enableDiarization: speakerCount === null || speakerCount > 1,
           enableAnalysis: true,
           turnstileToken,
         })

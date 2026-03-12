@@ -143,7 +143,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
 
   // Upload State
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [selectedSpeakerCount, setSelectedSpeakerCount] = useState(2)
+  const [selectedSpeakerCount, setSelectedSpeakerCount] = useState<number | null>(null)
   const [selectedAudioLanguage, setSelectedAudioLanguage] = useState<string>(locale)
 
   // Text Import State
@@ -629,7 +629,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
     setSelectedFile(null)
   }, [])
 
-  const handleSpeakerCountChange = useCallback((count: number) => {
+  const handleSpeakerCountChange = useCallback((count: number | null) => {
     setSelectedSpeakerCount(count)
     // Speaker count will be used on next upload
     // No segment switching - real data comes from API

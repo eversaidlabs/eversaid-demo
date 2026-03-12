@@ -28,7 +28,7 @@ type Story = StoryObj<typeof UploadZone>
 
 export const NoFile: Story = {
   args: {
-    selectedSpeakerCount: 2,
+    selectedSpeakerCount: null,
     isUploading: false,
     uploadProgress: 0,
     hasFile: false,
@@ -37,7 +37,7 @@ export const NoFile: Story = {
 
 export const FileSelected: Story = {
   args: {
-    selectedSpeakerCount: 2,
+    selectedSpeakerCount: null,
     isUploading: false,
     uploadProgress: 0,
     hasFile: true,

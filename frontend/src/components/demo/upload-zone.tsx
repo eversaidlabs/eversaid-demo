@@ -11,14 +11,16 @@ import { ProcessingStages } from "./processing-stages"
 export type InputMode = 'audio' | 'text'
 
 export interface UploadZoneProps {
-  selectedSpeakerCount: number
+  /** Selected speaker count, or null for auto-detection */
+  selectedSpeakerCount: number | null
   isUploading: boolean
   uploadProgress: number
   hasFile: boolean
   selectedFile: File | null
   onFileSelect: (file: File) => void
   onRemoveFile: () => void
-  onSpeakerCountChange: (count: number) => void
+  /** Callback when speaker count changes. null means auto-detect */
+  onSpeakerCountChange: (count: number | null) => void
   onTranscribeClick: () => void
   onRecordClick: () => void
   /** Processing stages for stage-based progress display */
@@ -237,7 +239,19 @@ export function UploadZone({
         {inputMode === 'audio' && (
           <>
             <div className="text-[13px] font-semibold text-[#64748B] mb-3">{t('speakerCount')}</div>
-            <div className="flex gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-2">
+              {/* Auto option */}
+              <button
+                onClick={() => onSpeakerCountChange(null)}
+                className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
+                  selectedSpeakerCount === null
+                    ? "bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white"
+                    : "bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] hover:text-[#0F172A]"
+                }`}
+              >
+                {t('speakerCountAuto')}
+              </button>
+              {/* Numeric options */}
               {[1, 2, 3, 4, 5].map((num) => (
                 <button
                   key={num}
@@ -252,6 +266,7 @@ export function UploadZone({
                 </button>
               ))}
             </div>
+            <p className="text-xs text-[#94A3B8] mb-4">{t('speakerCountHint')}</p>
           </>
         )}
 

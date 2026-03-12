@@ -22,7 +22,7 @@ export default function NewAudioPage({
   const router = useRouter()
 
   const [file, setFile] = useState<File | null>(null)
-  const [speakerCount, setSpeakerCount] = useState(2)
+  const [speakerCount, setSpeakerCount] = useState<number | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -70,7 +70,8 @@ export default function NewAudioPage({
       const { data } = await uploadAndTranscribe(file, {
         language: locale,
         speakerCount,
-        enableDiarization: speakerCount > 1,
+        // Enable diarization when auto (null) or more than 1 speaker
+        enableDiarization: speakerCount === null || speakerCount > 1,
       })
 
       toast.success(t('upload.success'))
@@ -164,7 +165,19 @@ export default function NewAudioPage({
           <label className="mb-2 block text-sm font-medium text-slate-700">
             {t('upload.speakerCount')}
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {/* Auto option */}
+            <button
+              onClick={() => setSpeakerCount(null)}
+              className={`flex h-10 items-center justify-center rounded-lg border px-3 text-sm font-medium transition-colors ${
+                speakerCount === null
+                  ? 'border-sky-500 bg-sky-50 text-sky-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              {t('upload.speakerCountAuto')}
+            </button>
+            {/* Numeric options */}
             {[1, 2, 3, 4, 5].map((count) => (
               <button
                 key={count}
@@ -179,6 +192,7 @@ export default function NewAudioPage({
               </button>
             ))}
           </div>
+          <p className="mt-2 text-xs text-slate-500">{t('upload.speakerCountHint')}</p>
         </div>
       )}
 

@@ -267,7 +267,11 @@ export async function uploadAndTranscribe(
   formData.append('file', file)
   formData.append('language', options.language ?? 'sl')
   formData.append('enable_diarization', String(options.enableDiarization ?? true))
-  formData.append('speaker_count', String(options.speakerCount ?? 2))
+  // Only send speaker_count if explicitly specified (not null/undefined)
+  // When omitted, ElevenLabs defaults to max speakers the model supports
+  if (options.speakerCount != null) {
+    formData.append('speaker_count', String(options.speakerCount))
+  }
   formData.append('enable_analysis', String(options.enableAnalysis ?? true))
   formData.append('analysis_profile', options.analysisProfile ?? 'generic-summary')
 

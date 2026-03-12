@@ -100,7 +100,7 @@ export interface CleanupSummary {
 export interface TranscribeOptions {
   language?: string
   enableDiarization?: boolean
-  speakerCount?: number
+  speakerCount?: number | null  // null = auto-detect (API defaults to max supported)
   enableAnalysis?: boolean
   analysisProfile?: string
   // Cleanup options
