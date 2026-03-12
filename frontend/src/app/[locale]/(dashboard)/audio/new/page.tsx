@@ -23,6 +23,7 @@ export default function NewAudioPage({
 
   const [file, setFile] = useState<File | null>(null)
   const [speakerCount, setSpeakerCount] = useState<number | null>(null)
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(locale)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -68,7 +69,7 @@ export default function NewAudioPage({
 
     try {
       const { data } = await uploadAndTranscribe(file, {
-        language: locale,
+        language: selectedLanguage,
         speakerCount,
         // Enable diarization when auto (null) or more than 1 speaker
         enableDiarization: speakerCount === null || speakerCount > 1,
@@ -158,6 +159,37 @@ export default function NewAudioPage({
           </div>
         )}
       </div>
+
+      {/* Language selection */}
+      {file && (
+        <div className="mt-6">
+          <label className="mb-2 block text-sm font-medium text-slate-700">
+            {t('upload.language')}
+          </label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSelectedLanguage('sl')}
+              className={`flex h-10 items-center justify-center rounded-lg border px-4 text-sm font-medium transition-colors ${
+                selectedLanguage === 'sl'
+                  ? 'border-sky-500 bg-sky-50 text-sky-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              {t('upload.languageSlovenian')}
+            </button>
+            <button
+              onClick={() => setSelectedLanguage('en')}
+              className={`flex h-10 items-center justify-center rounded-lg border px-4 text-sm font-medium transition-colors ${
+                selectedLanguage === 'en'
+                  ? 'border-sky-500 bg-sky-50 text-sky-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              {t('upload.languageEnglish')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Speaker count */}
       {file && (

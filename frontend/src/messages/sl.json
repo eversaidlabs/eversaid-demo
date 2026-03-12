@@ -856,6 +856,9 @@
       "speakerCount": "Število govorcev",
       "speakerCountAuto": "Samodejno",
       "speakerCountHint": "Izbira natančnega števila izboljša prepoznavanje govorcev",
+      "language": "Jezik posnetka",
+      "languageSlovenian": "Slovenščina",
+      "languageEnglish": "English",
       "submit": "Naloži in transkribir",
       "uploading": "Nalaganje...",
       "success": "Nalaganje uspešno! Obdelava se je začela.",
@@ -866,6 +869,7 @@
     "import": {
       "title": "Uvozi besedilo",
       "backToList": "Nazaj na seznam",
+      "language": "Jezik besedila",
       "label": "Prilepite besedilo",
       "placeholder": "Prilepite besedilo, ki ga želite očistiti...",
       "hint": "Oznake govorcev kot \"Govorec 1:\" bodo samodejno zaznane.",

@@ -20,6 +20,7 @@ export default function NewTextPage({
   const router = useRouter()
 
   const [text, setText] = useState('')
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(locale)
   const [isImporting, setIsImporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -37,7 +38,7 @@ export default function NewTextPage({
     try {
       const { data } = await importAndCleanup({
         text: text.trim(),
-        language: locale,
+        language: selectedLanguage,
       })
 
       toast.success(t('import.success'))
@@ -65,6 +66,37 @@ export default function NewTextPage({
       </h1>
 
       <form onSubmit={handleSubmit}>
+        {/* Language selection */}
+        <div className="mb-6">
+          <label className="mb-2 block text-sm font-medium text-slate-700">
+            {t('import.language')}
+          </label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedLanguage('sl')}
+              className={`flex h-10 items-center justify-center rounded-lg border px-4 text-sm font-medium transition-colors ${
+                selectedLanguage === 'sl'
+                  ? 'border-sky-500 bg-sky-50 text-sky-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              {t('upload.languageSlovenian')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedLanguage('en')}
+              className={`flex h-10 items-center justify-center rounded-lg border px-4 text-sm font-medium transition-colors ${
+                selectedLanguage === 'en'
+                  ? 'border-sky-500 bg-sky-50 text-sky-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              {t('upload.languageEnglish')}
+            </button>
+          </div>
+        </div>
+
         <div className="mb-6">
           <Label htmlFor="text" className="mb-2 block">
             {t('import.label')}

@@ -856,6 +856,9 @@
       "speakerCount": "Number of speakers",
       "speakerCountAuto": "Auto",
       "speakerCountHint": "Selecting the exact count improves speaker identification",
+      "language": "Audio language",
+      "languageSlovenian": "Slovenščina",
+      "languageEnglish": "English",
       "submit": "Upload & Transcribe",
       "uploading": "Uploading...",
       "success": "Upload successful! Processing started.",
@@ -866,6 +869,7 @@
     "import": {
       "title": "Import Text",
       "backToList": "Back to list",
+      "language": "Text language",
       "label": "Paste your text",
       "placeholder": "Paste the text you want to clean up...",
       "hint": "Speaker labels like \"Speaker 1:\" will be detected automatically.",
