@@ -6,7 +6,7 @@ import { Eye, EyeOff, Copy, Loader2, Check, Info } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { capture } from "@/lib/analytics"
-import { CLEANUP_LEVELS, CLEANUP_TEMPERATURES, getDefaultModelForLevel, temperaturesMatch, DEFAULT_CLEANUP_LEVEL } from "@/lib/level-config"
+import { CLEANUP_LEVELS, CLEANUP_TEMPERATURES, getDefaultModelForLevel, temperaturesMatch, DEFAULT_CLEANUP_LEVEL, VISIBLE_CLEANUP_LEVELS, DISABLED_CLEANUP_LEVELS } from "@/lib/level-config"
 import { CleanupCompareModal } from "./cleanup-compare-modal"
 import {
   Tooltip,
@@ -212,7 +212,8 @@ export function TranscriptHeader({
               <span className="text-xs font-semibold text-foreground/70">{t("style")}</span>
               <TooltipProvider delayDuration={300}>
                 <div className="flex gap-2">
-                  {CLEANUP_LEVELS.map((levelId) => {
+                  {VISIBLE_CLEANUP_LEVELS.map((levelId) => {
+                    const isLevelDisabled = DISABLED_CLEANUP_LEVELS.includes(levelId)
                     const modelToCheck = cleanupOptions.hasManualSelection
                       ? cleanupOptions.selectedModel
                       : getDefaultModelForLevel(levelId)
@@ -230,7 +231,7 @@ export function TranscriptHeader({
                         <TooltipTrigger asChild>
                           <button
                             onPointerDown={() => {
-                              if (cleanupOptions.isProcessing) return
+                              if (cleanupOptions.isProcessing || isLevelDisabled) return
                               levelDidFireRef.current = false
                               if (allowLevelLongPress) {
                                 setHoldingLevel(levelId)
@@ -244,7 +245,7 @@ export function TranscriptHeader({
                             onPointerUp={() => {
                               if (levelHoldTimerRef.current) clearTimeout(levelHoldTimerRef.current)
                               levelHoldTimerRef.current = null
-                              if (!levelDidFireRef.current && !cleanupOptions.isProcessing) {
+                              if (!levelDidFireRef.current && !cleanupOptions.isProcessing && !isLevelDisabled) {
                                 cleanupOptions.onLevelChange(levelId)
                               }
                               setHoldingLevel('none')
@@ -254,34 +255,46 @@ export function TranscriptHeader({
                               levelHoldTimerRef.current = null
                               setHoldingLevel('none')
                             }}
-                            disabled={cleanupOptions.isProcessing}
+                            disabled={cleanupOptions.isProcessing || isLevelDisabled}
                             className={`px-3 py-2 rounded-lg text-left transition-all ${
-                              cleanupOptions.isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                              isLevelDisabled
+                                ? "opacity-60 cursor-not-allowed border border-dashed border-muted-foreground/30"
+                                : cleanupOptions.isProcessing
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : ""
                             } ${
-                              isHolding
-                                ? "ring-2 ring-primary bg-primary/20"
-                                : isSelected
-                                  ? "border-2 border-primary bg-primary/5"
-                                  : "border border-border hover:border-muted-foreground/30"
+                              isLevelDisabled
+                                ? ""
+                                : isHolding
+                                  ? "ring-2 ring-primary bg-primary/20"
+                                  : isSelected
+                                    ? "border-2 border-primary bg-primary/5"
+                                    : "border border-border hover:border-muted-foreground/30"
                             }`}
                           >
                             <div className="flex items-center gap-1.5">
-                              <span className={`text-[11px] font-medium ${isSelected ? "text-primary" : "text-foreground"}`}>
+                              <span className={`text-[11px] font-medium ${isLevelDisabled ? "text-muted-foreground" : isSelected ? "text-primary" : "text-foreground"}`}>
                                 {t(`levels.${levelId}`)}
                               </span>
-                              {isDefault && (
+                              {isDefault && !isLevelDisabled && (
                                 <span className="w-1.5 h-1.5 bg-primary rounded-full" />
                               )}
-                              {isCached && <Check className="w-3 h-3 text-green-500 flex-shrink-0" />}
+                              {isCached && !isLevelDisabled && <Check className="w-3 h-3 text-green-500 flex-shrink-0" />}
                             </div>
-                            <span className={`text-[9px] block mt-0.5 ${isSelected ? "text-primary/70" : "text-muted-foreground"}`}>
+                            <span className={`text-[9px] block mt-0.5 ${isLevelDisabled ? "text-muted-foreground/70" : isSelected ? "text-primary/70" : "text-muted-foreground"}`}>
                               {t(`hints.${levelId}`)}
                             </span>
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="max-w-[280px] p-3">
-                          <p className="text-[10px] font-medium text-muted-foreground mb-1.5">{t("examples.label")}</p>
-                          <ExampleDiff levelId={levelId} />
+                          {isLevelDisabled ? (
+                            <p className="text-[10px] font-medium text-muted-foreground">{t("comingSoon")}</p>
+                          ) : (
+                            <>
+                              <p className="text-[10px] font-medium text-muted-foreground mb-1.5">{t("examples.label")}</p>
+                              <ExampleDiff levelId={levelId} />
+                            </>
+                          )}
                         </TooltipContent>
                       </Tooltip>
                     )

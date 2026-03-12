@@ -6,6 +6,13 @@ import { useTranslations } from 'next-intl'
 import { useConfig } from '@/lib/config-context'
 import type { ProcessingStage, StageId, CleanupType } from "@/features/transcription/types"
 import { ProcessingStages } from "./processing-stages"
+import { VISIBLE_CLEANUP_LEVELS, DISABLED_CLEANUP_LEVELS } from "@/lib/level-config"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 /** Input mode for the upload zone */
 export type InputMode = 'audio' | 'text'
@@ -275,23 +282,46 @@ export function UploadZone({
           <>
             <div className="text-[13px] font-semibold text-[#64748B] mb-3">{t('cleanupType')}</div>
             <div className="flex gap-2 mb-4">
-              {([
-                { type: 'minimal', label: t('cleanupMinimal') },
-                { type: 'clean', label: t('cleanupClean') },
-                { type: 'edited', label: t('cleanupEdited') },
-              ] as const).map((option) => (
-                <button
-                  key={option.type}
-                  onClick={() => onCleanupTypeChange(option.type)}
-                  className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
-                    selectedCleanupType === option.type
-                      ? "bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white"
-                      : "bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] hover:text-[#0F172A]"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+              <TooltipProvider delayDuration={300}>
+                {VISIBLE_CLEANUP_LEVELS.map((levelType) => {
+                  const isDisabled = DISABLED_CLEANUP_LEVELS.includes(levelType)
+                  const label = levelType === 'minimal' ? t('cleanupMinimal')
+                    : levelType === 'clean' ? t('cleanupClean')
+                    : t('cleanupEdited')
+
+                  const button = (
+                    <button
+                      key={levelType}
+                      onClick={() => !isDisabled && onCleanupTypeChange(levelType)}
+                      disabled={isDisabled}
+                      className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
+                        isDisabled
+                          ? "opacity-60 cursor-not-allowed border border-dashed border-[#94A3B8]/30 bg-[#F8FAFC] text-[#94A3B8]"
+                          : selectedCleanupType === levelType
+                            ? "bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white"
+                            : "bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] hover:text-[#0F172A]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  )
+
+                  if (isDisabled) {
+                    return (
+                      <Tooltip key={levelType}>
+                        <TooltipTrigger asChild>
+                          {button}
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          {tCommon('comingSoon')}
+                        </TooltipContent>
+                      </Tooltip>
+                    )
+                  }
+
+                  return button
+                })}
+              </TooltipProvider>
             </div>
           </>
         )}

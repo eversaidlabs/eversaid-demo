@@ -1,7 +1,7 @@
 "use client"
 import { useTranslations } from "next-intl"
 import { X, Check } from "lucide-react"
-import { CLEANUP_LEVELS, DEFAULT_CLEANUP_LEVEL } from "@/lib/level-config"
+import { CLEANUP_LEVELS, DEFAULT_CLEANUP_LEVEL, VISIBLE_CLEANUP_LEVELS, DISABLED_CLEANUP_LEVELS } from "@/lib/level-config"
 import type { CleanupType } from "@/features/transcription/types"
 
 // Wrapper to use parent translations
@@ -57,31 +57,48 @@ export function CleanupCompareModal({ isOpen, onClose }: CleanupCompareModalProp
             <thead>
               <tr className="border-b">
                 <th className="text-left py-2 font-medium text-foreground">Feature</th>
-                {CLEANUP_LEVELS.map((level) => (
-                  <th
-                    key={level}
-                    className={`text-center py-2 font-medium ${
-                      level === DEFAULT_CLEANUP_LEVEL ? "text-primary" : "text-foreground"
-                    }`}
-                  >
-                    {tLevels(level)}
-                  </th>
-                ))}
+                {VISIBLE_CLEANUP_LEVELS.map((level) => {
+                  const isLevelDisabled = DISABLED_CLEANUP_LEVELS.includes(level)
+                  return (
+                    <th
+                      key={level}
+                      className={`text-center py-2 font-medium ${
+                        isLevelDisabled
+                          ? "text-muted-foreground"
+                          : level === DEFAULT_CLEANUP_LEVEL
+                            ? "text-primary"
+                            : "text-foreground"
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span>{tLevels(level)}</span>
+                        {isLevelDisabled && (
+                          <span className="text-[9px] text-muted-foreground/70 font-normal">
+                            ({tCleanup("comingSoon")})
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
             <tbody className="text-muted-foreground">
               {FEATURE_KEYS.map((featureKey) => (
                 <tr key={featureKey} className="border-b last:border-b-0">
                   <td className="py-2 text-foreground/80">{t(`features.${featureKey}`)}</td>
-                  {CLEANUP_LEVELS.map((level) => (
-                    <td key={level} className="text-center py-2">
-                      {FEATURE_MATRIX[featureKey][level] ? (
-                        <Check className="w-4 h-4 text-green-500 mx-auto" />
-                      ) : (
-                        <span className="text-muted-foreground/50">—</span>
-                      )}
-                    </td>
-                  ))}
+                  {VISIBLE_CLEANUP_LEVELS.map((level) => {
+                    const isLevelDisabled = DISABLED_CLEANUP_LEVELS.includes(level)
+                    return (
+                      <td key={level} className={`text-center py-2 ${isLevelDisabled ? "opacity-50" : ""}`}>
+                        {FEATURE_MATRIX[featureKey][level] ? (
+                          <Check className={`w-4 h-4 mx-auto ${isLevelDisabled ? "text-green-500/50" : "text-green-500"}`} />
+                        ) : (
+                          <span className="text-muted-foreground/50">—</span>
+                        )}
+                      </td>
+                    )
+                  })}
                 </tr>
               ))}
             </tbody>
@@ -100,7 +117,7 @@ export function CleanupCompareModal({ isOpen, onClose }: CleanupCompareModalProp
                 <p className="text-[10px] text-muted-foreground mt-1">{t("example.rawNote")}</p>
               </div>
 
-              {/* Minimal */}
+              {/* Minimal - HIDDEN
               <div>
                 <span className="text-xs font-medium text-muted-foreground uppercase">{tLevels("minimal")}</span>
                 <p className="font-mono text-foreground/80 bg-background p-2 rounded mt-1 text-xs">
@@ -108,6 +125,7 @@ export function CleanupCompareModal({ isOpen, onClose }: CleanupCompareModalProp
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-1">{t("example.minimalNote")}</p>
               </div>
+              */}
 
               {/* Clean */}
               <div>
@@ -120,10 +138,12 @@ export function CleanupCompareModal({ isOpen, onClose }: CleanupCompareModalProp
                 <p className="text-[10px] text-muted-foreground mt-1">{t("example.cleanNote")}</p>
               </div>
 
-              {/* Edited */}
-              <div>
-                <span className="text-xs font-medium text-muted-foreground uppercase">{tLevels("edited")}</span>
-                <p className="font-mono text-foreground/80 bg-background p-2 rounded mt-1 text-xs">
+              {/* Edited - Coming Soon */}
+              <div className="opacity-60">
+                <span className="text-xs font-medium text-muted-foreground uppercase">
+                  {tLevels("edited")} <span className="text-[9px] font-normal">({tCleanup("comingSoon")})</span>
+                </span>
+                <p className="font-mono text-foreground/80 bg-background p-2 rounded mt-1 text-xs border border-dashed border-muted-foreground/30">
                   {t("example.editedText")}
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-1">{t("example.editedNote")}</p>
@@ -132,20 +152,30 @@ export function CleanupCompareModal({ isOpen, onClose }: CleanupCompareModalProp
           </div>
 
           {/* Use case hints */}
-          <div className="grid grid-cols-3 gap-3 text-xs">
-            {CLEANUP_LEVELS.map((level) => (
-              <div
-                key={level}
-                className={`rounded-lg p-3 ${
-                  level === DEFAULT_CLEANUP_LEVEL
-                    ? "bg-primary/5 border border-primary/20"
-                    : "bg-muted"
-                }`}
-              >
-                <span className="font-semibold block mb-1 text-foreground">{tLevels(level)}</span>
-                <span className="text-muted-foreground">{t(`useCases.${level}`)}</span>
-              </div>
-            ))}
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            {VISIBLE_CLEANUP_LEVELS.map((level) => {
+              const isLevelDisabled = DISABLED_CLEANUP_LEVELS.includes(level)
+              return (
+                <div
+                  key={level}
+                  className={`rounded-lg p-3 ${
+                    isLevelDisabled
+                      ? "bg-muted/50 border border-dashed border-muted-foreground/30 opacity-60"
+                      : level === DEFAULT_CLEANUP_LEVEL
+                        ? "bg-primary/5 border border-primary/20"
+                        : "bg-muted"
+                  }`}
+                >
+                  <span className={`font-semibold block mb-1 ${isLevelDisabled ? "text-muted-foreground" : "text-foreground"}`}>
+                    {tLevels(level)}
+                    {isLevelDisabled && (
+                      <span className="text-[9px] font-normal ml-1">({tCleanup("comingSoon")})</span>
+                    )}
+                  </span>
+                  <span className="text-muted-foreground">{t(`useCases.${level}`)}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
 

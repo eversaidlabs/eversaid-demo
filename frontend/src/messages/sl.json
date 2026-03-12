@@ -13,7 +13,8 @@
     "close": "Zapri",
     "done": "Končano",
     "copied": "Kopirano!",
-    "submitting": "Pošiljanje..."
+    "submitting": "Pošiljanje...",
+    "comingSoon": "Kmalu na voljo"
   },
   "navigation": {
     "home": "Domov",
@@ -361,6 +362,7 @@
       "remaining": "{count, plural, one {# preostane} two {# preostaneta} few {# preostanejo} other {# preostane}}"
     },
     "cleanup": {
+      "comingSoon": "Kmalu na voljo",
       "openSourceModel": "Odprtokodni model:",
       "style": "Slog:",
       "levels": {

@@ -1,11 +1,21 @@
 import type { CleanupType } from '@/features/transcription/types'
 
-// Cleanup levels shown in the UI (order matters for dropdown)
+// All cleanup levels (keep for backend compatibility)
 export const CLEANUP_LEVELS: CleanupType[] = [
   'minimal',
   'clean',
   'edited',
 ]
+
+// Presets visible in UI (hidden presets are commented out)
+export const VISIBLE_CLEANUP_LEVELS: CleanupType[] = [
+  // 'minimal',  // PRESET-HIDDEN: uncomment to restore
+  'clean',
+  'edited',
+]
+
+// Presets that are disabled (shown but not selectable)
+export const DISABLED_CLEANUP_LEVELS: CleanupType[] = ['edited']
 
 // Default cleanup level for new entries
 export const DEFAULT_CLEANUP_LEVEL: CleanupType = 'clean'

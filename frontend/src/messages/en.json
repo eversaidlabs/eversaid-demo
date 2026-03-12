@@ -13,7 +13,8 @@
     "close": "Close",
     "done": "Done",
     "copied": "Copied!",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "comingSoon": "Coming soon"
   },
   "navigation": {
     "home": "Home",
@@ -361,6 +362,7 @@
       "remaining": "{count} remaining"
     },
     "cleanup": {
+      "comingSoon": "Coming soon",
       "openSourceModel": "Open Source Model:",
       "style": "Style:",
       "levels": {
