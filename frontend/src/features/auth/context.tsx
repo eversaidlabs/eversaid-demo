@@ -29,11 +29,12 @@ import {
   refreshTokens,
   AuthError,
 } from './api'
-import type {
-  AuthState,
-  LoginRequest,
-  Tenant,
-  User,
+import {
+  ANONYMOUS_TENANT_ID,
+  type AuthState,
+  type LoginRequest,
+  type Tenant,
+  type User,
 } from './types'
 
 // Paths that don't require authentication
@@ -68,6 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [error, setError] = useState<string | null>(null)
 
   const isAuthenticated = user !== null
+  const isAnonymous = user?.tenant_id === ANONYMOUS_TENANT_ID
 
   // Initialize auth state on mount
   useEffect(() => {
@@ -186,12 +188,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       tenant,
       isLoading,
       isAuthenticated,
+      isAnonymous,
       error,
       login,
       logout,
       refreshUser,
     }),
-    [user, tenant, isLoading, isAuthenticated, error, login, logout, refreshUser]
+    [user, tenant, isLoading, isAuthenticated, isAnonymous, error, login, logout, refreshUser]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

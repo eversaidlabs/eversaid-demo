@@ -74,6 +74,11 @@ export interface ChangePasswordRequest {
 }
 
 /**
+ * Anonymous tenant ID - matches backend ANONYMOUS_TENANT_ID
+ */
+export const ANONYMOUS_TENANT_ID = '00000000-0000-0000-0000-000000000000'
+
+/**
  * Auth context state
  */
 export interface AuthState {
@@ -81,5 +86,7 @@ export interface AuthState {
   tenant: Tenant | null
   isLoading: boolean
   isAuthenticated: boolean
+  /** True if user is an anonymous demo user (should not access dashboard) */
+  isAnonymous: boolean
   error: string | null
 }

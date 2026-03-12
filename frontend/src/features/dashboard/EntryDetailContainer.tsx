@@ -416,8 +416,23 @@ export function EntryDetailContainer({
     )
   }
 
+  // Processing state (check BEFORE error state to handle empty segments during processing)
+  if (transcription.status === 'transcribing' || transcription.status === 'cleaning') {
+    return (
+      <div>
+        <BackLink locale={locale} type={entryType} />
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-700">
+          <div className="flex items-center gap-2">
+            <div className="size-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+            {t('detail.processing')}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Error state
-  if (transcription.status === 'error' || !transcription.segments.length) {
+  if (transcription.status === 'error') {
     return (
       <div>
         <BackLink locale={locale} type={entryType} />
@@ -428,16 +443,13 @@ export function EntryDetailContainer({
     )
   }
 
-  // Processing state
-  if (transcription.status === 'transcribing' || transcription.status === 'cleaning') {
+  // No segments after loading completed
+  if (!transcription.segments.length) {
     return (
       <div>
         <BackLink locale={locale} type={entryType} />
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-700">
-          <div className="flex items-center gap-2">
-            <div className="size-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
-            {t('detail.processing')}
-          </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+          {t('detail.notFound')}
         </div>
       </div>
     )

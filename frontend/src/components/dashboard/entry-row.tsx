@@ -32,7 +32,7 @@ export function EntryRow({
   const localeMatch = pathname.match(/^\/(en|sl)/)
   const locale = localeMatch ? localeMatch[1] : 'en'
 
-  const isAudio = entry.entry_type === 'audio'
+  const isAudio = !entry.is_transcript_only
   const status = getEntryStatus(entry)
   const displayName = entry.title || entry.original_filename
 

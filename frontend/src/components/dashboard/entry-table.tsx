@@ -28,7 +28,7 @@ export function EntryTable({
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white">
-      <div className="overflow-x-auto overflow-y-visible">
+      <div className="overflow-visible">
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50">

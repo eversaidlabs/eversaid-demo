@@ -25,19 +25,24 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 }
 
 function DashboardContent({ children }: { children: ReactNode }) {
-  const { isLoading, isAuthenticated, user } = useAuth()
+  const { isLoading, isAuthenticated, isAnonymous, user } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated, or to demo if anonymous user
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       // Extract locale from pathname
       const localeMatch = pathname.match(/^\/(en|sl)/)
       const locale = localeMatch ? localeMatch[1] : 'en'
       router.replace(`/${locale}/login`)
+    } else if (!isLoading && isAnonymous) {
+      // Anonymous users should use demo mode, not dashboard
+      const localeMatch = pathname.match(/^\/(en|sl)/)
+      const locale = localeMatch ? localeMatch[1] : 'en'
+      router.replace(`/${locale}/demo`)
     }
-  }, [isLoading, isAuthenticated, pathname, router])
+  }, [isLoading, isAuthenticated, isAnonymous, pathname, router])
 
   // Redirect to change-password if password change required
   useEffect(() => {
@@ -60,8 +65,8 @@ function DashboardContent({ children }: { children: ReactNode }) {
     )
   }
 
-  // Don't render if not authenticated (will redirect)
-  if (!isAuthenticated) {
+  // Don't render if not authenticated or anonymous (will redirect)
+  if (!isAuthenticated || isAnonymous) {
     return null
   }
 
