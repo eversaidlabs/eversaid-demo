@@ -138,8 +138,8 @@ export function EntryDetailContainer({
   // Fetch cleanup models on mount
   useEffect(() => {
     getOptions()
-      .then(({ data }) => {
-        const models = getCleanupModels(data.llm.models)
+      .then((options) => {
+        const models = getCleanupModels(options.llm.models)
         setCleanupModels(models)
         if (models.length > 0 && !selectedCleanupModel) {
           const defaultModel = getDefaultModelForLevel(selectedCleanupLevel)
@@ -157,8 +157,8 @@ export function EntryDetailContainer({
     if (!transcription.entryId) return
 
     getCleanedEntries(transcription.entryId)
-      .then(({ data }) => {
-        setCleanupCache(data)
+      .then((cache) => {
+        setCleanupCache(cache)
       })
       .catch(console.error)
   }, [transcription.entryId])
@@ -497,7 +497,7 @@ export function EntryDetailContainer({
       if (cachedCleanup && !forceRerun) {
         // Load the cached cleanup
         try {
-          const { data: cleanedEntry } = await getCleanedEntry(cachedCleanup.id)
+          const cleanedEntry = await getCleanedEntry(cachedCleanup.id)
           transcription.loadCleanupData(cleanedEntry)
         } catch (error) {
           console.error('Failed to load cached cleanup:', error)
@@ -514,7 +514,7 @@ export function EntryDetailContainer({
           await transcription.loadEntry(entryId)
           // Refresh cleanup cache
           if (transcription.entryId) {
-            const { data: cache } = await getCleanedEntries(transcription.entryId)
+            const cache = await getCleanedEntries(transcription.entryId)
             setCleanupCache(cache)
           }
         } catch (error) {

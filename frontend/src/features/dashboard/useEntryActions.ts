@@ -72,7 +72,7 @@ export function useEntryActions(): UseEntryActionsResult {
 
       try {
         // Fetch entry details to get cleaned text
-        const { data: entry } = await getEntry(entryId)
+        const entry = await getEntry(entryId)
 
         // Get cleaned text or raw text
         const text =

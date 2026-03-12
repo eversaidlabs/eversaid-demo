@@ -134,15 +134,11 @@ describe('useAnalysis', () => {
   describe('computed properties', () => {
     it('computes currentProfileLabel from profiles', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockAnalysisResult,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockAnalysisResult)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -173,9 +169,8 @@ describe('useAnalysis', () => {
 
     it('returns null for label/intent when profile not found', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
       const { result } = renderHook(() =>
@@ -199,9 +194,8 @@ describe('useAnalysis', () => {
   describe('loadProfiles', () => {
     it('loads profiles from API successfully', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
       const { result } = renderHook(() =>
@@ -224,9 +218,8 @@ describe('useAnalysis', () => {
       vi.mocked(api.getAnalysisProfiles).mockImplementation(
         () => new Promise((resolve) => {
           resolvePromise = () => resolve({
-            data: mockProfiles,
+            profiles: mockProfiles,
             defaultProfileId: 'generic-summary',
-            rateLimitInfo: null,
           })
         })
       )
@@ -250,15 +243,11 @@ describe('useAnalysis', () => {
 
     it('sets defaultProfileId from API response', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'action-items', // Different from fallback
-        rateLimitInfo: null,
       })
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'action-items' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'action-items' })
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -278,15 +267,11 @@ describe('useAnalysis', () => {
 
     it('respects defaultProfile override from options', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'reflection' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'reflection' })
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123', defaultProfile: 'reflection' })
@@ -332,15 +317,9 @@ describe('useAnalysis', () => {
 
   describe('analyze', () => {
     it('triggers analysis with specified profileId', async () => {
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'action-items' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'action-items' })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: { ...mockAnalysisResult, profile_id: 'action-items' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue({ ...mockAnalysisResult, profile_id: 'action-items' })
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -355,10 +334,7 @@ describe('useAnalysis', () => {
     })
 
     it('uses default profileId when none specified', async () => {
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -372,15 +348,9 @@ describe('useAnalysis', () => {
     })
 
     it('sets isLoading during analysis trigger', async () => {
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockPendingAnalysis,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockPendingAnalysis)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -463,10 +433,7 @@ describe('useAnalysis', () => {
     it('clears previous error on new analysis', async () => {
       vi.mocked(api.triggerAnalysis)
         .mockRejectedValueOnce(new ApiError(500, 'First error'))
-        .mockResolvedValueOnce({
-          data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-          rateLimitInfo: null,
-        })
+        .mockResolvedValueOnce({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -493,20 +460,16 @@ describe('useAnalysis', () => {
   describe('polling', () => {
     it('polls every 2 seconds until completed', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
       vi.mocked(api.getAnalysis)
-        .mockResolvedValueOnce({ data: mockPendingAnalysis, rateLimitInfo: null })
-        .mockResolvedValueOnce({ data: { ...mockPendingAnalysis, status: 'processing' }, rateLimitInfo: null })
-        .mockResolvedValueOnce({ data: mockAnalysisResult, rateLimitInfo: null })
+        .mockResolvedValueOnce(mockPendingAnalysis)
+        .mockResolvedValueOnce({ ...mockPendingAnalysis, status: 'processing' })
+        .mockResolvedValueOnce(mockAnalysisResult)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -553,15 +516,9 @@ describe('useAnalysis', () => {
     })
 
     it('stops polling on failure status', async () => {
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockFailedAnalysis,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockFailedAnalysis)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -577,10 +534,7 @@ describe('useAnalysis', () => {
     })
 
     it('handles polling API error', async () => {
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
       vi.mocked(api.getAnalysis).mockRejectedValue(
         new ApiError(404, 'Analysis not found')
@@ -601,20 +555,13 @@ describe('useAnalysis', () => {
 
     it('caches completed analysis by profile_id', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockAnalysisResult,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockAnalysisResult)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -630,10 +577,7 @@ describe('useAnalysis', () => {
       })
 
       // Should be cached - second call to selectProfile should use cache
-      vi.mocked(api.getAnalyses).mockResolvedValue({
-        data: [],
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalyses).mockResolvedValue([])
 
       await act(async () => {
         await result.current.selectProfile('generic-summary')
@@ -645,22 +589,15 @@ describe('useAnalysis', () => {
 
     it('sets error when completed but no usable data', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
       vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: {
-          ...mockAnalysisResult,
-          result: {}, // Empty result
-        },
-        rateLimitInfo: null,
+        ...mockAnalysisResult,
+        result: {}, // Empty result
       })
 
       const { result } = renderHook(() =>
@@ -688,21 +625,14 @@ describe('useAnalysis', () => {
     it('returns from cache immediately without API call', async () => {
       // First, load profiles
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
       // Then, populate cache via analyze
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockAnalysisResult,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockAnalysisResult)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -733,20 +663,13 @@ describe('useAnalysis', () => {
 
     it('fetches from API when cache miss but analysis exists', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
-      vi.mocked(api.getAnalyses).mockResolvedValue({
-        data: [mockAnalysisResult],
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalyses).mockResolvedValue([mockAnalysisResult])
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockAnalysisResult,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockAnalysisResult)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -769,22 +692,18 @@ describe('useAnalysis', () => {
 
     it('starts polling when existing analysis is still processing', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
       const processingAnalysis = { ...mockAnalysisResult, status: 'processing' as const, result: null }
 
-      vi.mocked(api.getAnalyses).mockResolvedValue({
-        data: [processingAnalysis],
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalyses).mockResolvedValue([processingAnalysis])
 
       // First poll returns processing, second returns completed
       vi.mocked(api.getAnalysis)
-        .mockResolvedValueOnce({ data: processingAnalysis, rateLimitInfo: null })
-        .mockResolvedValueOnce({ data: mockAnalysisResult, rateLimitInfo: null })
+        .mockResolvedValueOnce(processingAnalysis)
+        .mockResolvedValueOnce(mockAnalysisResult)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -813,20 +732,11 @@ describe('useAnalysis', () => {
     })
 
     it('triggers new LLM analysis when profile not found', async () => {
-      vi.mocked(api.getAnalyses).mockResolvedValue({
-        data: [], // No existing analyses
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalyses).mockResolvedValue([])
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-new', status: 'pending', profile_id: 'action-items' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-new', status: 'pending', profile_id: 'action-items' })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: { ...mockAnalysisResult, profile_id: 'action-items' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue({ ...mockAnalysisResult, profile_id: 'action-items' })
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -845,15 +755,9 @@ describe('useAnalysis', () => {
 
       vi.mocked(api.getAnalyses).mockRejectedValue(new Error('Network error'))
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-new', status: 'pending', profile_id: 'action-items' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-new', status: 'pending', profile_id: 'action-items' })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: { ...mockAnalysisResult, profile_id: 'action-items' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue({ ...mockAnalysisResult, profile_id: 'action-items' })
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -879,10 +783,7 @@ describe('useAnalysis', () => {
       const actionItemsAnalysis = { ...mockAnalysisResult, id: 'analysis-action', profile_id: 'action-items' }
       const genericAnalysis = { ...mockAnalysisResult, id: 'analysis-generic', profile_id: 'generic-summary' }
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: genericAnalysis,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(genericAnalysis)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -904,10 +805,7 @@ describe('useAnalysis', () => {
     it('falls back to first analysis when default not found', async () => {
       const actionItemsAnalysis = { ...mockAnalysisResult, id: 'analysis-action', profile_id: 'action-items' }
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: actionItemsAnalysis,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(actionItemsAnalysis)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -926,15 +824,11 @@ describe('useAnalysis', () => {
 
     it('fetches individual analysis to get result data', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockAnalysisResult,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockAnalysisResult)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -958,10 +852,7 @@ describe('useAnalysis', () => {
     })
 
     it('starts polling for pending/processing analysis', () => {
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockAnalysisResult,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockAnalysisResult)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -1018,20 +909,13 @@ describe('useAnalysis', () => {
   describe('reset', () => {
     it('clears all state', async () => {
       vi.mocked(api.getAnalysisProfiles).mockResolvedValue({
-        data: mockProfiles,
+        profiles: mockProfiles,
         defaultProfileId: 'generic-summary',
-        rateLimitInfo: null,
       })
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockAnalysisResult,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockAnalysisResult)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -1064,15 +948,9 @@ describe('useAnalysis', () => {
     })
 
     it('stops polling on reset', async () => {
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockPendingAnalysis,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockPendingAnalysis)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })
@@ -1106,10 +984,7 @@ describe('useAnalysis', () => {
 
   describe('auto-polling on analysisId change', () => {
     it('starts polling when initialAnalysisId is provided', async () => {
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockAnalysisResult,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockAnalysisResult)
 
       const { result } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123', analysisId: 'analysis-123' })
@@ -1126,10 +1001,7 @@ describe('useAnalysis', () => {
     })
 
     it('restarts polling when analysisId changes', async () => {
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockAnalysisResult,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockAnalysisResult)
 
       const { result: _result, rerender } = renderHook(
         (props) => useAnalysis(props),
@@ -1161,15 +1033,9 @@ describe('useAnalysis', () => {
 
   describe('cleanup', () => {
     it('clears polling interval on unmount', async () => {
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'job-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'job-123', status: 'pending', profile_id: 'generic-summary' })
 
-      vi.mocked(api.getAnalysis).mockResolvedValue({
-        data: mockPendingAnalysis,
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getAnalysis).mockResolvedValue(mockPendingAnalysis)
 
       const { result, unmount } = renderHook(() =>
         useAnalysis({ cleanupId: 'cleanup-123' })

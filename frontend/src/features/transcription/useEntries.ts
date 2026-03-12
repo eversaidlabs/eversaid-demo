@@ -130,7 +130,7 @@ export function useEntries(options: UseEntriesOptions = {}): UseEntriesReturn {
     setError(null)
 
     try {
-      const { data } = await getEntries({ limit })
+      const data = await getEntries({ limit })
       setRawEntries(data.entries)
       setTotal(data.total)
     } catch (err) {

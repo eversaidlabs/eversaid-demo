@@ -209,7 +209,7 @@ export function useAnalysis(options: UseAnalysisOptions): UseAnalysisReturn {
    */
   const pollAnalysis = useCallback(async (id: string) => {
     try {
-      const { data: result } = await getAnalysis(id)
+      const result = await getAnalysis(id)
 
       if (result.status === 'completed') {
         clearPolling()
@@ -289,7 +289,7 @@ export function useAnalysis(options: UseAnalysisOptions): UseAnalysisReturn {
     setCurrentProfileId(profile)
 
     try {
-      const { data: job } = await triggerAnalysis(cleanupId, {
+      const job = await triggerAnalysis(cleanupId, {
         profileId: profile,
         llmModel,
       })
@@ -336,7 +336,7 @@ export function useAnalysis(options: UseAnalysisOptions): UseAnalysisReturn {
     // If completed, fetch individual analysis to get the result
     if (defaultAnalysis.status === 'completed') {
       setIsLoading(true)
-      getAnalysis(defaultAnalysis.id).then(({ data: fullAnalysis }) => {
+      getAnalysis(defaultAnalysis.id).then((fullAnalysis) => {
         // Add to cache and sync currentProfileId to ensure UI consistency
         if (fullAnalysis.profile_id) {
           setAnalysisCache(prev => new Map(prev).set(fullAnalysis.profile_id, fullAnalysis))
@@ -384,7 +384,7 @@ export function useAnalysis(options: UseAnalysisOptions): UseAnalysisReturn {
     if (cleanupId) {
       setIsLoading(true)
       try {
-        const { data: analyses } = await getAnalyses(cleanupId)
+        const analyses = await getAnalyses(cleanupId)
 
         // Check if analysis exists for the requested profile
         const existing = analyses.find(a => a.profile_id === profileId)
@@ -394,7 +394,7 @@ export function useAnalysis(options: UseAnalysisOptions): UseAnalysisReturn {
           setCurrentProfileId(profileId)
           setAnalysisId(existing.id)
 
-          const { data: fullAnalysis } = await getAnalysis(existing.id)
+          const fullAnalysis = await getAnalysis(existing.id)
 
           // Add to cache
           if (fullAnalysis.profile_id) {
@@ -434,7 +434,7 @@ export function useAnalysis(options: UseAnalysisOptions): UseAnalysisReturn {
   const loadProfiles = useCallback(async () => {
     setIsLoadingProfiles(true)
     try {
-      const { data: profileList, defaultProfileId: apiDefault } = await getAnalysisProfiles()
+      const { profiles: profileList, defaultProfileId: apiDefault } = await getAnalysisProfiles()
       setProfiles(profileList)
       // Use API default unless overridden in options
       if (!defaultProfileOverride) {

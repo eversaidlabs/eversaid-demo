@@ -73,7 +73,7 @@ export function useEntryList({
       try {
         // Fetch more entries than needed to account for client-side filtering
         // We need enough entries to fill the requested limit after filtering
-        const { data } = await getEntries({
+        const data = await getEntries({
           limit: limit * 3, // Fetch extra to ensure we have enough after filtering
           offset: newOffset,
         })

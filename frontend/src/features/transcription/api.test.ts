@@ -14,7 +14,6 @@ vi.mock('@/lib/auth', () => ({
 }))
 
 import {
-  parseRateLimitHeaders,
   uploadAndTranscribe,
   getTranscriptionStatus,
   getEntries,
@@ -50,48 +49,6 @@ describe('API Client', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
-  })
-
-  // ==========================================================================
-  // Rate Limit Header Parsing
-  // ==========================================================================
-
-  describe('parseRateLimitHeaders', () => {
-    it('parses all rate limit headers correctly', () => {
-      const headers = new Headers({
-        'X-RateLimit-Limit-Day': '20',
-        'X-RateLimit-Remaining-Day': '15',
-        'X-RateLimit-Reset': '1703548800',
-      })
-      const response = new Response(null, { headers })
-
-      const result = parseRateLimitHeaders(response)
-
-      expect(result).not.toBeNull()
-      expect(result!.day.limit).toBe(20)
-      expect(result!.day.remaining).toBe(15)
-      expect(result!.day.reset).toBe(1703548800)
-    })
-
-    it('returns null when headers are missing', () => {
-      const response = new Response(null)
-
-      const result = parseRateLimitHeaders(response)
-
-      expect(result).toBeNull()
-    })
-
-    it('returns null when some headers are missing', () => {
-      const headers = new Headers({
-        'X-RateLimit-Limit-Day': '20',
-        // Missing other headers
-      })
-      const response = new Response(null, { headers })
-
-      const result = parseRateLimitHeaders(response)
-
-      expect(result).toBeNull()
-    })
   })
 
   // ==========================================================================
@@ -136,7 +93,7 @@ describe('API Client', () => {
       const callArgs = mockFetch.mock.calls[0]
       expect(callArgs[1].body).toBeInstanceOf(FormData)
 
-      expect(result.data).toEqual(mockResponse)
+      expect(result).toEqual(mockResponse)
     })
 
     it('uses default options when not specified', async () => {
@@ -185,7 +142,7 @@ describe('API Client', () => {
           }),
         })
       )
-      expect(result.data).toEqual(mockResponse)
+      expect(result).toEqual(mockResponse)
     })
   })
 
@@ -259,7 +216,7 @@ describe('API Client', () => {
         `${API_BASE_URL}/api/entries/entry-123`,
         expect.any(Object)
       )
-      expect(result.data.id).toBe('entry-123')
+      expect(result.id).toBe('entry-123')
     })
   })
 
@@ -312,7 +269,7 @@ describe('API Client', () => {
 
       const result = await getCleanedEntry('cleanup-123')
 
-      expect(result.data.id).toBe('cleanup-123')
+      expect(result.id).toBe('cleanup-123')
     })
   })
 
@@ -368,7 +325,7 @@ describe('API Client', () => {
   // ==========================================================================
 
   describe('getAnalysisProfiles', () => {
-    it('fetches and unwraps profiles array', async () => {
+    it('fetches profiles and returns with defaultProfileId', async () => {
       const mockResponse = {
         profiles: [
           { id: 'profile-1', label: 'Summary', is_default: true },
@@ -385,8 +342,9 @@ describe('API Client', () => {
 
       const result = await getAnalysisProfiles()
 
-      expect(result.data).toHaveLength(2)
-      expect(result.data[0].id).toBe('profile-1')
+      expect(result.profiles).toHaveLength(2)
+      expect(result.profiles[0].id).toBe('profile-1')
+      expect(result.defaultProfileId).toBe('profile-1')
     })
   })
 
@@ -446,7 +404,7 @@ describe('API Client', () => {
 
       const result = await getAnalysis('analysis-123')
 
-      expect(result.data.status).toBe('completed')
+      expect(result.status).toBe('completed')
     })
   })
 
@@ -494,7 +452,7 @@ describe('API Client', () => {
 
       const result = await getFeedback('entry-123')
 
-      expect(result.data).toHaveLength(2)
+      expect(result).toHaveLength(2)
     })
   })
 
@@ -569,29 +527,14 @@ describe('API Client', () => {
       }
     })
 
-    it('throws ApiError with rate limit info on 429', async () => {
-      const rateLimitError = {
-        error: 'rate_limit_exceeded',
-        message: 'Daily limit reached',
-        limit_type: 'day',
-        retry_after: 1800,
-        limits: {
-          day: { limit: 20, remaining: 0, reset: 1703548800 },
-          ip_day: { limit: 20, remaining: 15, reset: 1703548800 },
-          global_day: { limit: 1000, remaining: 500, reset: 1703548800 },
-        },
-      }
-
+    it('throws ApiError on 429', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 429,
         headers: new Headers({
           'Content-Type': 'application/json',
-          'X-RateLimit-Limit-Day': '20',
-          'X-RateLimit-Remaining-Day': '0',
-          'X-RateLimit-Reset': '1703548800',
         }),
-        json: () => Promise.resolve(rateLimitError),
+        json: () => Promise.resolve({ detail: 'Rate limit exceeded' }),
       })
 
       try {
@@ -601,9 +544,6 @@ describe('API Client', () => {
         expect(error).toBeInstanceOf(ApiError)
         expect((error as ApiError).status).toBe(429)
         expect((error as ApiError).isRateLimited).toBe(true)
-        expect((error as ApiError).rateLimitError).toBeDefined()
-        expect((error as ApiError).rateLimitError?.retry_after).toBe(1800)
-        expect((error as ApiError).rateLimitError?.limit_type).toBe('day')
       }
     })
 
@@ -645,41 +585,4 @@ describe('API Client', () => {
     })
   })
 
-  // ==========================================================================
-  // Rate Limit Info in Responses
-  // ==========================================================================
-
-  describe('rate limit info in responses', () => {
-    it('includes rate limit info in successful responses', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        headers: new Headers({
-          'Content-Type': 'application/json',
-          'X-RateLimit-Limit-Day': '20',
-          'X-RateLimit-Remaining-Day': '19',
-          'X-RateLimit-Reset': '1703548800',
-        }),
-        json: () => Promise.resolve({ id: 'entry-123' }),
-      })
-
-      const result = await getEntry('entry-123')
-
-      expect(result.rateLimitInfo).not.toBeNull()
-      expect(result.rateLimitInfo?.day.remaining).toBe(19)
-    })
-
-    it('returns null rate limit info when headers missing', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        headers: new Headers({ 'Content-Type': 'application/json' }),
-        json: () => Promise.resolve({ id: 'entry-123' }),
-      })
-
-      const result = await getEntry('entry-123')
-
-      expect(result.rateLimitInfo).toBeNull()
-    })
-  })
 })

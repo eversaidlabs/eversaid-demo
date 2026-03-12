@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test"
+import { setupWaitlistMocks, setupApiDocsMocks } from "./mocks/setup-mocks"
 
 test.describe("Waitlist Flow - Network Integration", () => {
   test("landing page waitlist signup calls the API", async ({ page }) => {
+    await setupWaitlistMocks(page)
     await page.goto("/en")
 
     // Set up request interception BEFORE triggering the action
@@ -17,7 +19,7 @@ test.describe("Waitlist Flow - Network Integration", () => {
     // Fill the form
     await page.getByLabel(/Email Address/).fill("network-test@example.com")
     await page.getByLabel(/Language you need most/).selectOption("en")
-    await page.getByLabel(/How will you use EverSaid/i).fill("Testing API integration")
+    await page.getByLabel(/How will you use EverSaid/i).selectOption("research")
 
     // Submit
     await page.getByRole("dialog").getByRole("button", { name: "Get Early Access" }).click()
@@ -27,11 +29,12 @@ test.describe("Waitlist Flow - Network Integration", () => {
     const postData = request.postDataJSON()
     expect(postData.email).toBe("network-test@example.com")
     expect(postData.waitlist_type).toBe("conversation_intelligence")
-    expect(postData.use_case).toBe("Testing API integration")
+    expect(postData.use_case).toBe("research")
     expect(postData.language_preference).toBe("en")
   })
 
   test("API docs waitlist signup calls the API", async ({ page }) => {
+    await setupApiDocsMocks(page)
     await page.goto("/en/api-docs")
 
     // Set up request interception
@@ -62,6 +65,7 @@ test.describe("Waitlist Flow - Network Integration", () => {
   })
 
   test("Other language option sends custom language in payload", async ({ page }) => {
+    await setupWaitlistMocks(page)
     await page.goto("/en")
 
     // Set up request interception
@@ -81,7 +85,7 @@ test.describe("Waitlist Flow - Network Integration", () => {
     // Fill the "Other" text input that appears
     await page.getByPlaceholder(/Japanese, Arabic, Mandarin/).fill("Japanese")
 
-    await page.getByLabel(/How will you use EverSaid/i).fill("Testing other language")
+    await page.getByLabel(/How will you use EverSaid/i).selectOption("journalism")
 
     // Submit
     await page.getByRole("dialog").getByRole("button", { name: "Get Early Access" }).click()
@@ -90,11 +94,13 @@ test.describe("Waitlist Flow - Network Integration", () => {
     const request = await waitlistRequestPromise
     const postData = request.postDataJSON()
     expect(postData.language_preference).toBe("other: Japanese")
+    expect(postData.use_case).toBe("journalism")
   })
 })
 
 test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
   test.beforeEach(async ({ page }) => {
+    await setupWaitlistMocks(page)
     await page.goto("/en")
   })
 
@@ -111,7 +117,7 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
     // Fill the form
     await page.getByLabel(/Email Address/).fill("test@example.com")
     await page.getByLabel(/Language you need most/).selectOption("sl")
-    await page.getByLabel(/How will you use EverSaid/i).fill("Meeting transcription for my team")
+    await page.getByLabel(/How will you use EverSaid/i).selectOption("podcasting")
 
     // Optional: How did you hear about us
     await page.getByLabel(/How did you hear about us/).fill("Twitter")
@@ -132,7 +138,7 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
     // Fill and submit
     await page.getByLabel(/Email Address/).fill("close-test@example.com")
     await page.getByLabel(/Language you need most/).selectOption("en")
-    await page.getByLabel(/How will you use EverSaid/i).fill("Testing close")
+    await page.getByLabel(/How will you use EverSaid/i).selectOption("therapy")
     await page.getByRole("dialog").getByRole("button", { name: "Get Early Access" }).click()
 
     // Wait for success
@@ -177,6 +183,7 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
 
 test.describe("Waitlist Flow - API Access", () => {
   test.beforeEach(async ({ page }) => {
+    await setupApiDocsMocks(page)
     await page.goto("/en/api-docs")
   })
 

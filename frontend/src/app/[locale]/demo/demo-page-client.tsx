@@ -24,12 +24,10 @@ import { useRouter } from "@/i18n/routing"
 import { OfflineBanner } from "@/components/ui/offline-banner"
 import { PersistentWarning } from "@/components/ui/persistent-warning"
 import { ErrorDisplay } from "@/components/demo/error-display"
-import { RateLimitModal } from "@/components/demo/rate-limit-modal"
 import { RecordingModal } from "@/components/demo/recording-modal"
 import { useTranscription } from "@/features/transcription/useTranscription"
 import { useTurnstile } from "@/features/transcription/useTurnstile"
 import { useVoiceRecorder } from "@/features/transcription/useVoiceRecorder"
-import { useRateLimits } from "@/features/transcription/useRateLimits"
 import { ApiError, type ModelInfo, type CleanupType, type CleanupSummary } from "@/features/transcription/types"
 import { useFeedback } from "@/features/transcription/useFeedback"
 import { useEntries } from "@/features/transcription/useEntries"
@@ -249,10 +247,6 @@ function DemoPageContent({ config }: DemoPageContentProps) {
     sourcePage: '/demo'
   })
 
-  // Rate limit modal state
-  const [showRateLimitModal, setShowRateLimitModal] = useState(false)
-  const rateLimits = useRateLimits()
-
   // Text import hook
   const textImport = useTextImport({
     onComplete: async (entryId) => {
@@ -268,8 +262,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       turnstile.resetWidget()
       // Check if this is a rate limit error
       if (err instanceof ApiError && err.isRateLimited) {
-        rateLimits.updateFromError(err)
-        setShowRateLimitModal(true)
+        toast.error(t('demo.rateLimit.title'))
       } else {
         toast.error(t('demo.import.failed'))
       }
@@ -663,7 +656,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
 
       if (existing) {
         // CACHED: Fetch existing cleanup (no LLM call)
-        const { data: cleanup } = await getCleanedEntry(existing.id)
+        const cleanup = await getCleanedEntry(existing.id)
         transcription.loadCleanupData(cleanup)
         return
       }
@@ -677,7 +670,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       })
       turnstile.resetWidget()
       // Refresh cache after completion
-      const { data: updatedCleanups } = await getCleanedEntries(transcription.entryId)
+      const updatedCleanups = await getCleanedEntries(transcription.entryId)
       setCleanupCache(updatedCleanups)
     } catch (err) {
       console.error('Re-cleanup failed:', err)
@@ -717,7 +710,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
 
       if (existing) {
         // CACHED: Fetch existing cleanup (no LLM call)
-        const { data: cleanup } = await getCleanedEntry(existing.id)
+        const cleanup = await getCleanedEntry(existing.id)
         transcription.loadCleanupData(cleanup)
         return
       }
@@ -731,7 +724,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       })
       turnstile.resetWidget()
       // Refresh cache after completion
-      const { data: updatedCleanups } = await getCleanedEntries(transcription.entryId)
+      const updatedCleanups = await getCleanedEntries(transcription.entryId)
       setCleanupCache(updatedCleanups)
     } catch (err) {
       console.error('Re-cleanup failed:', err)
@@ -761,7 +754,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
 
         if (existing) {
           // CACHED: Fetch existing cleanup (no LLM call)
-          const { data: cleanup } = await getCleanedEntry(existing.id)
+          const cleanup = await getCleanedEntry(existing.id)
           transcription.loadCleanupData(cleanup)
           return
         }
@@ -776,7 +769,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       })
       turnstile.resetWidget()
       // Refresh cache after completion
-      const { data: updatedCleanups } = await getCleanedEntries(transcription.entryId)
+      const updatedCleanups = await getCleanedEntries(transcription.entryId)
       setCleanupCache(updatedCleanups)
     } catch (err) {
       console.error('Re-cleanup failed:', err)
@@ -819,13 +812,12 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       turnstile.resetWidget()
       // Check if this is a rate limit error
       if (err instanceof ApiError && err.isRateLimited) {
-        rateLimits.updateFromError(err)
-        setShowRateLimitModal(true)
+        toast.error(t('demo.rateLimit.title'))
       }
       // Other errors are captured in transcription.error
       console.error('Upload failed:', err)
     }
-  }, [selectedFile, selectedSpeakerCount, selectedAudioLanguage, transcription, turnstile, rateLimits])
+  }, [selectedFile, selectedSpeakerCount, selectedAudioLanguage, transcription, turnstile, t])
 
   // Refresh entry list after upload completes + track cleanup_completed
   useEffect(() => {
@@ -855,30 +847,10 @@ function DemoPageContent({ config }: DemoPageContentProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcription.status])
 
-  // Initialize session: fetch rate limits first (establishes session cookie)
-  // Then mark session as ready for other API calls
-  // Use singleton promise to prevent concurrent calls from Suspense/hydration remounts
+  // Mark session as ready immediately
+  // Session establishment is now handled lazily by the first API call
   useEffect(() => {
-    const initSession = async () => {
-      // If already initializing, wait for it
-      if (sessionInitPromise) {
-        await sessionInitPromise
-        setSessionReady(true)
-        return
-      }
-
-      // Start initialization (singleton pattern)
-      sessionInitPromise = transcription.fetchRateLimits()
-      try {
-        await sessionInitPromise
-        setSessionReady(true)
-      } finally {
-        // Clear promise after completion to allow re-init after navigation
-        sessionInitPromise = null
-      }
-    }
-    initSession()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    setSessionReady(true)
   }, [])
 
   // After session is ready, fetch entries, analysis profiles, and LLM options
@@ -888,9 +860,9 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       analysisHook.loadProfiles()
       // Fetch available LLM models if model selection feature is enabled
       if (isModelSelectionEnabled) {
-        getOptions().then(({ data }) => {
-          const filteredCleanup = getCleanupModels(data.llm.models)
-          const filteredAnalysis = getAnalysisModels(data.llm.models)
+        getOptions().then((options) => {
+          const filteredCleanup = getCleanupModels(options.llm.models)
+          const filteredAnalysis = getAnalysisModels(options.llm.models)
 
           setCleanupModels(filteredCleanup)
           setAnalysisModels(filteredAnalysis)
@@ -956,9 +928,9 @@ function DemoPageContent({ config }: DemoPageContentProps) {
         setHasManualCleanupModelSelection(false)
       }
 
-      getCleanedEntries(transcription.entryId).then(async ({ data }) => {
-        setCleanupCache(data)
-        const completedCount = data.filter(c => c.status === 'completed').length
+      getCleanedEntries(transcription.entryId).then(async (cacheData) => {
+        setCleanupCache(cacheData)
+        const completedCount = cacheData.filter((c: CleanupSummary) => c.status === 'completed').length
         console.log('[Demo] Cleanup cache built:', completedCount, 'completed entries')
 
         // If we restored a model selection, check if it matches the currently displayed cleanup
@@ -973,7 +945,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
           // If models don't match, try to load the cached cleanup for the restored model
           if (restoredModel !== currentModel) {
             console.log('[Demo] Model mismatch after refresh, searching for cached cleanup...')
-            const matchingCleanup = data.find(c =>
+            const matchingCleanup = cacheData.find((c: CleanupSummary) =>
               c.llm_model === restoredModel &&
               c.cleanup_type === currentLevel &&
               (!isTemperatureSelectionEnabled || temperaturesMatch(c.temperature, currentTemp)) &&
@@ -983,7 +955,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
             if (matchingCleanup) {
               console.log('[Demo] Found cached cleanup for restored model, loading:', matchingCleanup.id)
               try {
-                const { data: cleanup } = await getCleanedEntry(matchingCleanup.id)
+                const cleanup = await getCleanedEntry(matchingCleanup.id)
                 transcription.loadCleanupData(cleanup)
               } catch (err) {
                 console.error('[Demo] Failed to load cached cleanup for restored model:', err)
@@ -1041,16 +1013,6 @@ function DemoPageContent({ config }: DemoPageContentProps) {
     setLanguagePreferenceOther("")
     waitlist.reset()
   }, [waitlist])
-
-  // Rate limit modal handlers
-  const handleRateLimitModalClose = useCallback(() => {
-    setShowRateLimitModal(false)
-  }, [])
-
-  const handleRateLimitJoinWaitlist = useCallback(() => {
-    setShowRateLimitModal(false)
-    handleOpenWaitlist("extended_usage")
-  }, [handleOpenWaitlist])
 
   // Recording modal handlers
   const handleRecordClick = useCallback(() => {
@@ -1225,16 +1187,6 @@ function DemoPageContent({ config }: DemoPageContentProps) {
                 {t('demo.subtitle')}
               </p>
             </div>
-            {transcription.rateLimits?.day &&
-             transcription.rateLimits.day.remaining <= Number(process.env.NEXT_PUBLIC_RATE_LIMIT_WARNING_THRESHOLD || 2) && (
-              <div className="flex gap-4">
-                <div className="px-4 py-2 bg-amber-50 rounded-lg border border-amber-200 shadow-sm">
-                  <span className="text-sm font-semibold text-amber-700">
-                    {t('demo.rateLimit.remaining', { count: transcription.rateLimits.day.remaining })}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Error display for upload/transcription errors */}
@@ -1496,13 +1448,6 @@ function DemoPageContent({ config }: DemoPageContentProps) {
         onClose={handleWaitlistClose}
         onOpenForm={() => setWaitlistState("form")}
         t={t}
-      />
-
-      <RateLimitModal
-        isOpen={showRateLimitModal}
-        retryAfter={rateLimits.retryAfter}
-        onClose={handleRateLimitModalClose}
-        onJoinWaitlist={handleRateLimitJoinWaitlist}
       />
 
       <RecordingModal

@@ -23,7 +23,7 @@ describe('useFeedback', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Default: no existing feedback
-    vi.mocked(api.getFeedback).mockResolvedValue({ data: [], rateLimitInfo: null })
+    vi.mocked(api.getFeedback).mockResolvedValue([])
   })
 
   // ===========================================================================
@@ -49,19 +49,16 @@ describe('useFeedback', () => {
     })
 
     it('loads existing feedback when entryId has feedback', async () => {
-      vi.mocked(api.getFeedback).mockResolvedValue({
-        data: [
-          {
-            id: 'feedback-1',
-            entry_id: 'entry-123',
-            feedback_type: 'transcription',
-            rating: 4,
-            feedback_text: 'Great quality!',
-            created_at: '2024-01-01T00:00:00Z',
-          },
-        ],
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.getFeedback).mockResolvedValue([
+        {
+          id: 'feedback-1',
+          entry_id: 'entry-123',
+          feedback_type: 'transcription',
+          rating: 4,
+          feedback_text: 'Great quality!',
+          created_at: '2024-01-01T00:00:00Z',
+        },
+      ])
 
       const { result } = renderHook(() =>
         useFeedback({ entryId: 'entry-123', feedbackType: 'transcription' })
@@ -170,14 +167,11 @@ describe('useFeedback', () => {
 
     it('submits feedback successfully', async () => {
       vi.mocked(api.submitFeedback).mockResolvedValue({
-        data: {
-          id: 'feedback-123',
-          entry_id: 'entry-123',
-          feedback_type: 'transcription',
-          rating: 4,
-          created_at: '2024-01-01T00:00:00Z',
-        },
-        rateLimitInfo: null,
+        id: 'feedback-123',
+        entry_id: 'entry-123',
+        feedback_type: 'transcription',
+        rating: 4,
+        created_at: '2024-01-01T00:00:00Z',
       })
 
       const { result } = renderHook(() =>
@@ -209,14 +203,11 @@ describe('useFeedback', () => {
 
     it('submits feedback without text when empty', async () => {
       vi.mocked(api.submitFeedback).mockResolvedValue({
-        data: {
-          id: 'feedback-123',
-          entry_id: 'entry-123',
-          feedback_type: 'cleanup',
-          rating: 5,
-          created_at: '2024-01-01T00:00:00Z',
-        },
-        rateLimitInfo: null,
+        id: 'feedback-123',
+        entry_id: 'entry-123',
+        feedback_type: 'cleanup',
+        rating: 5,
+        created_at: '2024-01-01T00:00:00Z',
       })
 
       const { result } = renderHook(() =>
@@ -248,14 +239,11 @@ describe('useFeedback', () => {
           new Promise((resolve) => {
             resolvePromise = () =>
               resolve({
-                data: {
-                  id: 'feedback-123',
-                  entry_id: 'entry-123',
-                  feedback_type: 'transcription',
-                  rating: 4,
-                  created_at: '2024-01-01T00:00:00Z',
-                },
-                rateLimitInfo: null,
+                id: 'feedback-123',
+                entry_id: 'entry-123',
+                feedback_type: 'transcription',
+                rating: 4,
+                created_at: '2024-01-01T00:00:00Z',
               })
           })
       )
@@ -293,7 +281,7 @@ describe('useFeedback', () => {
   describe('error handling', () => {
     it('handles 404 error gracefully', async () => {
       vi.mocked(api.submitFeedback).mockRejectedValue(
-        new ApiError(404, 'Entry not found', null)
+        new ApiError(404, 'Entry not found')
       )
 
       const { result } = renderHook(() =>
@@ -317,7 +305,7 @@ describe('useFeedback', () => {
 
     it('handles 429 rate limit error', async () => {
       vi.mocked(api.submitFeedback).mockRejectedValue(
-        new ApiError(429, 'Rate limit exceeded', null)
+        new ApiError(429, 'Rate limit exceeded')
       )
 
       const { result } = renderHook(() =>
@@ -340,7 +328,7 @@ describe('useFeedback', () => {
 
     it('handles generic ApiError with custom message', async () => {
       vi.mocked(api.submitFeedback).mockRejectedValue(
-        new ApiError(500, 'Server error occurred', null)
+        new ApiError(500, 'Server error occurred')
       )
 
       const { result } = renderHook(() =>
@@ -384,16 +372,13 @@ describe('useFeedback', () => {
 
     it('clears error on new submission attempt', async () => {
       vi.mocked(api.submitFeedback)
-        .mockRejectedValueOnce(new ApiError(500, 'Server error', null))
+        .mockRejectedValueOnce(new ApiError(500, 'Server error'))
         .mockResolvedValueOnce({
-          data: {
-            id: 'feedback-123',
-            entry_id: 'entry-123',
-            feedback_type: 'transcription',
-            rating: 4,
-            created_at: '2024-01-01T00:00:00Z',
-          },
-          rateLimitInfo: null,
+          id: 'feedback-123',
+          entry_id: 'entry-123',
+          feedback_type: 'transcription',
+          rating: 4,
+          created_at: '2024-01-01T00:00:00Z',
         })
 
       const { result } = renderHook(() =>
@@ -432,14 +417,11 @@ describe('useFeedback', () => {
       'submits %s feedback type correctly',
       async (feedbackType) => {
         vi.mocked(api.submitFeedback).mockResolvedValue({
-          data: {
-            id: 'feedback-123',
-            entry_id: 'entry-123',
-            feedback_type: feedbackType,
-            rating: 5,
-            created_at: '2024-01-01T00:00:00Z',
-          },
-          rateLimitInfo: null,
+          id: 'feedback-123',
+          entry_id: 'entry-123',
+          feedback_type: feedbackType,
+          rating: 5,
+          created_at: '2024-01-01T00:00:00Z',
         })
 
         const { result } = renderHook(() =>

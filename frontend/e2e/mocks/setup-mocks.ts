@@ -11,12 +11,6 @@ import type { Page } from "@playwright/test"
 // Mock Data
 // ============================================================================
 
-export const mockRateLimits = {
-  day: { limit: 20, remaining: 20, reset: Date.now() + 86400000 },
-  ip_day: { limit: 100, remaining: 100, reset: Date.now() + 86400000 },
-  global_day: { limit: 10000, remaining: 10000, reset: Date.now() + 86400000 },
-}
-
 export const mockEmptyEntries = {
   entries: [],
   total: 0,
@@ -210,6 +204,45 @@ export function createSilentWavBuffer(durationSeconds: number = 1): Buffer {
 }
 
 // ============================================================================
+// OpenAPI Spec Mock (for API Docs page)
+// ============================================================================
+
+export const mockOpenApiSpec = {
+  openapi: "3.1.0",
+  info: {
+    title: "EverSaid API",
+    version: "1.0.0",
+    description: "Audio transcription and analysis API",
+  },
+  paths: {
+    "/api/upload": {
+      post: {
+        summary: "Upload audio file",
+        description: "Upload an audio file for transcription",
+        operationId: "uploadAudio",
+        tags: ["Transcription"],
+        requestBody: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                properties: {
+                  file: { type: "string", format: "binary" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "202": { description: "Upload accepted" },
+        },
+      },
+    },
+  },
+}
+
+// ============================================================================
 // Mock Setup Functions
 // ============================================================================
 
@@ -246,11 +279,6 @@ export async function setupDemoMocks(
   } = options
 
   const audioBuffer = createSilentWavBuffer(2) // 2 seconds of silence
-
-  // Mock rate limits
-  await page.route("**/api/rate-limits", async (route) => {
-    await route.fulfill({ json: mockRateLimits })
-  })
 
   // Mock entries list (includes demo entry from PostgreSQL trigger)
   await page.route("**/api/entries?*", async (route) => {
@@ -343,10 +371,6 @@ export async function setupDemoMocks(
  * Simulates a fresh user with empty entry history.
  */
 export async function setupUploadModeMocks(page: Page): Promise<void> {
-  await page.route("**/api/rate-limits", async (route) => {
-    await route.fulfill({ json: mockRateLimits })
-  })
-
   // Empty entries list (simulates fresh user before trigger has run or user deleted entries)
   await page.route("**/api/entries?*", async (route) => {
     await route.fulfill({ json: mockEmptyEntries })
@@ -442,4 +466,60 @@ export async function expandFeedbackWidget(page: Page): Promise<void> {
 
   // Verify it expanded by checking for "How was the quality?"
   await page.waitForSelector("text=How was the quality?", { state: "visible" })
+}
+
+/**
+ * Setup mocks for API Docs page E2E tests.
+ *
+ * Mocks the OpenAPI spec endpoint so Scalar doesn't hang waiting for the backend.
+ * Also mocks the waitlist endpoint for form submission tests.
+ *
+ * @example
+ * ```ts
+ * test.beforeEach(async ({ page }) => {
+ *   await setupApiDocsMocks(page)
+ *   await page.goto("/en/api-docs")
+ * })
+ * ```
+ */
+export async function setupApiDocsMocks(page: Page): Promise<void> {
+  // Mock the OpenAPI spec endpoint (used by Scalar embed)
+  await page.route("**/api/openapi-public.json", async (route) => {
+    await route.fulfill({ json: mockOpenApiSpec })
+  })
+
+  // Mock waitlist endpoint for form submission tests
+  await setupWaitlistMocks(page)
+}
+
+/**
+ * Setup mocks for waitlist form submission.
+ *
+ * Mocks the /api/waitlist endpoint to return success responses.
+ * Use this for landing page and API docs waitlist tests.
+ *
+ * @example
+ * ```ts
+ * test.beforeEach(async ({ page }) => {
+ *   await setupWaitlistMocks(page)
+ *   await page.goto("/en")
+ * })
+ * ```
+ */
+export async function setupWaitlistMocks(page: Page): Promise<void> {
+  await page.route("**/api/waitlist", async (route) => {
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON()
+      await route.fulfill({
+        json: {
+          id: "waitlist-" + Date.now(),
+          email: body?.email ?? "test@example.com",
+          waitlist_type: body?.waitlist_type ?? "conversation_intelligence",
+          created_at: new Date().toISOString(),
+        },
+      })
+    } else {
+      await route.continue()
+    }
+  })
 }

@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react"
 import { importAndCleanup, getCleanedEntry } from "./api"
-import type { ImportTextOptions, RateLimitInfo } from "./types"
+import type { ImportTextOptions } from "./types"
 
 const POLL_INTERVAL_MS = 2000
 
@@ -31,8 +31,6 @@ export interface UseTextImportReturn {
   importText: (options: ImportTextOptions) => Promise<void>
   /** Reset state to idle */
   reset: () => void
-  /** Rate limit info from the last API call */
-  rateLimitInfo: RateLimitInfo | null
 }
 
 export interface UseTextImportOptions {
@@ -40,8 +38,6 @@ export interface UseTextImportOptions {
   onComplete?: (entryId: string, cleanupId: string) => void
   /** Callback when an error occurs */
   onError?: (error: Error) => void
-  /** Rate limit update callback */
-  onRateLimitUpdate?: (info: RateLimitInfo) => void
 }
 
 /**
@@ -54,13 +50,12 @@ export interface UseTextImportOptions {
  * 4. On complete, call onComplete with entry/cleanup IDs (status: 'complete')
  */
 export function useTextImport(options: UseTextImportOptions = {}): UseTextImportReturn {
-  const { onComplete, onError, onRateLimitUpdate } = options
+  const { onComplete, onError } = options
 
   const [status, setStatus] = useState<TextImportStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [entryId, setEntryId] = useState<string | null>(null)
   const [cleanupId, setCleanupId] = useState<string | null>(null)
-  const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(null)
 
   // Polling interval ref
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -78,12 +73,7 @@ export function useTextImport(options: UseTextImportOptions = {}): UseTextImport
     async (id: string, entryIdValue: string) => {
       const poll = async () => {
         try {
-          const { data: cleanedEntry, rateLimitInfo: limitInfo } = await getCleanedEntry(id)
-
-          if (limitInfo) {
-            setRateLimitInfo(limitInfo)
-            onRateLimitUpdate?.(limitInfo)
-          }
+          const cleanedEntry = await getCleanedEntry(id)
 
           if (cleanedEntry.status === 'completed') {
             stopPolling()
@@ -111,7 +101,7 @@ export function useTextImport(options: UseTextImportOptions = {}): UseTextImport
       // Start polling
       pollIntervalRef.current = setTimeout(poll, POLL_INTERVAL_MS)
     },
-    [stopPolling, onComplete, onError, onRateLimitUpdate]
+    [stopPolling, onComplete, onError]
   )
 
   // Import text and start cleanup
@@ -135,12 +125,7 @@ export function useTextImport(options: UseTextImportOptions = {}): UseTextImport
 
       try {
         // Call API to import text
-        const { data, rateLimitInfo: limitInfo } = await importAndCleanup(importOptions)
-
-        if (limitInfo) {
-          setRateLimitInfo(limitInfo)
-          onRateLimitUpdate?.(limitInfo)
-        }
+        const data = await importAndCleanup(importOptions)
 
         setEntryId(data.entry_id)
         setCleanupId(data.cleanup_id)
@@ -165,7 +150,7 @@ export function useTextImport(options: UseTextImportOptions = {}): UseTextImport
         onError?.(err instanceof Error ? err : new Error(errorMsg))
       }
     },
-    [stopPolling, pollCleanupStatus, onComplete, onError, onRateLimitUpdate]
+    [stopPolling, pollCleanupStatus, onComplete, onError]
   )
 
   // Reset state
@@ -191,6 +176,5 @@ export function useTextImport(options: UseTextImportOptions = {}): UseTextImport
     cleanupId,
     importText,
     reset,
-    rateLimitInfo,
   }
 }

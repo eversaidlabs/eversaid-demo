@@ -36,7 +36,7 @@ export default function NewTextPage({
     setError(null)
 
     try {
-      const { data } = await importAndCleanup({
+      await importAndCleanup({
         text: text.trim(),
         language: selectedLanguage,
       })

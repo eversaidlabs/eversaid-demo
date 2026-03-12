@@ -105,10 +105,7 @@ describe('useWaitlist', () => {
     })
 
     it('trims whitespace from email', async () => {
-      vi.mocked(api.joinWaitlist).mockResolvedValue({
-        data: { message: 'Success' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.joinWaitlist).mockResolvedValue({ message: 'Success' })
 
       const { result } = renderHook(() =>
         useWaitlist({ waitlistType: 'extended_usage' })
@@ -132,10 +129,7 @@ describe('useWaitlist', () => {
     })
 
     it('handles empty use case gracefully', async () => {
-      vi.mocked(api.joinWaitlist).mockResolvedValue({
-        data: { message: 'Success' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.joinWaitlist).mockResolvedValue({ message: 'Success' })
 
       const { result } = renderHook(() =>
         useWaitlist({ waitlistType: 'extended_usage' })
@@ -165,10 +159,7 @@ describe('useWaitlist', () => {
 
   describe('submission flow', () => {
     it('submits waitlist request successfully', async () => {
-      vi.mocked(api.joinWaitlist).mockResolvedValue({
-        data: { message: 'Success' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.joinWaitlist).mockResolvedValue({ message: 'Success' })
 
       const { result } = renderHook(() =>
         useWaitlist({ waitlistType: 'extended_usage' })
@@ -195,10 +186,7 @@ describe('useWaitlist', () => {
     })
 
     it('includes source_page when provided', async () => {
-      vi.mocked(api.joinWaitlist).mockResolvedValue({
-        data: { message: 'Success' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.joinWaitlist).mockResolvedValue({ message: 'Success' })
 
       const { result } = renderHook(() =>
         useWaitlist({ waitlistType: 'api_access', sourcePage: '/demo' })
@@ -227,10 +215,7 @@ describe('useWaitlist', () => {
         () =>
           new Promise((resolve) => {
             resolvePromise = () =>
-              resolve({
-                data: { message: 'Success' },
-                rateLimitInfo: null,
-              })
+              resolve({ message: 'Success' })
           })
       )
 
@@ -265,7 +250,7 @@ describe('useWaitlist', () => {
   describe('error handling', () => {
     it('handles 409 duplicate email as success', async () => {
       vi.mocked(api.joinWaitlist).mockRejectedValue(
-        new ApiError(409, 'Email already registered', null)
+        new ApiError(409, 'Email already registered')
       )
 
       const { result } = renderHook(() =>
@@ -288,7 +273,7 @@ describe('useWaitlist', () => {
 
     it('handles 429 rate limit error', async () => {
       vi.mocked(api.joinWaitlist).mockRejectedValue(
-        new ApiError(429, 'Rate limit exceeded', null)
+        new ApiError(429, 'Rate limit exceeded')
       )
 
       const { result } = renderHook(() =>
@@ -310,7 +295,7 @@ describe('useWaitlist', () => {
 
     it('handles 422 validation error', async () => {
       vi.mocked(api.joinWaitlist).mockRejectedValue(
-        new ApiError(422, 'Invalid email format', null)
+        new ApiError(422, 'Invalid email format')
       )
 
       const { result } = renderHook(() =>
@@ -332,7 +317,7 @@ describe('useWaitlist', () => {
 
     it('handles generic ApiError with custom message', async () => {
       vi.mocked(api.joinWaitlist).mockRejectedValue(
-        new ApiError(500, 'Server error occurred', null)
+        new ApiError(500, 'Server error occurred')
       )
 
       const { result } = renderHook(() =>
@@ -372,11 +357,8 @@ describe('useWaitlist', () => {
 
     it('clears error on new submission attempt', async () => {
       vi.mocked(api.joinWaitlist)
-        .mockRejectedValueOnce(new ApiError(500, 'Server error', null))
-        .mockResolvedValueOnce({
-          data: { message: 'Success' },
-          rateLimitInfo: null,
-        })
+        .mockRejectedValueOnce(new ApiError(500, 'Server error'))
+        .mockResolvedValueOnce({ message: 'Success' })
 
       const { result } = renderHook(() =>
         useWaitlist({ waitlistType: 'extended_usage' })
@@ -411,10 +393,7 @@ describe('useWaitlist', () => {
     it.each(['extended_usage', 'api_access'] as const)(
       'submits %s waitlist type correctly',
       async (waitlistType) => {
-        vi.mocked(api.joinWaitlist).mockResolvedValue({
-          data: { message: 'Success' },
-          rateLimitInfo: null,
-        })
+        vi.mocked(api.joinWaitlist).mockResolvedValue({ message: 'Success' })
 
         const { result } = renderHook(() =>
           useWaitlist({ waitlistType })
@@ -443,10 +422,7 @@ describe('useWaitlist', () => {
 
   describe('language preference', () => {
     it('includes language_preference when provided in form data', async () => {
-      vi.mocked(api.joinWaitlist).mockResolvedValue({
-        data: { message: 'Success' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.joinWaitlist).mockResolvedValue({ message: 'Success' })
 
       const { result } = renderHook(() =>
         useWaitlist({ waitlistType: 'extended_usage' })
@@ -473,10 +449,7 @@ describe('useWaitlist', () => {
     })
 
     it('omits language_preference when empty string', async () => {
-      vi.mocked(api.joinWaitlist).mockResolvedValue({
-        data: { message: 'Success' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.joinWaitlist).mockResolvedValue({ message: 'Success' })
 
       const { result } = renderHook(() =>
         useWaitlist({ waitlistType: 'extended_usage' })

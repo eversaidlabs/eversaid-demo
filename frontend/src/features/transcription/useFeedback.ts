@@ -88,7 +88,7 @@ export function useFeedback(options: UseFeedbackOptions): UseFeedbackReturn {
     setError(null)
 
     getFeedback(entryId)
-      .then(({ data }) => {
+      .then((data) => {
         const existing = data.find((f) => f.feedback_type === feedbackType)
         if (existing) {
           setRating(existing.rating)

@@ -86,7 +86,7 @@ export function useDemoCleanupTrigger(
     (entryId: string, cleanupId: string) => {
       const poll = async () => {
         try {
-          const { data: cleanedEntry } = await getCleanedEntry(cleanupId)
+          const cleanedEntry = await getCleanedEntry(cleanupId)
 
           if (cleanedEntry.status === "completed") {
             console.log(
@@ -102,7 +102,7 @@ export function useDemoCleanupTrigger(
 
             // Trigger analysis with default profile
             try {
-              const { data: analysisJob } = await triggerAnalysis(
+              const analysisJob = await triggerAnalysis(
                 cleanupId,
                 { profileId: "generic-summary" }
               )
@@ -184,7 +184,7 @@ export function useDemoCleanupTrigger(
           `[useDemoCleanupTrigger] Triggering cleanup for entry ${entry.id} (transcription ${transcriptionId}) with level ${DEFAULT_CLEANUP_LEVEL}`
         )
 
-        const { data: cleanupJob } = await triggerCleanup(transcriptionId, {
+        const cleanupJob = await triggerCleanup(transcriptionId, {
           cleanupType: DEFAULT_CLEANUP_LEVEL,
           llmModel: getDefaultModelForLevel(DEFAULT_CLEANUP_LEVEL),
           temperature: 0,

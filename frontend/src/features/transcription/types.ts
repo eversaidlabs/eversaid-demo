@@ -447,39 +447,6 @@ export interface WaitlistPayload {
 }
 
 // =============================================================================
-// Rate Limit Types
-// =============================================================================
-
-/**
- * Single rate limit tier info
- */
-export interface LimitTier {
-  limit: number
-  remaining: number
-  reset: number  // Unix timestamp
-}
-
-/**
- * Rate limit info across all tiers
- */
-export interface RateLimitInfo {
-  day: LimitTier
-  ip_day: LimitTier
-  global_day: LimitTier
-}
-
-/**
- * Rate limit exceeded error response (429)
- */
-export interface RateLimitError {
-  error: 'rate_limit_exceeded'
-  message: string
-  limit_type: 'day' | 'ip_day' | 'global_day'
-  retry_after: number  // seconds
-  limits: RateLimitInfo
-}
-
-// =============================================================================
 // API Error Types
 // =============================================================================
 
@@ -490,8 +457,6 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
-    public rateLimitInfo?: RateLimitInfo,
-    public rateLimitError?: RateLimitError
   ) {
     super(message)
     this.name = 'ApiError'

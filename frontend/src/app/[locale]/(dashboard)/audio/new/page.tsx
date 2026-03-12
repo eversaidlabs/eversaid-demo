@@ -68,7 +68,7 @@ export default function NewAudioPage({
     setError(null)
 
     try {
-      const { data } = await uploadAndTranscribe(file, {
+      await uploadAndTranscribe(file, {
         language: selectedLanguage,
         speakerCount,
         // Enable diarization when auto (null) or more than 1 speaker

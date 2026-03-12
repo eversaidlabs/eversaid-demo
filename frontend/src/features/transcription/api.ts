@@ -16,8 +16,6 @@ import type {
   OptionsResponse,
   PaginatedEntries,
   PaginationParams,
-  RateLimitError,
-  RateLimitInfo,
   TranscribeOptions,
   TranscribeResponse,
   TranscriptionStatus,
@@ -25,52 +23,11 @@ import type {
 } from './types'
 import { ApiError } from './types'
 import {
-  clearTokens,
   ensureAuthenticated,
-  getAccessToken,
   handleUnauthorized,
 } from '@/lib/auth'
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
-
-// =============================================================================
-// Rate Limit Header Parsing
-// =============================================================================
-
-/**
- * Parse rate limit headers from a Response object
- */
-export function parseRateLimitHeaders(response: Response): RateLimitInfo | null {
-  const dayLimit = response.headers.get('X-RateLimit-Limit-Day')
-  const dayRemaining = response.headers.get('X-RateLimit-Remaining-Day')
-  const reset = response.headers.get('X-RateLimit-Reset')
-
-  // If no rate limit headers present, return null
-  if (!dayLimit || !dayRemaining || !reset) {
-    return null
-  }
-
-  const resetTimestamp = parseInt(reset, 10)
-
-  return {
-    day: {
-      limit: parseInt(dayLimit, 10),
-      remaining: parseInt(dayRemaining, 10),
-      reset: resetTimestamp,
-    },
-    // IP and global limits use same day reset (not exposed via headers)
-    ip_day: {
-      limit: parseInt(dayLimit, 10),
-      remaining: parseInt(dayRemaining, 10),
-      reset: resetTimestamp,
-    },
-    global_day: {
-      limit: parseInt(dayLimit, 10),
-      remaining: parseInt(dayRemaining, 10),
-      reset: resetTimestamp,
-    },
-  }
-}
 
 // =============================================================================
 // Core Request Helper
@@ -89,7 +46,7 @@ interface RequestOptions {
 }
 
 /**
- * Make an API request with error handling, authentication, and rate limit parsing.
+ * Make an API request with error handling and authentication.
  *
  * Authentication flow:
  * 1. Ensure we have a valid access token (creates anonymous session if needed)
@@ -100,7 +57,7 @@ async function request<T>(
   endpoint: string,
   options: RequestOptions = {},
   isRetry = false
-): Promise<{ data: T; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<T> {
   const { method = 'GET', body, headers = {}, turnstileToken, timeout } = options
 
   // Default timeout: 120s for uploads (FormData), 30s for other requests
@@ -146,29 +103,7 @@ async function request<T>(
     throw new ApiError(0, 'Network error: Unable to connect to server')
   }
 
-  const rateLimitInfo = parseRateLimitHeaders(response)
-
   if (!response.ok) {
-    // Handle rate limit error (429)
-    if (response.status === 429) {
-      let rateLimitError: RateLimitError | undefined
-      try {
-        const errorBody = await response.json()
-        if (errorBody.error === 'rate_limit_exceeded') {
-          rateLimitError = errorBody as RateLimitError
-        }
-      } catch {
-        // If we can't parse the error body, continue without it
-      }
-
-      throw new ApiError(
-        429,
-        rateLimitError?.message || 'Rate limit exceeded',
-        rateLimitError?.limits || rateLimitInfo || undefined,
-        rateLimitError
-      )
-    }
-
     // Handle session expired (401) - retry once with new anonymous session
     if (response.status === 401 && !isRetry) {
       // Create new anonymous session
@@ -194,7 +129,7 @@ async function request<T>(
       errorMessage = response.statusText || errorMessage
     }
 
-    throw new ApiError(response.status, errorMessage, rateLimitInfo || undefined)
+    throw new ApiError(response.status, errorMessage)
   }
 
   // Parse successful response
@@ -207,35 +142,7 @@ async function request<T>(
     data = {} as T
   }
 
-  return { data, rateLimitInfo }
-}
-
-// =============================================================================
-// Rate Limit Endpoints
-// =============================================================================
-
-/**
- * Get current rate limit status without consuming a request.
- * Call this on page load to display current limits.
- */
-export async function getRateLimits(): Promise<RateLimitInfo | null> {
-  try {
-    const accessToken = await ensureAuthenticated()
-    const response = await fetch(`${API_BASE_URL}/api/rate-limits`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-
-    if (!response.ok) {
-      return null
-    }
-
-    return parseRateLimitHeaders(response)
-  } catch {
-    return null
-  }
+  return data
 }
 
 // =============================================================================
@@ -245,10 +152,7 @@ export async function getRateLimits(): Promise<RateLimitInfo | null> {
 /**
  * Get available transcription and LLM options (models, parameters)
  */
-export async function getOptions(): Promise<{
-  data: OptionsResponse
-  rateLimitInfo: RateLimitInfo | null
-}> {
+export async function getOptions(): Promise<OptionsResponse> {
   return request<OptionsResponse>('/api/options')
 }
 
@@ -262,7 +166,7 @@ export async function getOptions(): Promise<{
 export async function uploadAndTranscribe(
   file: File,
   options: TranscribeOptions = {}
-): Promise<{ data: TranscribeResponse; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<TranscribeResponse> {
   const formData = new FormData()
   formData.append('file', file)
   formData.append('language', options.language ?? 'sl')
@@ -302,7 +206,7 @@ export async function uploadAndTranscribe(
  */
 export async function importAndCleanup(
   options: ImportTextOptions
-): Promise<{ data: ImportTextResponse; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<ImportTextResponse> {
   const body: Record<string, unknown> = {
     text: options.text,
     language: options.language ?? 'en',
@@ -323,7 +227,7 @@ export async function importAndCleanup(
  */
 export async function getTranscriptionStatus(
   transcriptionId: string
-): Promise<{ data: TranscriptionStatus; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<TranscriptionStatus> {
   return request<TranscriptionStatus>(`/api/transcriptions/${transcriptionId}`)
 }
 
@@ -336,7 +240,7 @@ export async function getTranscriptionStatus(
  */
 export async function getEntries(
   params: PaginationParams = {}
-): Promise<{ data: PaginatedEntries; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<PaginatedEntries> {
   const searchParams = new URLSearchParams()
   if (params.limit) searchParams.append('limit', String(params.limit))
   if (params.offset) searchParams.append('offset', String(params.offset))
@@ -352,7 +256,7 @@ export async function getEntries(
  */
 export async function getEntry(
   entryId: string
-): Promise<{ data: EntryDetails; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<EntryDetails> {
   return request<EntryDetails>(`/api/entries/${entryId}`)
 }
 
@@ -361,7 +265,7 @@ export async function getEntry(
  */
 export async function deleteEntry(
   entryId: string
-): Promise<{ data: void; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<void> {
   return request<void>(`/api/entries/${entryId}`, { method: 'DELETE' })
 }
 
@@ -377,7 +281,7 @@ export function getEntryAudioUrl(entryId: string): string {
  */
 export async function getCleanedEntries(
   entryId: string
-): Promise<{ data: CleanupSummary[]; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<CleanupSummary[]> {
   return request<CleanupSummary[]>(`/api/entries/${entryId}/cleaned`)
 }
 
@@ -390,7 +294,7 @@ export async function getCleanedEntries(
  */
 export async function getCleanedEntry(
   cleanupId: string
-): Promise<{ data: CleanedEntry; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<CleanedEntry> {
   return request<CleanedEntry>(`/api/cleaned-entries/${cleanupId}`)
 }
 
@@ -411,7 +315,7 @@ export interface TriggerCleanupOptions {
 export async function triggerCleanup(
   transcriptionId: string,
   options: TriggerCleanupOptions = {}
-): Promise<{ data: { id: string; status: string }; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<{ id: string; status: string }> {
   const body: Record<string, string | number | null> = {}
   if (options.cleanupType) {
     body.cleanup_type = options.cleanupType
@@ -436,7 +340,7 @@ export async function triggerCleanup(
 export async function saveUserEdit(
   cleanupId: string,
   editedData: EditedData
-): Promise<{ data: CleanedEntry; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<CleanedEntry> {
   return request<CleanedEntry>(`/api/cleaned-entries/${cleanupId}/user-edit`, {
     method: 'PUT',
     body: { edited_data: editedData },
@@ -448,7 +352,7 @@ export async function saveUserEdit(
  */
 export async function revertUserEdit(
   cleanupId: string
-): Promise<{ data: CleanedEntry; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<CleanedEntry> {
   return request<CleanedEntry>(`/api/cleaned-entries/${cleanupId}/user-edit`, {
     method: 'DELETE',
   })
@@ -462,17 +366,15 @@ export async function revertUserEdit(
  * List available analysis profiles
  */
 export async function getAnalysisProfiles(): Promise<{
-  data: AnalysisProfile[]
+  profiles: AnalysisProfile[]
   defaultProfileId: string
-  rateLimitInfo: RateLimitInfo | null
 }> {
   const result = await request<{ profiles: AnalysisProfile[] }>('/api/analysis-profiles')
-  const profiles = result.data.profiles
+  const profiles = result.profiles
   const defaultProfileId = profiles.find(p => p.is_default)?.id ?? 'generic-summary'
   return {
-    data: profiles,
+    profiles,
     defaultProfileId,
-    rateLimitInfo: result.rateLimitInfo,
   }
 }
 
@@ -490,7 +392,7 @@ export interface TriggerAnalysisOptions {
 export async function triggerAnalysis(
   cleanupId: string,
   options: TriggerAnalysisOptions = {}
-): Promise<{ data: AnalysisJob; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<AnalysisJob> {
   const body: Record<string, string> = {
     profile_id: options.profileId ?? 'generic-summary',
   }
@@ -509,7 +411,7 @@ export async function triggerAnalysis(
  */
 export async function getAnalysis(
   analysisId: string
-): Promise<{ data: AnalysisResult; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<AnalysisResult> {
   return request<AnalysisResult>(`/api/analyses/${analysisId}`)
 }
 
@@ -518,14 +420,11 @@ export async function getAnalysis(
  */
 export async function getAnalyses(
   cleanupId: string
-): Promise<{ data: AnalysisResult[]; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<AnalysisResult[]> {
   const result = await request<{ analyses: AnalysisResult[] }>(
     `/api/cleaned-entries/${cleanupId}/analyses`
   )
-  return {
-    data: result.data.analyses,
-    rateLimitInfo: result.rateLimitInfo,
-  }
+  return result.analyses
 }
 
 // =============================================================================
@@ -538,7 +437,7 @@ export async function getAnalyses(
 export async function submitFeedback(
   entryId: string,
   payload: FeedbackPayload
-): Promise<{ data: Feedback; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<Feedback> {
   return request<Feedback>(`/api/entries/${entryId}/feedback`, {
     method: 'POST',
     body: payload as unknown as Record<string, unknown>,
@@ -550,7 +449,7 @@ export async function submitFeedback(
  */
 export async function getFeedback(
   entryId: string
-): Promise<{ data: Feedback[]; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<Feedback[]> {
   return request<Feedback[]>(`/api/entries/${entryId}/feedback`)
 }
 
@@ -563,7 +462,7 @@ export async function getFeedback(
  */
 export async function joinWaitlist(
   payload: WaitlistPayload
-): Promise<{ data: { message: string }; rateLimitInfo: RateLimitInfo | null }> {
+): Promise<{ message: string }> {
   return request<{ message: string }>('/api/waitlist', {
     method: 'POST',
     body: payload as unknown as Record<string, unknown>,

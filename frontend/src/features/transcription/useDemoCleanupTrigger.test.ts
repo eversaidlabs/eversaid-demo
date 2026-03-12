@@ -203,32 +203,23 @@ describe('useDemoCleanupTrigger', () => {
     it('triggers cleanup for demo entry with no cleanup', async () => {
       const demoEntry = createDemoEntryNeedingCleanup()
 
-      vi.mocked(api.triggerCleanup).mockResolvedValue({
-        data: { id: 'new-cleanup-123', status: 'pending' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerCleanup).mockResolvedValue({ id: 'new-cleanup-123', status: 'pending' })
 
       vi.mocked(api.getCleanedEntry).mockResolvedValue({
-        data: {
-          id: 'new-cleanup-123',
-          voice_entry_id: 'demo-entry-123',
-          transcription_id: 'transcription-123',
-          user_id: 'user-123',
-          cleaned_text: 'Cleaned text',
-          status: 'completed',
-          llm_provider: 'openai',
-          llm_model: 'gpt-4',
-          is_primary: true,
-          created_at: '2024-01-01T00:00:00Z',
-          cleanup_data_edited: null,
-        },
-        rateLimitInfo: null,
+        id: 'new-cleanup-123',
+        voice_entry_id: 'demo-entry-123',
+        transcription_id: 'transcription-123',
+        user_id: 'user-123',
+        cleaned_text: 'Cleaned text',
+        status: 'completed',
+        llm_provider: 'openai',
+        llm_model: 'gpt-4',
+        is_primary: true,
+        created_at: '2024-01-01T00:00:00Z',
+        cleanup_data_edited: null,
       })
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'analysis-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'analysis-123', status: 'pending', profile_id: 'generic-summary' })
 
       renderHook(() =>
         useDemoCleanupTrigger({
@@ -257,10 +248,7 @@ describe('useDemoCleanupTrigger', () => {
         },
       })
 
-      vi.mocked(api.triggerCleanup).mockResolvedValue({
-        data: { id: 'cleanup-123', status: 'processing' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerCleanup).mockResolvedValue({ id: 'cleanup-123', status: 'processing' })
 
       renderHook(() =>
         useDemoCleanupTrigger({
@@ -282,49 +270,37 @@ describe('useDemoCleanupTrigger', () => {
     it('polls every 2 seconds until cleanup completes', async () => {
       const demoEntry = createDemoEntryNeedingCleanup()
 
-      vi.mocked(api.triggerCleanup).mockResolvedValue({
-        data: { id: 'cleanup-123', status: 'pending' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerCleanup).mockResolvedValue({ id: 'cleanup-123', status: 'pending' })
 
       vi.mocked(api.getCleanedEntry)
         .mockResolvedValueOnce({
-          data: {
-            id: 'cleanup-123',
-            voice_entry_id: 'demo-entry-123',
-            transcription_id: 'transcription-123',
-            user_id: 'user-123',
-            cleaned_text: null,
-            status: 'processing',
-            llm_provider: 'openai',
-            llm_model: 'gpt-4',
-            is_primary: true,
-            created_at: '2024-01-01T00:00:00Z',
-            cleanup_data_edited: null,
-          },
-          rateLimitInfo: null,
+          id: 'cleanup-123',
+          voice_entry_id: 'demo-entry-123',
+          transcription_id: 'transcription-123',
+          user_id: 'user-123',
+          cleaned_text: null,
+          status: 'processing',
+          llm_provider: 'openai',
+          llm_model: 'gpt-4',
+          is_primary: true,
+          created_at: '2024-01-01T00:00:00Z',
+          cleanup_data_edited: null,
         })
         .mockResolvedValueOnce({
-          data: {
-            id: 'cleanup-123',
-            voice_entry_id: 'demo-entry-123',
-            transcription_id: 'transcription-123',
-            user_id: 'user-123',
-            cleaned_text: 'Cleaned text',
-            status: 'completed',
-            llm_provider: 'openai',
-            llm_model: 'gpt-4',
-            is_primary: true,
-            created_at: '2024-01-01T00:00:00Z',
-            cleanup_data_edited: null,
-          },
-          rateLimitInfo: null,
+          id: 'cleanup-123',
+          voice_entry_id: 'demo-entry-123',
+          transcription_id: 'transcription-123',
+          user_id: 'user-123',
+          cleaned_text: 'Cleaned text',
+          status: 'completed',
+          llm_provider: 'openai',
+          llm_model: 'gpt-4',
+          is_primary: true,
+          created_at: '2024-01-01T00:00:00Z',
+          cleanup_data_edited: null,
         })
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'analysis-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'analysis-123', status: 'pending', profile_id: 'generic-summary' })
 
       const { result } = renderHook(() =>
         useDemoCleanupTrigger({
@@ -367,27 +343,21 @@ describe('useDemoCleanupTrigger', () => {
     it('stops polling on cleanup failure', async () => {
       const demoEntry = createDemoEntryNeedingCleanup()
 
-      vi.mocked(api.triggerCleanup).mockResolvedValue({
-        data: { id: 'cleanup-123', status: 'pending' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerCleanup).mockResolvedValue({ id: 'cleanup-123', status: 'pending' })
 
       vi.mocked(api.getCleanedEntry).mockResolvedValue({
-        data: {
-          id: 'cleanup-123',
-          voice_entry_id: 'demo-entry-123',
-          transcription_id: 'transcription-123',
-          user_id: 'user-123',
-          cleaned_text: null,
-          status: 'failed',
-          error_message: 'LLM error',
-          llm_provider: 'openai',
-          llm_model: 'gpt-4',
-          is_primary: true,
-          created_at: '2024-01-01T00:00:00Z',
-          cleanup_data_edited: null,
-        },
-        rateLimitInfo: null,
+        id: 'cleanup-123',
+        voice_entry_id: 'demo-entry-123',
+        transcription_id: 'transcription-123',
+        user_id: 'user-123',
+        cleaned_text: null,
+        status: 'failed',
+        error_message: 'LLM error',
+        llm_provider: 'openai',
+        llm_model: 'gpt-4',
+        is_primary: true,
+        created_at: '2024-01-01T00:00:00Z',
+        cleanup_data_edited: null,
       })
 
       renderHook(() =>
@@ -431,32 +401,23 @@ describe('useDemoCleanupTrigger', () => {
     it('triggers analysis with generic-summary profile after cleanup completes', async () => {
       const demoEntry = createDemoEntryNeedingCleanup()
 
-      vi.mocked(api.triggerCleanup).mockResolvedValue({
-        data: { id: 'cleanup-123', status: 'pending' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerCleanup).mockResolvedValue({ id: 'cleanup-123', status: 'pending' })
 
       vi.mocked(api.getCleanedEntry).mockResolvedValue({
-        data: {
-          id: 'cleanup-123',
-          voice_entry_id: 'demo-entry-123',
-          transcription_id: 'transcription-123',
-          user_id: 'user-123',
-          cleaned_text: 'Cleaned text',
-          status: 'completed',
-          llm_provider: 'openai',
-          llm_model: 'gpt-4',
-          is_primary: true,
-          created_at: '2024-01-01T00:00:00Z',
-          cleanup_data_edited: null,
-        },
-        rateLimitInfo: null,
+        id: 'cleanup-123',
+        voice_entry_id: 'demo-entry-123',
+        transcription_id: 'transcription-123',
+        user_id: 'user-123',
+        cleaned_text: 'Cleaned text',
+        status: 'completed',
+        llm_provider: 'openai',
+        llm_model: 'gpt-4',
+        is_primary: true,
+        created_at: '2024-01-01T00:00:00Z',
+        cleanup_data_edited: null,
       })
 
-      vi.mocked(api.triggerAnalysis).mockResolvedValue({
-        data: { id: 'analysis-123', status: 'pending', profile_id: 'generic-summary' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerAnalysis).mockResolvedValue({ id: 'analysis-123', status: 'pending', profile_id: 'generic-summary' })
 
       renderHook(() =>
         useDemoCleanupTrigger({
@@ -483,26 +444,20 @@ describe('useDemoCleanupTrigger', () => {
       const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       const demoEntry = createDemoEntryNeedingCleanup()
 
-      vi.mocked(api.triggerCleanup).mockResolvedValue({
-        data: { id: 'cleanup-123', status: 'pending' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerCleanup).mockResolvedValue({ id: 'cleanup-123', status: 'pending' })
 
       vi.mocked(api.getCleanedEntry).mockResolvedValue({
-        data: {
-          id: 'cleanup-123',
-          voice_entry_id: 'demo-entry-123',
-          transcription_id: 'transcription-123',
-          user_id: 'user-123',
-          cleaned_text: 'Cleaned text',
-          status: 'completed',
-          llm_provider: 'openai',
-          llm_model: 'gpt-4',
-          is_primary: true,
-          created_at: '2024-01-01T00:00:00Z',
-          cleanup_data_edited: null,
-        },
-        rateLimitInfo: null,
+        id: 'cleanup-123',
+        voice_entry_id: 'demo-entry-123',
+        transcription_id: 'transcription-123',
+        user_id: 'user-123',
+        cleaned_text: 'Cleaned text',
+        status: 'completed',
+        llm_provider: 'openai',
+        llm_model: 'gpt-4',
+        is_primary: true,
+        created_at: '2024-01-01T00:00:00Z',
+        cleanup_data_edited: null,
       })
 
       vi.mocked(api.triggerAnalysis).mockRejectedValue(new Error('Analysis failed'))
@@ -540,26 +495,20 @@ describe('useDemoCleanupTrigger', () => {
     it('does not re-trigger cleanup for already-triggered entries', async () => {
       const demoEntry = createDemoEntryNeedingCleanup()
 
-      vi.mocked(api.triggerCleanup).mockResolvedValue({
-        data: { id: 'cleanup-123', status: 'pending' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerCleanup).mockResolvedValue({ id: 'cleanup-123', status: 'pending' })
 
       vi.mocked(api.getCleanedEntry).mockResolvedValue({
-        data: {
-          id: 'cleanup-123',
-          voice_entry_id: 'demo-entry-123',
-          transcription_id: 'transcription-123',
-          user_id: 'user-123',
-          cleaned_text: null,
-          status: 'processing',
-          llm_provider: 'openai',
-          llm_model: 'gpt-4',
-          is_primary: true,
-          created_at: '2024-01-01T00:00:00Z',
-          cleanup_data_edited: null,
-        },
-        rateLimitInfo: null,
+        id: 'cleanup-123',
+        voice_entry_id: 'demo-entry-123',
+        transcription_id: 'transcription-123',
+        user_id: 'user-123',
+        cleaned_text: null,
+        status: 'processing',
+        llm_provider: 'openai',
+        llm_model: 'gpt-4',
+        is_primary: true,
+        created_at: '2024-01-01T00:00:00Z',
+        cleanup_data_edited: null,
       })
 
       const { rerender } = renderHook(
@@ -608,14 +557,8 @@ describe('useDemoCleanupTrigger', () => {
       }
 
       vi.mocked(api.triggerCleanup)
-        .mockResolvedValueOnce({
-          data: { id: 'cleanup-123', status: 'pending' },
-          rateLimitInfo: null,
-        })
-        .mockResolvedValueOnce({
-          data: { id: 'cleanup-456', status: 'pending' },
-          rateLimitInfo: null,
-        })
+        .mockResolvedValueOnce({ id: 'cleanup-123', status: 'pending' })
+        .mockResolvedValueOnce({ id: 'cleanup-456', status: 'pending' })
 
       const { result } = renderHook(() =>
         useDemoCleanupTrigger({
@@ -669,26 +612,20 @@ describe('useDemoCleanupTrigger', () => {
     it('clears polling intervals on unmount', async () => {
       const demoEntry = createDemoEntryNeedingCleanup()
 
-      vi.mocked(api.triggerCleanup).mockResolvedValue({
-        data: { id: 'cleanup-123', status: 'pending' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerCleanup).mockResolvedValue({ id: 'cleanup-123', status: 'pending' })
 
       vi.mocked(api.getCleanedEntry).mockResolvedValue({
-        data: {
-          id: 'cleanup-123',
-          voice_entry_id: 'demo-entry-123',
-          transcription_id: 'transcription-123',
-          user_id: 'user-123',
-          cleaned_text: null,
-          status: 'processing',
-          llm_provider: 'openai',
-          llm_model: 'gpt-4',
-          is_primary: true,
-          created_at: '2024-01-01T00:00:00Z',
-          cleanup_data_edited: null,
-        },
-        rateLimitInfo: null,
+        id: 'cleanup-123',
+        voice_entry_id: 'demo-entry-123',
+        transcription_id: 'transcription-123',
+        user_id: 'user-123',
+        cleaned_text: null,
+        status: 'processing',
+        llm_provider: 'openai',
+        llm_model: 'gpt-4',
+        is_primary: true,
+        created_at: '2024-01-01T00:00:00Z',
+        cleanup_data_edited: null,
       })
 
       const { unmount } = renderHook(() =>
@@ -759,10 +696,7 @@ describe('useDemoCleanupTrigger', () => {
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
       const demoEntry = createDemoEntryNeedingCleanup()
 
-      vi.mocked(api.triggerCleanup).mockResolvedValue({
-        data: { id: 'cleanup-123', status: 'pending' },
-        rateLimitInfo: null,
-      })
+      vi.mocked(api.triggerCleanup).mockResolvedValue({ id: 'cleanup-123', status: 'pending' })
 
       vi.mocked(api.getCleanedEntry).mockRejectedValue(new Error('Network error'))
 

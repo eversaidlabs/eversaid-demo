@@ -14,7 +14,6 @@ import type {
   ApiSegment,
   CleanedSegment,
   CleanedEntry,
-  RateLimitInfo,
   AnalysisResult,
   TranscriptionWord,
   EditWord,
@@ -29,7 +28,6 @@ import {
   getCleanedEntry,
   getEntry,
   saveUserEdit,
-  getRateLimits,
   triggerCleanup,
   triggerAnalysis,
 } from "./api"
@@ -88,8 +86,6 @@ export interface UseTranscriptionReturn {
   analysisId: string | null
   /** All analyses for this entry (for client-side caching by profile) */
   analyses: AnalysisResult[]
-  /** Current rate limit info */
-  rateLimits: RateLimitInfo | null
   /** Audio duration in seconds (from API, used as fallback for audio player) */
   durationSeconds: number
   /** Warning when cleaned_segments is missing but diarization detected multiple speakers */
@@ -180,12 +176,6 @@ export interface UseTranscriptionReturn {
    * Reset to initial state
    */
   reset: () => void
-
-  /**
-   * Fetch current rate limits from API
-   * Call on page mount to display initial rate limit info
-   */
-  fetchRateLimits: () => Promise<void>
 
   /**
    * Reprocess cleanup with new model, cleanup type, or temperature.
@@ -307,7 +297,6 @@ export function useTranscription(
   const [cleanupTemperature, setCleanupTemperature] = useState<number | null>(null)
   const [analysisId, setAnalysisId] = useState<string | null>(null)
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([])
-  const [rateLimits, setRateLimits] = useState<RateLimitInfo | null>(null)
   const [durationSeconds, setDurationSeconds] = useState<number>(0)
   const [cleanedSegmentsWarning, setCleanedSegmentsWarning] = useState<string | null>(null)
 
@@ -383,7 +372,7 @@ export function useTranscription(
           const editedData: EditedData = {
             words: segmentsToEditWords(updatedSegments),
           }
-          const { data } = await saveUserEdit(cleanupId, editedData)
+          const data = await saveUserEdit(cleanupId, editedData)
 
           // Reconcile with API response if available
           if (data.cleanup_data_edited) {
@@ -560,7 +549,7 @@ export function useTranscription(
       return new Promise((resolve, reject) => {
         const poll = async () => {
           try {
-            const { data: transcriptionStatus } =
+            const transcriptionStatus =
               await getTranscriptionStatus(transcriptionId)
 
             if (transcriptionStatus.status === "completed") {
@@ -573,7 +562,7 @@ export function useTranscription(
               setStatus("cleaning")
 
               // Fetch cleaned entry
-              const { data: cleanedEntry } = await getCleanedEntry(cleanupIdVal)
+              const cleanedEntry = await getCleanedEntry(cleanupIdVal)
 
               if (cleanedEntry.status === "completed") {
                 // Store the model and type used for this cleanup
@@ -674,14 +663,14 @@ export function useTranscription(
     async (cleanupIdVal: string, entryIdToLoad: string): Promise<void> => {
       const poll = async (): Promise<void> => {
         try {
-          const { data: cleanedEntry } = await getCleanedEntry(cleanupIdVal)
+          const cleanedEntry = await getCleanedEntry(cleanupIdVal)
 
           if (cleanedEntry.status === "completed") {
             console.log("[pollCleanupStatus] Cleanup complete, triggering analysis...")
 
             // Trigger analysis with default profile
             try {
-              const { data: analysisJob } = await triggerAnalysis(cleanupIdVal, { profileId: "generic-summary" })
+              const analysisJob = await triggerAnalysis(cleanupIdVal, { profileId: "generic-summary" })
               setAnalysisId(analysisJob.id)
               console.log("[pollCleanupStatus] Analysis triggered:", analysisJob.id)
             } catch (analysisErr) {
@@ -735,7 +724,7 @@ export function useTranscription(
 
       try {
         // Trigger new cleanup
-        const { data: cleanupJob } = await triggerCleanup(transcriptionId, {
+        const cleanupJob = await triggerCleanup(transcriptionId, {
           cleanupType: options.cleanupType,
           llmModel: options.llmModel,
           temperature: options.temperature,
@@ -751,7 +740,7 @@ export function useTranscription(
         await new Promise<void>((resolve, reject) => {
           const poll = async () => {
             try {
-              const { data: cleanedEntry } = await getCleanedEntry(cleanupJob.id)
+              const cleanedEntry = await getCleanedEntry(cleanupJob.id)
 
               if (cleanedEntry.status === "completed") {
                 // Load the new cleanup data directly (NOT loadEntry which loads primary cleanup)
@@ -807,7 +796,7 @@ export function useTranscription(
         // Start upload (progress is simulated for now since fetch doesn't support progress)
         setUploadProgress(50)
 
-        const { data: response } = await uploadAndTranscribe(file, {
+        const response = await uploadAndTranscribe(file, {
           speakerCount,
           language,
           // Enable diarization when auto (null) or more than 1 speaker
@@ -850,14 +839,8 @@ export function useTranscription(
         let errorMessage = "Upload failed. Please try again."
 
         if (err instanceof ApiError) {
-          // Update rate limits if available
-          if (err.rateLimitInfo) {
-            setRateLimits(err.rateLimitInfo)
-          }
-
           if (err.isRateLimited) {
-            errorMessage =
-              err.rateLimitError?.message || "Rate limit exceeded. Please try again later."
+            errorMessage = "Rate limit exceeded. Please try again later."
           } else if (err.isNotFound) {
             errorMessage = "Resource not found."
           } else {
@@ -920,7 +903,7 @@ export function useTranscription(
       try {
         // Fetch entry from API
         console.log("[loadEntry] Fetching entry details...")
-        const { data: entryDetails } = await getEntry(entryIdToLoad)
+        const entryDetails = await getEntry(entryIdToLoad)
 
         if (!entryDetails) {
           throw new Error("Entry not found")
@@ -961,7 +944,7 @@ export function useTranscription(
           // Auto-trigger cleanup for entries with completed transcription (e.g., demo entries)
           if (transcription.status === "completed" && transcription.id) {
             try {
-              const { data: cleanupJob } = await triggerCleanup(transcription.id, { turnstileToken })
+              const cleanupJob = await triggerCleanup(transcription.id, { turnstileToken })
               setCleanupId(cleanupJob.id)
               console.log("[loadEntry] Cleanup triggered:", cleanupJob.id)
               // Start polling for cleanup completion
@@ -1106,7 +1089,6 @@ export function useTranscription(
     setCleanupTemperature(null)
     setAnalysisId(null)
     setAnalyses([])
-    setRateLimits(null)
     setDurationSeconds(0)
     setRevertedSegments(new Map())
     setCleanedSegmentsWarning(null)
@@ -1121,21 +1103,6 @@ export function useTranscription(
    */
   const dismissCleanedSegmentsWarning = useCallback(() => {
     setCleanedSegmentsWarning(null)
-  }, [])
-
-  /**
-   * Fetch current rate limits from API
-   */
-  const fetchRateLimits = useCallback(async (): Promise<void> => {
-    try {
-      const limits = await getRateLimits()
-      if (limits) {
-        setRateLimits(limits)
-      }
-    } catch (err) {
-      // Silently fail - rate limits are not critical
-      console.error("Failed to fetch rate limits:", err)
-    }
   }, [])
 
   /**
@@ -1222,7 +1189,6 @@ export function useTranscription(
     cleanupTemperature,
     analysisId,
     analyses,
-    rateLimits,
     durationSeconds,
     cleanedSegmentsWarning,
     dismissCleanedSegmentsWarning,
@@ -1238,7 +1204,6 @@ export function useTranscription(
     getSegmentById,
     getSegmentAtTime,
     reset,
-    fetchRateLimits,
     reprocessCleanup,
     loadCleanupData,
   }
