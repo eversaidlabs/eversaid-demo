@@ -19,7 +19,7 @@ function OrganizationSchema() {
     '@type': 'Organization',
     name: 'EverSaid',
     url: BASE_URL,
-    logo: `${BASE_URL}/icon.svg`,
+    logo: `${BASE_URL}/icon-192x192.png`,
     description:
       'Transcribe audio or upload existing transcripts. Choose Clean or Edited cleanup and verify every change side-by-side against the original audio.',
   }
@@ -106,20 +106,7 @@ export async function generateMetadata({
     },
     alternates: getAlternates(locale),
     icons: {
-      icon: [
-        {
-          url: '/icon-light-32x32.png',
-          media: '(prefers-color-scheme: light)',
-        },
-        {
-          url: '/icon-dark-32x32.png',
-          media: '(prefers-color-scheme: dark)',
-        },
-        {
-          url: '/icon.svg',
-          type: 'image/svg+xml',
-        },
-      ],
+      icon: '/icon-192x192.png',
       apple: '/apple-icon.png',
     },
   }
