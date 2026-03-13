@@ -94,7 +94,7 @@ export function CleanupCompareModal({ isOpen, onClose }: CleanupCompareModalProp
                         {FEATURE_MATRIX[featureKey][level] ? (
                           <Check className={`w-4 h-4 mx-auto ${isLevelDisabled ? "text-green-500/50" : "text-green-500"}`} />
                         ) : (
-                          <span className="text-muted-foreground/50">—</span>
+                          <span className="text-muted-foreground/50">-</span>
                         )}
                       </td>
                     )

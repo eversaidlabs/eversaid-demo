@@ -17,11 +17,11 @@ function OrganizationSchema() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'eversaid',
+    name: 'EverSaid',
     url: BASE_URL,
     logo: `${BASE_URL}/icon.svg`,
     description:
-      'AI-powered transcription cleanup you can review, refine, and trust.',
+      'Transcribe audio or upload existing transcripts. Choose Clean or Edited cleanup and verify every change side-by-side against the original audio.',
   }
   return (
     <script
@@ -37,11 +37,11 @@ function SoftwareApplicationSchema() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'eversaid',
+    name: 'EverSaid',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
     description:
-      'AI-powered transcription cleanup. See every edit, verify against the original audio.',
+      'Transcribe audio or upload existing transcripts. Choose Clean or Edited cleanup and verify every change side-by-side against the original audio.',
     offers: {
       '@type': 'Offer',
       price: '0',
@@ -73,11 +73,11 @@ export async function generateMetadata({
   return {
     metadataBase: new URL(BASE_URL),
     title: {
-      default: 'eversaid | Smart transcription. AI listens. You decide.',
-      template: '%s | eversaid',
+      default: 'EverSaid - Transcribe. Clean Up. Verify. All in One Place.',
+      template: '%s | EverSaid',
     },
     description:
-      'AI-powered cleanup you can review, refine, and trust. See every edit. Verify against the original audio.',
+      'Transcribe audio or upload existing transcripts. Choose Clean or Edited cleanup and verify every change side-by-side against the original audio. All your sessions in one place.',
     robots: {
       index: true,
       follow: true,
@@ -91,17 +91,17 @@ export async function generateMetadata({
     openGraph: {
       type: 'website',
       locale: locale === 'sl' ? 'sl_SI' : 'en_US',
-      siteName: 'eversaid',
-      title: 'eversaid | Smart transcription. AI listens. You decide.',
+      siteName: 'EverSaid',
+      title: 'EverSaid - Transcribe. Clean Up. Verify. All in One Place.',
       description:
-        'AI-powered cleanup you can review, refine, and trust. See every edit. Verify against the original audio.',
+        'Transcribe audio or upload existing transcripts. Choose Clean or Edited cleanup and verify every change side-by-side against the original audio. All your sessions in one place.',
       images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'eversaid | Smart transcription. AI listens. You decide.',
+      title: 'EverSaid - Transcribe. Clean Up. Verify. All in One Place.',
       description:
-        'AI-powered cleanup you can review, refine, and trust. See every edit. Verify against the original audio.',
+        'Transcribe audio or upload existing transcripts. Choose Clean or Edited cleanup and verify every change side-by-side against the original audio. All your sessions in one place.',
       images: ['/og-image.png'],
     },
     alternates: getAlternates(locale),

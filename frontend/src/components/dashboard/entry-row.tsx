@@ -47,7 +47,7 @@ export function EntryRow({
   // Format duration
   const formattedDuration = entry.duration_seconds > 0
     ? formatDuration(entry.duration_seconds)
-    : '—'
+    : '-'
 
   // Link to detail page
   const href = isAudio
