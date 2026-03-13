@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Logo } from '@/components/ui/logo'
 import { login, AuthError, getMe, refreshTokens } from '@/features/auth/api'
+import { ANONYMOUS_TENANT_ID } from '@/features/auth/types'
 import { getAccessToken, getRefreshToken, isTokenExpired } from '@/lib/auth'
 
 export default function LoginPage({
@@ -69,6 +70,14 @@ export default function LoginPage({
 
       try {
         const me = await getMe()
+
+        // Anonymous users should see the login form, not be redirected
+        // They can enter real credentials to upgrade to a real account
+        if (me.user.tenant_id === ANONYMOUS_TENANT_ID) {
+          setIsCheckingAuth(false)
+          return
+        }
+
         if (me.user.password_change_required) {
           router.replace(`/${locale}/change-password`)
         } else {
