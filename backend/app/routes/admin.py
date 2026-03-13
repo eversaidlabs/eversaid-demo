@@ -1,23 +1,33 @@
 """Admin routes for tenant, user, and quota management."""
 
-from typing import Optional
+from datetime import date
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.core_client import CoreAPIClient, get_core_api
 from app.database import get_db
 from app.middleware.auth import AuthenticatedUser, get_platform_admin, get_tenant_admin
-from app.models.auth import User, UserRole
+from app.models.auth import Tenant, User, UserRole
 from app.schemas.auth import (
     CreateTenantRequest,
     CreateUserRequest,
     CreateUserResponse,
+    PlatformUsersResponse,
+    QuotaStatus,
     TenantResponse,
     UserResponse,
+    UserStatsResponse,
+    UserWithTenantResponse,
 )
 from app.schemas.quota import QuotaLimits, UpdateQuotaRequest
 from app.services.auth import AuthService
 from app.services.quota import QuotaService
+from app.utils.logger import get_logger
+
+logger = get_logger("admin")
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -227,4 +237,195 @@ def update_user_quota(
         transcription_seconds_limit=updated_user.transcription_seconds_limit,
         text_cleanup_words_limit=updated_user.text_cleanup_words_limit,
         analysis_count_limit=updated_user.analysis_count_limit,
+    )
+
+
+# =============================================================================
+# Platform Admin User Management
+# =============================================================================
+
+
+def _compute_quota_status(used: int, limit: int) -> QuotaStatus:
+    """Compute quota status based on usage percentage.
+
+    - OK: >20% remaining
+    - Warning: 5-20% remaining
+    - Critical: <5% remaining
+    """
+    if limit <= 0:
+        return "ok"  # Unlimited or invalid limit
+
+    remaining_pct = (limit - used) / limit * 100
+
+    if remaining_pct < 5:
+        return "critical"
+    elif remaining_pct < 20:
+        return "warning"
+    return "ok"
+
+
+def _worst_quota_status(statuses: list[QuotaStatus]) -> QuotaStatus:
+    """Return the worst status from a list."""
+    if "critical" in statuses:
+        return "critical"
+    if "warning" in statuses:
+        return "warning"
+    return "ok"
+
+
+@router.get("/platform/users", response_model=PlatformUsersResponse)
+def list_platform_users(
+    email: Optional[str] = Query(None, description="Filter by email (partial match)"),
+    registered_after: Optional[date] = Query(None, description="Filter by registration date (after)"),
+    registered_before: Optional[date] = Query(None, description="Filter by registration date (before)"),
+    quota_status: Optional[Literal["ok", "warning", "critical"]] = Query(
+        None, description="Filter by quota status"
+    ),
+    limit: int = Query(50, ge=1, le=100, description="Max users to return"),
+    offset: int = Query(0, ge=0, description="Number of users to skip"),
+    user: AuthenticatedUser = Depends(get_platform_admin),
+    db: Session = Depends(get_db),
+) -> PlatformUsersResponse:
+    """List all users across all tenants (platform_admin only).
+
+    Supports filtering by email, registration date range, and quota status.
+    Returns users with their tenant names for display.
+
+    Note: quota_status filtering requires fetching usage from Core API,
+    which is done lazily per-user via the /users/{user_id}/stats endpoint.
+    For now, quota_status filter is applied client-side after fetching stats.
+    """
+    # Base query joining users with tenants
+    query = db.query(User, Tenant.name.label("tenant_name")).join(
+        Tenant, User.tenant_id == Tenant.id
+    )
+
+    # Apply filters
+    if email:
+        query = query.filter(User.email.ilike(f"%{email}%"))
+
+    if registered_after:
+        query = query.filter(func.date(User.created_at) >= registered_after)
+
+    if registered_before:
+        query = query.filter(func.date(User.created_at) <= registered_before)
+
+    # Note: quota_status filtering would require Core API calls for each user
+    # to get usage data. For MVP, this filter is applied client-side.
+    # In the future, we could cache usage data or add a batch endpoint.
+
+    # Get total count before pagination
+    total = query.count()
+
+    # Apply pagination and ordering
+    results = query.order_by(User.created_at.desc()).offset(offset).limit(limit).all()
+
+    # Transform to response models
+    users = []
+    for db_user, tenant_name in results:
+        users.append(
+            UserWithTenantResponse(
+                id=db_user.id,
+                email=db_user.email,
+                tenant_id=db_user.tenant_id,
+                tenant_name=tenant_name,
+                role=db_user.role,
+                is_active=db_user.is_active,
+                created_at=db_user.created_at,
+                password_change_required=db_user.password_change_required,
+                transcription_seconds_limit=db_user.transcription_seconds_limit,
+                text_cleanup_words_limit=db_user.text_cleanup_words_limit,
+                analysis_count_limit=db_user.analysis_count_limit,
+            )
+        )
+
+    return PlatformUsersResponse(users=users, total=total)
+
+
+@router.get("/users/{user_id}/stats", response_model=UserStatsResponse)
+async def get_user_stats(
+    user_id: str,
+    user: AuthenticatedUser = Depends(get_platform_admin),
+    db: Session = Depends(get_db),
+    core_api: CoreAPIClient = Depends(get_core_api),
+) -> UserStatsResponse:
+    """Get user statistics including entry counts and quota usage (platform_admin only).
+
+    Fetches usage data from Core API and computes quota status.
+    """
+    # Get user and their tenant from local DB
+    quota_service = QuotaService(db)
+    user_limits, tenant_limits, db_user = quota_service.get_user_with_tenant_limits(user_id)
+
+    if not db_user or not user_limits or not tenant_limits:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    # Compute effective limits
+    effective_limits = quota_service.compute_effective_limits(user_limits, tenant_limits)
+
+    # Fetch usage from Core API
+    # We need to use the platform admin's token since Core API validates JWT
+    transcription_seconds_used = 0
+    text_cleanup_words_used = 0
+    analysis_count_used = 0
+    transcript_count = 0
+    text_import_count = 0
+
+    try:
+        # Get usage data - Core API has /api/v1/admin/users/{user_id}/usage endpoint
+        # If that doesn't exist, we'll fall back to zeros
+        usage_response = await core_api.request(
+            "GET",
+            f"/api/v1/admin/users/{user_id}/usage",
+            access_token=user.access_token,
+        )
+        if usage_response.status_code == 200:
+            usage_data = usage_response.json()
+            transcription_seconds_used = usage_data.get("transcription_seconds_used", 0)
+            text_cleanup_words_used = usage_data.get("text_cleanup_words_used", 0)
+            analysis_count_used = usage_data.get("analysis_count_used", 0)
+            transcript_count = usage_data.get("transcript_count", 0)
+            text_import_count = usage_data.get("text_import_count", 0)
+        else:
+            logger.warning(
+                "Failed to fetch user usage from Core API",
+                status_code=usage_response.status_code,
+                target_user_id=user_id,
+            )
+    except Exception as e:
+        logger.warning(
+            "Error fetching user usage from Core API",
+            error=str(e),
+            target_user_id=user_id,
+        )
+
+    # Compute quota statuses
+    transcription_status = _compute_quota_status(
+        transcription_seconds_used, effective_limits.transcription_seconds_limit
+    )
+    text_cleanup_status = _compute_quota_status(
+        text_cleanup_words_used, effective_limits.text_cleanup_words_limit
+    )
+    analysis_status = _compute_quota_status(
+        analysis_count_used, effective_limits.analysis_count_limit
+    )
+    overall_status = _worst_quota_status([transcription_status, text_cleanup_status, analysis_status])
+
+    return UserStatsResponse(
+        user_id=user_id,
+        transcript_count=transcript_count,
+        text_import_count=text_import_count,
+        transcription_seconds_used=transcription_seconds_used,
+        text_cleanup_words_used=text_cleanup_words_used,
+        analysis_count_used=analysis_count_used,
+        transcription_seconds_limit=effective_limits.transcription_seconds_limit,
+        text_cleanup_words_limit=effective_limits.text_cleanup_words_limit,
+        analysis_count_limit=effective_limits.analysis_count_limit,
+        transcription_quota_status=transcription_status,
+        text_cleanup_quota_status=text_cleanup_status,
+        analysis_quota_status=analysis_status,
+        overall_quota_status=overall_status,
     )

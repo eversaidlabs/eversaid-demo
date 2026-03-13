@@ -1,7 +1,7 @@
 """Pydantic schemas for authentication."""
 
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -118,3 +118,60 @@ class CreateUserResponse(BaseModel):
 
     user: UserResponse
     temporary_password: str  # Only returned on creation
+
+
+# =============================================================================
+# Platform Admin Schemas
+# =============================================================================
+
+
+QuotaStatus = Literal["ok", "warning", "critical"]
+
+
+class UserWithTenantResponse(BaseModel):
+    """User information with tenant name for platform admin view."""
+
+    id: str
+    email: str
+    tenant_id: str
+    tenant_name: str
+    role: UserRole
+    is_active: bool
+    created_at: datetime
+    password_change_required: bool
+    transcription_seconds_limit: int
+    text_cleanup_words_limit: int
+    analysis_count_limit: int
+
+    class Config:
+        from_attributes = True
+
+
+class PlatformUsersResponse(BaseModel):
+    """Paginated list of users for platform admin."""
+
+    users: list[UserWithTenantResponse]
+    total: int
+
+
+class UserStatsResponse(BaseModel):
+    """User statistics including entry counts and quota usage."""
+
+    user_id: str
+    # Entry counts
+    transcript_count: int = 0
+    text_import_count: int = 0
+    # Quota usage
+    transcription_seconds_used: int = 0
+    text_cleanup_words_used: int = 0
+    analysis_count_used: int = 0
+    # Effective limits (min of user and tenant)
+    transcription_seconds_limit: int = 0
+    text_cleanup_words_limit: int = 0
+    analysis_count_limit: int = 0
+    # Computed quota status per resource
+    transcription_quota_status: QuotaStatus = "ok"
+    text_cleanup_quota_status: QuotaStatus = "ok"
+    analysis_quota_status: QuotaStatus = "ok"
+    # Overall quota status (worst of the three)
+    overall_quota_status: QuotaStatus = "ok"

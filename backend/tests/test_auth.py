@@ -732,3 +732,222 @@ class TestCrossTenantAccessPrevention:
 
         assert response.status_code == 403
         assert "tenant_user" in response.json()["detail"]
+
+
+class TestPlatformAdminUserManagement:
+    """Tests for platform admin user management endpoints."""
+
+    @pytest.fixture
+    def setup_platform_admin_with_users(self, test_db):
+        """Create a platform admin and users across multiple tenants."""
+        # Create platform admin tenant
+        admin_tenant = Tenant(name="Admin Tenant")
+        test_db.add(admin_tenant)
+
+        # Create another tenant with users
+        tenant_a = Tenant(name="Tenant A")
+        test_db.add(tenant_a)
+
+        tenant_b = Tenant(name="Tenant B")
+        test_db.add(tenant_b)
+
+        test_db.commit()
+        test_db.refresh(admin_tenant)
+        test_db.refresh(tenant_a)
+        test_db.refresh(tenant_b)
+
+        # Create platform admin
+        platform_admin = User(
+            email="platform-admin@test.com",
+            tenant_id=admin_tenant.id,
+            hashed_password=hash_password("admin-password"),
+            role=UserRole.platform_admin,
+            password_change_required=False,
+        )
+        test_db.add(platform_admin)
+
+        # Create users in Tenant A
+        user_a1 = User(
+            email="user-a1@test.com",
+            tenant_id=tenant_a.id,
+            hashed_password=hash_password("password"),
+            role=UserRole.tenant_user,
+            password_change_required=False,
+        )
+        test_db.add(user_a1)
+
+        user_a2 = User(
+            email="user-a2@test.com",
+            tenant_id=tenant_a.id,
+            hashed_password=hash_password("password"),
+            role=UserRole.tenant_user,
+            password_change_required=True,  # Has password reset required
+        )
+        test_db.add(user_a2)
+
+        # Create users in Tenant B
+        user_b1 = User(
+            email="user-b1@test.com",
+            tenant_id=tenant_b.id,
+            hashed_password=hash_password("password"),
+            role=UserRole.tenant_admin,
+            password_change_required=False,
+        )
+        test_db.add(user_b1)
+
+        test_db.commit()
+
+        return {
+            "admin_tenant": admin_tenant,
+            "tenant_a": tenant_a,
+            "tenant_b": tenant_b,
+            "platform_admin": platform_admin,
+            "user_a1": user_a1,
+            "user_a2": user_a2,
+            "user_b1": user_b1,
+        }
+
+    def test_list_platform_users_returns_all_tenants(
+        self, client, setup_platform_admin_with_users
+    ):
+        """Platform admin can list users from all tenants."""
+        # Login as platform admin
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "platform-admin@test.com", "password": "admin-password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # List all users
+        response = client.get(
+            "/api/admin/platform/users",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "users" in data
+        assert "total" in data
+        assert data["total"] >= 4  # At least admin + 3 users
+
+        # Verify users from different tenants are returned
+        emails = [u["email"] for u in data["users"]]
+        assert "user-a1@test.com" in emails
+        assert "user-a2@test.com" in emails
+        assert "user-b1@test.com" in emails
+
+        # Verify tenant names are included
+        user_a1 = next(u for u in data["users"] if u["email"] == "user-a1@test.com")
+        assert user_a1["tenant_name"] == "Tenant A"
+
+    def test_list_platform_users_filter_by_email(
+        self, client, setup_platform_admin_with_users
+    ):
+        """Platform admin can filter users by email."""
+        # Login as platform admin
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "platform-admin@test.com", "password": "admin-password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # Filter by email
+        response = client.get(
+            "/api/admin/platform/users",
+            params={"email": "user-a"},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        # Should only return user-a1 and user-a2
+        emails = [u["email"] for u in data["users"]]
+        assert "user-a1@test.com" in emails
+        assert "user-a2@test.com" in emails
+        assert "user-b1@test.com" not in emails
+
+    def test_list_platform_users_includes_password_change_flag(
+        self, client, setup_platform_admin_with_users
+    ):
+        """Users with password_change_required should have that flag."""
+        # Login as platform admin
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "platform-admin@test.com", "password": "admin-password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # List all users
+        response = client.get(
+            "/api/admin/platform/users",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        # user_a2 has password_change_required=True
+        user_a2 = next(u for u in data["users"] if u["email"] == "user-a2@test.com")
+        assert user_a2["password_change_required"] is True
+
+        # user_a1 does not
+        user_a1 = next(u for u in data["users"] if u["email"] == "user-a1@test.com")
+        assert user_a1["password_change_required"] is False
+
+    def test_list_platform_users_pagination(
+        self, client, setup_platform_admin_with_users
+    ):
+        """Platform users endpoint supports pagination."""
+        # Login as platform admin
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "platform-admin@test.com", "password": "admin-password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # Get first page
+        response = client.get(
+            "/api/admin/platform/users",
+            params={"limit": 2, "offset": 0},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["users"]) == 2
+        assert data["total"] >= 4  # Total should reflect all users
+
+        # Get second page
+        response2 = client.get(
+            "/api/admin/platform/users",
+            params={"limit": 2, "offset": 2},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response2.status_code == 200
+        data2 = response2.json()
+        assert len(data2["users"]) >= 1  # At least one more user
+
+        # Verify different users returned
+        page1_ids = [u["id"] for u in data["users"]]
+        page2_ids = [u["id"] for u in data2["users"]]
+        assert not any(uid in page1_ids for uid in page2_ids)
+
+    def test_tenant_admin_cannot_access_platform_users(
+        self, client, setup_platform_admin_with_users
+    ):
+        """Tenant admin should get 403 when accessing platform users endpoint."""
+        # Create a tenant admin
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "user-b1@test.com", "password": "password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # Try to list platform users
+        response = client.get(
+            "/api/admin/platform/users",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 403

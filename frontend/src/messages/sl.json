@@ -880,6 +880,72 @@
       "emptyText": "Vnesite besedilo za uvoz."
     }
   },
+  "admin": {
+    "sidebar": {
+      "admin": "Admin",
+      "users": "Uporabniki"
+    },
+    "users": {
+      "title": "Upravljanje uporabnikov",
+      "subtitle": "{count, plural, =0 {Ni uporabnikov} one {# uporabnik} two {# uporabnika} few {# uporabniki} other {# uporabnikov}}",
+      "loading": "Nalaganje...",
+      "loadingMore": "Nalaganje več...",
+      "loadMore": "Naloži več",
+      "noUsers": "Ni najdenih uporabnikov",
+      "passwordResetRequired": "Zahtevana ponastavitev",
+      "editQuota": "Uredi kvoto",
+      "loadStats": "Naloži statistiko",
+      "unlimited": "Neomejeno",
+      "entries": "Vnosi",
+      "transcripts": "transkripcij",
+      "textImports": "besedilnih uvozov",
+      "audio": "Zvok",
+      "text": "Besedilo",
+      "words": "besed",
+      "analyses": "Analiz",
+      "table": {
+        "email": "E-pošta",
+        "tenant": "Organizacija",
+        "role": "Vloga",
+        "registered": "Registriran",
+        "quota": "Kvota",
+        "actions": "Dejanja"
+      },
+      "quotaStatus": {
+        "ok": "OK",
+        "warning": "Opozorilo",
+        "critical": "Kritično"
+      },
+      "filters": {
+        "email": "E-pošta",
+        "emailPlaceholder": "Išči po e-pošti...",
+        "registeredAfter": "Registriran po",
+        "registeredBefore": "Registriran pred",
+        "quotaStatus": "Status kvote",
+        "allStatuses": "Vsi statusi",
+        "apply": "Uporabi",
+        "clear": "Počisti"
+      },
+      "editQuotaDialog": {
+        "title": "Uredi kvoto uporabnika",
+        "description": "Posodobi omejitve kvote za {email}",
+        "transcriptionSeconds": "Transkripcija (sekund)",
+        "textCleanupWords": "Čiščenje besedila (besed)",
+        "analysisCount": "Analize (število)",
+        "unlimited": "Neomejeno",
+        "secondsPlaceholder": "npr. 1800",
+        "wordsPlaceholder": "npr. 30000",
+        "countPlaceholder": "npr. 50",
+        "transcriptionHint": "1800 sekund = 30 minut",
+        "cancel": "Prekliči",
+        "save": "Shrani spremembe",
+        "saving": "Shranjevanje..."
+      },
+      "toast": {
+        "quotaUpdated": "Kvota uspešno posodobljena"
+      }
+    }
+  },
   "metadata": {
     "title": "EverSaid | Pametna transkripcija. AI posluša. Vi odločate.",
     "description": "AI čiščenje, ki ga lahko pregledate, prilagodite in mu zaupate. Vsaka sprememba vidna. Vsaka beseda preverljiva."

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
+import { useAuth } from '@/features/auth/hooks'
 import { cn } from '@/lib/utils'
 
 interface SidebarNavProps {
@@ -12,7 +13,9 @@ interface SidebarNavProps {
 
 export function SidebarNav({ onItemClick }: SidebarNavProps) {
   const t = useTranslations('dashboard')
+  const tAdmin = useTranslations('admin')
   const pathname = usePathname()
+  const { user } = useAuth()
 
   // Extract locale from pathname
   const localeMatch = pathname.match(/^\/(en|sl)/)
@@ -21,6 +24,9 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
   // Determine active section
   const isAudioActive = pathname.includes('/audio')
   const isTextActive = pathname.includes('/text')
+  const isAdminUsersActive = pathname.includes('/admin/users')
+
+  const isPlatformAdmin = user?.role === 'platform_admin'
 
   return (
     <div className="space-y-6">
@@ -45,6 +51,24 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
           />
         </div>
       </div>
+
+      {/* Admin section - only for platform admins */}
+      {isPlatformAdmin && (
+        <div>
+          <div className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+            {tAdmin('sidebar.admin')}
+          </div>
+          <div className="space-y-1">
+            <NavItem
+              href={`/${locale}/admin/users`}
+              icon={<UsersIcon />}
+              label={tAdmin('sidebar.users')}
+              isActive={isAdminUsersActive}
+              onClick={onItemClick}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -113,6 +137,25 @@ function DocumentIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      />
+    </svg>
+  )
+}
+
+function UsersIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+      className="size-5"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
       />
     </svg>
   )

@@ -880,6 +880,72 @@
       "emptyText": "Please enter some text to import."
     }
   },
+  "admin": {
+    "sidebar": {
+      "admin": "Admin",
+      "users": "Users"
+    },
+    "users": {
+      "title": "User Management",
+      "subtitle": "{count, plural, =0 {No users} one {# user} other {# users}}",
+      "loading": "Loading...",
+      "loadingMore": "Loading more...",
+      "loadMore": "Load More",
+      "noUsers": "No users found",
+      "passwordResetRequired": "Reset Required",
+      "editQuota": "Edit Quota",
+      "loadStats": "Load Stats",
+      "unlimited": "Unlimited",
+      "entries": "Entries",
+      "transcripts": "transcripts",
+      "textImports": "text imports",
+      "audio": "Audio",
+      "text": "Text",
+      "words": "words",
+      "analyses": "Analyses",
+      "table": {
+        "email": "Email",
+        "tenant": "Tenant",
+        "role": "Role",
+        "registered": "Registered",
+        "quota": "Quota",
+        "actions": "Actions"
+      },
+      "quotaStatus": {
+        "ok": "OK",
+        "warning": "Warning",
+        "critical": "Critical"
+      },
+      "filters": {
+        "email": "Email",
+        "emailPlaceholder": "Search by email...",
+        "registeredAfter": "Registered after",
+        "registeredBefore": "Registered before",
+        "quotaStatus": "Quota status",
+        "allStatuses": "All statuses",
+        "apply": "Apply",
+        "clear": "Clear"
+      },
+      "editQuotaDialog": {
+        "title": "Edit User Quota",
+        "description": "Update quota limits for {email}",
+        "transcriptionSeconds": "Transcription (seconds)",
+        "textCleanupWords": "Text cleanup (words)",
+        "analysisCount": "Analyses (count)",
+        "unlimited": "Unlimited",
+        "secondsPlaceholder": "e.g., 1800",
+        "wordsPlaceholder": "e.g., 30000",
+        "countPlaceholder": "e.g., 50",
+        "transcriptionHint": "1800 seconds = 30 minutes",
+        "cancel": "Cancel",
+        "save": "Save Changes",
+        "saving": "Saving..."
+      },
+      "toast": {
+        "quotaUpdated": "Quota updated successfully"
+      }
+    }
+  },
   "metadata": {
     "title": "EverSaid | Smart transcription. AI listens. You decide.",
     "description": "AI-powered cleanup you can review, refine, and trust. See every edit. Verify against the original audio."
