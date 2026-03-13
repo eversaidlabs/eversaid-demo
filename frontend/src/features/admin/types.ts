@@ -14,6 +14,7 @@ export type QuotaStatus = 'ok' | 'warning' | 'critical'
 
 /**
  * User with tenant information for platform admin view.
+ * Includes usage data fetched in batch to avoid N+1 queries.
  */
 export interface AdminUser {
   id: string
@@ -27,6 +28,11 @@ export interface AdminUser {
   transcription_seconds_limit: number
   text_cleanup_words_limit: number
   analysis_count_limit: number
+  // Usage fields (included in list response to avoid N+1 queries)
+  transcription_seconds_used: number
+  text_cleanup_words_used: number
+  analysis_count_used: number
+  overall_quota_status: QuotaStatus
 }
 
 /**

@@ -9,7 +9,6 @@ import {
   formatDuration,
   formatNumber,
   isUnlimited,
-  useUserStats,
 } from '@/features/admin'
 import type { AdminUser } from '@/features/admin/types'
 
@@ -21,17 +20,12 @@ interface UserRowProps {
 }
 
 /**
- * Table row for a user with lazy-loaded stats.
+ * Table row for a user with usage data.
+ * Usage data is included in the list response to avoid N+1 queries.
  */
 export function UserRow({ user, onEditQuota }: UserRowProps) {
   const t = useTranslations('admin.users')
-  const [showStats, setShowStats] = useState(false)
-
-  // Lazy load stats when row is expanded
-  const { stats, isLoading: statsLoading } = useUserStats({
-    userId: user.id,
-    enabled: showStats,
-  })
+  const [showDetails, setShowDetails] = useState(false)
 
   const formattedDate = new Date(user.created_at).toLocaleDateString()
 
@@ -70,22 +64,15 @@ export function UserRow({ user, onEditQuota }: UserRowProps) {
           <span className="text-sm text-slate-500">{formattedDate}</span>
         </td>
 
-        {/* Quota Status */}
+        {/* Quota Status - now shown immediately without lazy loading */}
         <td className="py-3 pr-2">
-          {stats ? (
-            <QuotaBadge status={stats.overall_quota_status} />
-          ) : showStats && statsLoading ? (
-            <span className="text-sm text-slate-400">{t('loading')}</span>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-auto px-2 py-1 text-xs text-slate-500"
-              onClick={() => setShowStats(true)}
-            >
-              {t('loadStats')}
-            </Button>
-          )}
+          <button
+            type="button"
+            onClick={() => setShowDetails(!showDetails)}
+            className="cursor-pointer"
+          >
+            <QuotaBadge status={user.overall_quota_status} />
+          </button>
         </td>
 
         {/* Actions */}
@@ -100,27 +87,19 @@ export function UserRow({ user, onEditQuota }: UserRowProps) {
         </td>
       </tr>
 
-      {/* Expanded stats row */}
-      {showStats && stats && (
+      {/* Expanded details row - toggles on quota badge click */}
+      {showDetails && (
         <tr className="border-b border-slate-100 bg-slate-50/30">
           <td colSpan={6} className="px-4 py-3">
             <div className="flex flex-wrap gap-6 text-sm">
-              {/* Entry counts */}
-              <div>
-                <span className="text-slate-500">{t('entries')}: </span>
-                <span className="font-medium">
-                  {stats.transcript_count} {t('transcripts')}, {stats.text_import_count} {t('textImports')}
-                </span>
-              </div>
-
               {/* Audio quota */}
               <div>
                 <span className="text-slate-500">{t('audio')}: </span>
                 <span className="font-medium">
-                  {formatDuration(stats.transcription_seconds_used)} /{' '}
-                  {isUnlimited(stats.transcription_seconds_limit)
+                  {formatDuration(user.transcription_seconds_used)} /{' '}
+                  {isUnlimited(user.transcription_seconds_limit)
                     ? t('unlimited')
-                    : formatDuration(stats.transcription_seconds_limit)}
+                    : formatDuration(user.transcription_seconds_limit)}
                 </span>
               </div>
 
@@ -128,10 +107,10 @@ export function UserRow({ user, onEditQuota }: UserRowProps) {
               <div>
                 <span className="text-slate-500">{t('text')}: </span>
                 <span className="font-medium">
-                  {formatNumber(stats.text_cleanup_words_used)} /{' '}
-                  {isUnlimited(stats.text_cleanup_words_limit)
+                  {formatNumber(user.text_cleanup_words_used)} /{' '}
+                  {isUnlimited(user.text_cleanup_words_limit)
                     ? t('unlimited')
-                    : formatNumber(stats.text_cleanup_words_limit)}{' '}
+                    : formatNumber(user.text_cleanup_words_limit)}{' '}
                   {t('words')}
                 </span>
               </div>
@@ -140,10 +119,10 @@ export function UserRow({ user, onEditQuota }: UserRowProps) {
               <div>
                 <span className="text-slate-500">{t('analyses')}: </span>
                 <span className="font-medium">
-                  {stats.analysis_count_used} /{' '}
-                  {isUnlimited(stats.analysis_count_limit)
+                  {user.analysis_count_used} /{' '}
+                  {isUnlimited(user.analysis_count_limit)
                     ? t('unlimited')
-                    : stats.analysis_count_limit}
+                    : user.analysis_count_limit}
                 </span>
               </div>
             </div>

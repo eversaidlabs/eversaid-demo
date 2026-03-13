@@ -2,6 +2,7 @@
 
 import pytest
 
+from tests.conftest import mock_batch_usage_endpoint
 from app.models.auth import AuthSession, Tenant, User, UserRole
 from app.services.auth import (
     AuthService,
@@ -808,9 +809,12 @@ class TestPlatformAdminUserManagement:
         }
 
     def test_list_platform_users_returns_all_tenants(
-        self, client, setup_platform_admin_with_users
+        self, client, setup_platform_admin_with_users, test_settings
     ):
         """Platform admin can list users from all tenants."""
+        # Mock the batch usage endpoint
+        mock_batch_usage_endpoint(test_settings)
+
         # Login as platform admin
         login_response = client.post(
             "/api/auth/login",
@@ -840,10 +844,18 @@ class TestPlatformAdminUserManagement:
         user_a1 = next(u for u in data["users"] if u["email"] == "user-a1@test.com")
         assert user_a1["tenant_name"] == "Tenant A"
 
+        # Verify new usage fields are included with default values
+        assert "transcription_seconds_used" in user_a1
+        assert "overall_quota_status" in user_a1
+        assert user_a1["overall_quota_status"] == "ok"
+
     def test_list_platform_users_filter_by_email(
-        self, client, setup_platform_admin_with_users
+        self, client, setup_platform_admin_with_users, test_settings
     ):
         """Platform admin can filter users by email."""
+        # Mock the batch usage endpoint
+        mock_batch_usage_endpoint(test_settings)
+
         # Login as platform admin
         login_response = client.post(
             "/api/auth/login",
@@ -867,9 +879,12 @@ class TestPlatformAdminUserManagement:
         assert "user-b1@test.com" not in emails
 
     def test_list_platform_users_includes_password_change_flag(
-        self, client, setup_platform_admin_with_users
+        self, client, setup_platform_admin_with_users, test_settings
     ):
         """Users with password_change_required should have that flag."""
+        # Mock the batch usage endpoint
+        mock_batch_usage_endpoint(test_settings)
+
         # Login as platform admin
         login_response = client.post(
             "/api/auth/login",
@@ -895,9 +910,12 @@ class TestPlatformAdminUserManagement:
         assert user_a1["password_change_required"] is False
 
     def test_list_platform_users_pagination(
-        self, client, setup_platform_admin_with_users
+        self, client, setup_platform_admin_with_users, test_settings
     ):
         """Platform users endpoint supports pagination."""
+        # Mock the batch usage endpoint
+        mock_batch_usage_endpoint(test_settings)
+
         # Login as platform admin
         login_response = client.post(
             "/api/auth/login",
@@ -934,9 +952,12 @@ class TestPlatformAdminUserManagement:
         assert not any(uid in page1_ids for uid in page2_ids)
 
     def test_tenant_admin_cannot_access_platform_users(
-        self, client, setup_platform_admin_with_users
+        self, client, setup_platform_admin_with_users, test_settings
     ):
         """Tenant admin should get 403 when accessing platform users endpoint."""
+        # Mock the batch usage endpoint (for consistency, though 403 should occur before API call)
+        mock_batch_usage_endpoint(test_settings)
+
         # Create a tenant admin
         login_response = client.post(
             "/api/auth/login",

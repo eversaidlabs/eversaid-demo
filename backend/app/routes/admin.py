@@ -273,8 +273,63 @@ def _worst_quota_status(statuses: list[QuotaStatus]) -> QuotaStatus:
     return "ok"
 
 
+async def _fetch_batch_usage(
+    core_api: CoreAPIClient,
+    access_token: str,
+    user_ids: list[str],
+) -> dict[str, dict]:
+    """Batch fetch usage data from Core API.
+
+    Returns a dict mapping user_id -> usage data.
+    """
+    if not user_ids:
+        return {}
+
+    try:
+        response = await core_api.request(
+            "GET",
+            "/api/v1/admin/users/usage/batch",
+            access_token=access_token,
+            params={"user_ids": user_ids},
+        )
+        if response.status_code == 200:
+            usages = response.json()
+            return {u["user_id"]: u for u in usages}
+        else:
+            logger.warning(
+                "Failed to fetch batch usage from Core API",
+                status_code=response.status_code,
+            )
+    except Exception as e:
+        logger.warning(
+            "Error fetching batch usage from Core API",
+            error=str(e),
+        )
+    return {}
+
+
+def _compute_overall_status(
+    db_user: User,
+    usage: dict,
+) -> QuotaStatus:
+    """Compute overall quota status from usage data and user limits."""
+    transcription_status = _compute_quota_status(
+        usage.get("transcription_seconds_used", 0),
+        db_user.transcription_seconds_limit,
+    )
+    text_cleanup_status = _compute_quota_status(
+        usage.get("text_cleanup_words_used", 0),
+        db_user.text_cleanup_words_limit,
+    )
+    analysis_status = _compute_quota_status(
+        usage.get("analysis_count_used", 0),
+        db_user.analysis_count_limit,
+    )
+    return _worst_quota_status([transcription_status, text_cleanup_status, analysis_status])
+
+
 @router.get("/platform/users", response_model=PlatformUsersResponse)
-def list_platform_users(
+async def list_platform_users(
     email: Optional[str] = Query(None, description="Filter by email (partial match)"),
     registered_after: Optional[date] = Query(None, description="Filter by registration date (after)"),
     registered_before: Optional[date] = Query(None, description="Filter by registration date (before)"),
@@ -285,15 +340,14 @@ def list_platform_users(
     offset: int = Query(0, ge=0, description="Number of users to skip"),
     user: AuthenticatedUser = Depends(get_platform_admin),
     db: Session = Depends(get_db),
+    core_api: CoreAPIClient = Depends(get_core_api),
 ) -> PlatformUsersResponse:
     """List all users across all tenants (platform_admin only).
 
     Supports filtering by email, registration date range, and quota status.
-    Returns users with their tenant names for display.
+    Returns users with their tenant names and usage data.
 
-    Note: quota_status filtering requires fetching usage from Core API,
-    which is done lazily per-user via the /users/{user_id}/stats endpoint.
-    For now, quota_status filter is applied client-side after fetching stats.
+    Usage data is fetched from Core API in a single batch request to avoid N+1 queries.
     """
     # Base query joining users with tenants
     query = db.query(User, Tenant.name.label("tenant_name")).join(
@@ -310,19 +364,26 @@ def list_platform_users(
     if registered_before:
         query = query.filter(func.date(User.created_at) <= registered_before)
 
-    # Note: quota_status filtering would require Core API calls for each user
-    # to get usage data. For MVP, this filter is applied client-side.
-    # In the future, we could cache usage data or add a batch endpoint.
-
     # Get total count before pagination
     total = query.count()
 
     # Apply pagination and ordering
     results = query.order_by(User.created_at.desc()).offset(offset).limit(limit).all()
 
-    # Transform to response models
+    # Batch fetch usage from Core API (single request for all users)
+    user_ids = [str(db_user.id) for db_user, _ in results]
+    usages = await _fetch_batch_usage(core_api, user.access_token, user_ids)
+
+    # Transform to response models with usage data
     users = []
     for db_user, tenant_name in results:
+        usage = usages.get(str(db_user.id), {})
+        overall_status = _compute_overall_status(db_user, usage)
+
+        # Apply quota_status filter if provided
+        if quota_status and overall_status != quota_status:
+            continue
+
         users.append(
             UserWithTenantResponse(
                 id=db_user.id,
@@ -336,8 +397,17 @@ def list_platform_users(
                 transcription_seconds_limit=db_user.transcription_seconds_limit,
                 text_cleanup_words_limit=db_user.text_cleanup_words_limit,
                 analysis_count_limit=db_user.analysis_count_limit,
+                transcription_seconds_used=usage.get("transcription_seconds_used", 0),
+                text_cleanup_words_used=usage.get("text_cleanup_words_used", 0),
+                analysis_count_used=usage.get("analysis_count_used", 0),
+                overall_quota_status=overall_status,
             )
         )
+
+    # Adjust total if quota_status filter was applied
+    # (This is approximate since we filtered after pagination)
+    if quota_status:
+        total = len(users)
 
     return PlatformUsersResponse(users=users, total=total)
 

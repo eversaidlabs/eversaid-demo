@@ -254,3 +254,43 @@ def auth_headers(test_settings: Settings) -> dict[str, str]:
     )
 
     return {"Authorization": f"Bearer {access_token}"}
+
+
+def mock_batch_usage_endpoint(
+    test_settings: Settings,
+    usage_data: dict[str, dict] | None = None,
+):
+    """Mock the Core API batch usage endpoint.
+
+    Args:
+        test_settings: Test settings with CORE_API_URL
+        usage_data: Dict mapping user_id -> usage data. If None, returns empty list.
+    """
+    import re
+    from datetime import datetime, timezone
+
+    def handler(request):
+        # Parse user_ids from query params
+        user_ids = request.url.params.getlist("user_ids")
+
+        # Build response
+        now = datetime.now(timezone.utc).isoformat()
+        result = []
+        for user_id in user_ids:
+            if usage_data and user_id in usage_data:
+                data = usage_data[user_id]
+            else:
+                data = {}
+            result.append({
+                "user_id": user_id,
+                "tenant_id": data.get("tenant_id", "00000000-0000-0000-0000-000000000000"),
+                "transcription_seconds_used": data.get("transcription_seconds_used", 0),
+                "text_cleanup_words_used": data.get("text_cleanup_words_used", 0),
+                "analysis_count_used": data.get("analysis_count_used", 0),
+                "updated_at": data.get("updated_at", now),
+            })
+        return Response(200, json=result)
+
+    respx.get(
+        re.compile(f"{re.escape(test_settings.CORE_API_URL)}/api/v1/admin/users/usage/batch.*")
+    ).mock(side_effect=handler)

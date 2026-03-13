@@ -10,6 +10,7 @@ Administrative endpoints for tenant and user management. Requires admin privileg
 | GET | `/api/admin/tenants` | Platform Admin | List tenants |
 | POST | `/api/admin/users` | Tenant Admin+ | Create user |
 | GET | `/api/admin/users` | Tenant Admin+ | List users |
+| GET | `/api/admin/platform/users` | Platform Admin | List all users with usage data |
 
 ---
 
@@ -217,3 +218,75 @@ Requires `tenant_admin` or `platform_admin` role.
 |------|-------------|
 | 401 | Token missing or expired |
 | 403 | Tenant admin accessing other tenant's users |
+
+---
+
+## GET /api/admin/platform/users
+
+List all users across all tenants with usage data and quota status. This endpoint batch-fetches usage data from Core API in a single request to avoid N+1 queries.
+
+### Authentication
+
+Requires `platform_admin` role.
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| email | string | Filter by email (partial match) |
+| registered_after | date | Filter users registered after this date |
+| registered_before | date | Filter users registered before this date |
+| quota_status | string | Filter by quota status: `ok`, `warning`, `critical` |
+| limit | integer | Max users to return (1-100, default: 50) |
+| offset | integer | Number of users to skip (default: 0) |
+
+### Response `200 OK`
+
+```json
+{
+  "users": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "user1@example.com",
+      "tenant_id": "660e8400-e29b-41d4-a716-446655440000",
+      "tenant_name": "Acme Corporation",
+      "role": "tenant_user",
+      "is_active": true,
+      "created_at": "2024-01-15T10:30:00Z",
+      "password_change_required": false,
+      "transcription_seconds_limit": 3600,
+      "text_cleanup_words_limit": 50000,
+      "analysis_count_limit": 100,
+      "transcription_seconds_used": 1800,
+      "text_cleanup_words_used": 25000,
+      "analysis_count_used": 50,
+      "overall_quota_status": "ok"
+    }
+  ],
+  "total": 150
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| users | array | List of users with tenant and usage data |
+| total | integer | Total count of users matching filters |
+| transcription_seconds_used | integer | Audio transcription seconds used |
+| text_cleanup_words_used | integer | Text cleanup words used |
+| analysis_count_used | integer | Analysis count used |
+| overall_quota_status | string | Worst status across all quotas: `ok`, `warning`, `critical` |
+
+### Quota Status Values
+
+| Status | Description |
+|--------|-------------|
+| ok | More than 20% remaining |
+| warning | 5-20% remaining |
+| critical | Less than 5% remaining |
+
+### Errors
+
+| Code | Description |
+|------|-------------|
+| 401 | Token missing or expired |
+| 403 | User is not platform_admin |

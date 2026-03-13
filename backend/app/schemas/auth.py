@@ -142,6 +142,11 @@ class UserWithTenantResponse(BaseModel):
     transcription_seconds_limit: int
     text_cleanup_words_limit: int
     analysis_count_limit: int
+    # Usage fields (included in list response to avoid N+1 queries)
+    transcription_seconds_used: int = 0
+    text_cleanup_words_used: int = 0
+    analysis_count_used: int = 0
+    overall_quota_status: QuotaStatus = "ok"
 
     class Config:
         from_attributes = True
