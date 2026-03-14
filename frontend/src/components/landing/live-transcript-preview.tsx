@@ -69,113 +69,8 @@ export const landingPageSegments: Segment[] = [
   },
 ]
 
-const animationStyles = `
-  @keyframes slideInFromLeft {
-    from {
-      opacity: 0;
-      transform: translateX(-30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-  
-  @keyframes slideInFromRight {
-    from {
-      opacity: 0;
-      transform: translateX(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-  
-  @keyframes fadeSlideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes diffFadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  
-  .animate-container {
-    animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  
-  .animate-raw-1 {
-    opacity: 0;
-    animation: slideInFromLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
-  }
-  
-  .animate-raw-2 {
-    opacity: 0;
-    animation: slideInFromLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.55s forwards;
-  }
-  
-  .animate-raw-3 {
-    opacity: 0;
-    animation: slideInFromLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards;
-  }
-  
-  .animate-cleaned-1 {
-    opacity: 0;
-    animation: slideInFromRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1s forwards;
-  }
-  
-  .animate-cleaned-2 {
-    opacity: 0;
-    animation: slideInFromRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.3s forwards;
-  }
-  
-  .animate-cleaned-3 {
-    opacity: 0;
-    animation: slideInFromRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.6s forwards;
-  }
-  
-  .animate-diff-1 [data-diff-token] {
-    opacity: 0;
-    animation: diffFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards;
-  }
-  
-  .animate-diff-2 [data-diff-token] {
-    opacity: 0;
-    animation: diffFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) 1.5s forwards;
-  }
-  
-  .animate-diff-3 [data-diff-token] {
-    opacity: 0;
-    animation: diffFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) 1.8s forwards;
-  }
-  
-  @media (prefers-reduced-motion: reduce) {
-    .animate-container,
-    .animate-raw-1, .animate-raw-2, .animate-raw-3,
-    .animate-cleaned-1, .animate-cleaned-2, .animate-cleaned-3,
-    .animate-diff-1 [data-diff-token],
-    .animate-diff-2 [data-diff-token],
-    .animate-diff-3 [data-diff-token] {
-      animation: none;
-      opacity: 1;
-      transform: none;
-    }
-  }
-`
+// Animation classes are defined in /src/app/landing-animations.css
+// Using CSS file instead of dangerouslySetInnerHTML for better performance
 
 export interface LiveTranscriptPreviewProps {
   segments?: Segment[]
@@ -562,13 +457,13 @@ export function LiveTranscriptPreview({
 
     const rawSegments = document.querySelectorAll('[data-column="raw"] [data-segment-id]')
     rawSegments.forEach((el, index) => {
-      el.classList.add(`animate-raw-${index + 1}`)
+      el.classList.add(`landing-animate-raw-${index + 1}`)
     })
 
     const cleanedSegments = document.querySelectorAll('[data-column="cleaned"] [data-segment-id]')
     cleanedSegments.forEach((el, index) => {
-      el.classList.add(`animate-cleaned-${index + 1}`)
-      el.classList.add(`animate-diff-${index + 1}`)
+      el.classList.add(`landing-animate-cleaned-${index + 1}`)
+      el.classList.add(`landing-animate-diff-${index + 1}`)
     })
   }, [hasAnimated])
 
@@ -584,13 +479,10 @@ export function LiveTranscriptPreview({
   }).length
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: animationStyles }} />
-
-      <div
-        ref={containerRef}
-        className={`bg-white rounded-3xl overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.08)] border border-border ${hasAnimated ? "animate-container" : "opacity-0"}`}
-      >
+    <div
+      ref={containerRef}
+      className={`bg-white rounded-3xl overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.08)] border border-border ${hasAnimated ? "landing-animate-container" : "opacity-0"}`}
+    >
         <TranscriptComparisonLayout
           segments={segments}
           activeSegmentId={activeSegmentIdState}
@@ -623,7 +515,6 @@ export function LiveTranscriptPreview({
           showRevertButton={true}
           showCopyButton={false}
         />
-      </div>
-    </>
+    </div>
   )
 }

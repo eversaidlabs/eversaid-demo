@@ -30,24 +30,8 @@ const chatItem: Variants = {
   },
 }
 
-// ─── CSS Keyframes (matches pattern in live-transcript-preview.tsx) ──────────
-
-const typingStyles = `
-  @keyframes comingSoonBounce {
-    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-    30% { transform: translateY(-4px); opacity: 1; }
-  }
-  .cs-typing-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #CBD5E1; animation: comingSoonBounce 1.2s 5 forwards;
-  }
-  .cs-typing-dot:nth-child(2) { animation-delay: 0.15s; }
-  .cs-typing-dot:nth-child(3) { animation-delay: 0.3s; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .cs-typing-dot { animation: none; opacity: 0.6; }
-  }
-`
+// Animation classes are defined in /src/app/landing-animations.css
+// Using CSS file instead of dangerouslySetInnerHTML for better performance
 
 // ─── Internal Sub-components ─────────────────────────────────────────────────
 
@@ -120,7 +104,6 @@ export function ComingSoonSection() {
 
   return (
     <section id="coming-soon" className="snap-start snap-always px-8 md:px-16 py-20">
-      <style dangerouslySetInnerHTML={{ __html: typingStyles }} />
 
       <div className="max-w-[960px] mx-auto w-full flex flex-col items-center">
         {/* ── Section Header ── */}
@@ -366,9 +349,9 @@ export function ComingSoonSection() {
                   <AiCardHeader label={t("chat.aiLabel")} />
                   <div className="p-3.5">
                     <div className="flex gap-1 py-1">
-                      <span className="cs-typing-dot" />
-                      <span className="cs-typing-dot" />
-                      <span className="cs-typing-dot" />
+                      <span className="landing-typing-dot" />
+                      <span className="landing-typing-dot" />
+                      <span className="landing-typing-dot" />
                     </div>
                   </div>
                 </MotionDiv>
