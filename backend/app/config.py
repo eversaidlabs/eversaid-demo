@@ -46,6 +46,7 @@ class Settings(BaseSettings):
 
     # Cookie settings
     COOKIE_DOMAIN: Optional[str] = None  # Set to ".eversaid.ai" in prod for cross-subdomain cookies
+    COOKIE_SECURE: bool = False  # Set to True in production (HTTPS required)
 
     # API Key settings (for Core API integration)
     INTERNAL_API_SECRET: str = ""  # Shared secret for internal endpoints (Core API -> EverSaid)

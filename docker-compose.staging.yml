@@ -71,8 +71,9 @@ services:
       DB_SCHEMA: ${DB_SCHEMA:-platform_staging}
       # CORS - allow staging domains
       CORS_ORIGINS: ${CORS_ORIGINS:-https://staging.eversaid.ai,https://app-staging.eversaid.ai}
-      # Cookie domain for cross-subdomain auth
+      # Cookie settings for cross-subdomain auth
       COOKIE_DOMAIN: ${COOKIE_DOMAIN:-.eversaid.ai}
+      COOKIE_SECURE: "true"
       # Analytics (PostHog) - served via /api/config
       POSTHOG_KEY: ${POSTHOG_KEY:-}
       POSTHOG_HOST: ${POSTHOG_HOST:-/ingest}

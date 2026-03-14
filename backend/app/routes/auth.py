@@ -61,7 +61,7 @@ def _set_token_cookies(response: Response, access_token: str, refresh_token: str
         max_age=COOKIE_MAX_AGE_SECONDS,
         httponly=True,
         samesite="lax",
-        secure=False,  # Set to True in production via reverse proxy
+        secure=settings.COOKIE_SECURE,
         domain=cookie_domain,
     )
     response.set_cookie(
@@ -70,7 +70,7 @@ def _set_token_cookies(response: Response, access_token: str, refresh_token: str
         max_age=COOKIE_MAX_AGE_SECONDS,
         httponly=True,
         samesite="lax",
-        secure=False,  # Set to True in production via reverse proxy
+        secure=settings.COOKIE_SECURE,
         domain=cookie_domain,
     )
 
