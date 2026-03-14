@@ -5,12 +5,15 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 
+import { Plus } from 'lucide-react'
+
 import { useAuth } from '@/features/auth/hooks'
-import { useAdminUsers, useAdminUserActions } from '@/features/admin'
+import { useAdminUsers, useAdminUserActions, useCreateUser } from '@/features/admin'
 import type { AdminUser, UserFilters } from '@/features/admin/types'
 import { UserTable } from '@/components/admin/user-table'
 import { UserFiltersComponent } from '@/components/admin/user-filters'
 import { EditQuotaDialog } from '@/components/admin/edit-quota-dialog'
+import { CreateUserDialog } from '@/components/admin/create-user-dialog'
 import { Button } from '@/components/ui/button'
 
 export default function AdminUsersPage() {
@@ -44,9 +47,19 @@ export default function AdminUsersPage() {
   const { isUpdating, updateError, updateQuota, clearError } =
     useAdminUserActions()
 
+  const {
+    isCreating,
+    createError,
+    create,
+    clearError: clearCreateError,
+  } = useCreateUser()
+
   // Edit quota dialog state
   const [editQuotaOpen, setEditQuotaOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<AdminUser | null>(null)
+
+  // Create user dialog state
+  const [createUserOpen, setCreateUserOpen] = useState(false)
 
   const handleOpenEditQuota = useCallback((user: AdminUser) => {
     setEditTarget(user)
@@ -76,6 +89,28 @@ export default function AdminUsersPage() {
       setFilters(newFilters)
     },
     [setFilters]
+  )
+
+  const handleOpenCreateUser = useCallback(() => {
+    setCreateUserOpen(true)
+    clearCreateError()
+  }, [clearCreateError])
+
+  const handleCloseCreateUser = useCallback(() => {
+    setCreateUserOpen(false)
+    // Refresh list after dialog closes (user may have been created)
+    refresh()
+  }, [refresh])
+
+  const handleCreateUser = useCallback(
+    async (data: Parameters<typeof create>[0]) => {
+      const response = await create(data)
+      if (response) {
+        toast.success(t('toast.userCreated'))
+      }
+      return response
+    },
+    [create, t]
   )
 
   // Don't render if not platform admin
@@ -118,6 +153,14 @@ export default function AdminUsersPage() {
     <div>
       <PageHeader title={t('title')} subtitle={t('subtitle', { count: total })} />
 
+      {/* Add User button */}
+      <div className="mb-6">
+        <Button onClick={handleOpenCreateUser}>
+          <Plus className="mr-2 size-4" />
+          {t('addUser')}
+        </Button>
+      </div>
+
       {/* Filters */}
       <div className="mb-6">
         <UserFiltersComponent
@@ -150,6 +193,15 @@ export default function AdminUsersPage() {
         onSave={handleSaveQuota}
         isLoading={isUpdating}
         error={updateError}
+      />
+
+      {/* Create user dialog */}
+      <CreateUserDialog
+        isOpen={createUserOpen}
+        onClose={handleCloseCreateUser}
+        onCreate={handleCreateUser}
+        isLoading={isCreating}
+        error={createError}
       />
     </div>
   )

@@ -4,7 +4,10 @@
 
 // Types
 export type {
+  AdminTenant,
   AdminUser,
+  CreateUserRequest,
+  CreateUserResponse,
   PlatformUsersResponse,
   QuotaStatus,
   UpdateUserQuotaRequest,
@@ -13,7 +16,14 @@ export type {
 } from './types'
 
 // API
-export { AdminApiError, getPlatformUsers, getUserStats, updateUserQuota } from './api'
+export {
+  AdminApiError,
+  createUser,
+  getPlatformUsers,
+  getTenants,
+  getUserStats,
+  updateUserQuota,
+} from './api'
 
 // Hooks
 export {
@@ -26,3 +36,4 @@ export {
   useUserStats,
 } from './useAdminUsers'
 export { useAdminUserActions } from './useAdminUserActions'
+export { useCreateUser } from './useCreateUser'

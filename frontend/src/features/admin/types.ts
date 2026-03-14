@@ -5,6 +5,32 @@
 import type { UserRole } from '@/features/auth/types'
 
 /**
+ * Tenant (organization) for user creation dropdown.
+ */
+export interface AdminTenant {
+  id: string
+  name: string
+}
+
+/**
+ * Request to create a new user.
+ */
+export interface CreateUserRequest {
+  email: string
+  tenant_id?: string // Required for platform_admin, auto-filled for tenant_admin
+  role: UserRole
+  password?: string // Generated if not provided
+}
+
+/**
+ * Response from creating a user.
+ */
+export interface CreateUserResponse {
+  user: AdminUser
+  temporary_password: string
+}
+
+/**
  * Quota status indicator based on usage percentage.
  * - ok: >20% remaining
  * - warning: 5-20% remaining

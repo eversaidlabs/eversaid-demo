@@ -941,8 +941,40 @@
         "save": "Save Changes",
         "saving": "Saving..."
       },
+      "addUser": "Add User",
+      "createUserDialog": {
+        "title": "Create New User",
+        "description": "Add a new user to the platform. They will receive a temporary password.",
+        "email": "Email",
+        "emailPlaceholder": "user@example.com",
+        "tenant": "Tenant",
+        "selectTenant": "Select a tenant",
+        "loadingTenants": "Loading tenants...",
+        "role": "Role",
+        "roleHint": "Tenant admins can only create regular users",
+        "roles": {
+          "tenantUser": "User",
+          "tenantAdmin": "Tenant Admin",
+          "platformAdmin": "Platform Admin"
+        },
+        "password": "Password",
+        "optional": "optional",
+        "passwordPlaceholder": "Leave empty to auto-generate",
+        "passwordHint": "If left empty, a secure password will be generated automatically",
+        "cancel": "Cancel",
+        "create": "Create User",
+        "creating": "Creating...",
+        "successTitle": "User Created",
+        "successDescription": "The account for {email} has been created.",
+        "temporaryPassword": "Temporary Password",
+        "copy": "Copy",
+        "copied": "Copied",
+        "passwordWarning": "Save this password now. The user will be required to change it on first login.",
+        "done": "Done"
+      },
       "toast": {
-        "quotaUpdated": "Quota updated successfully"
+        "quotaUpdated": "Quota updated successfully",
+        "userCreated": "User created successfully"
       }
     }
   },

@@ -75,18 +75,18 @@ def create_user(
 
     - Platform admins can create users in any tenant and assign any role.
     - Tenant admins can only create users in their own tenant with tenant_user role.
+    - If no tenant_id is provided, uses the default tenant.
     """
     auth_service = AuthService(db)
 
     # Determine tenant_id based on caller's role
     if user.role == UserRole.platform_admin.value:
-        # Platform admin must specify tenant_id
-        if not body.tenant_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="tenant_id is required for platform admin",
-            )
-        tenant_id = body.tenant_id
+        # Platform admin: use provided tenant_id or default tenant
+        if body.tenant_id:
+            tenant_id = body.tenant_id
+        else:
+            default_tenant = auth_service.get_or_create_default_tenant()
+            tenant_id = str(default_tenant.id)
         # Platform admin can assign any role
         role = body.role
     else:

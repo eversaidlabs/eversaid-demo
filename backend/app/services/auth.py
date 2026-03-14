@@ -20,6 +20,9 @@ from app.utils.jwt import (
 )
 from app.utils.security import hash_password, verify_password
 
+# Default tenant for all regular users (non-anonymous)
+DEFAULT_TENANT_NAME = "EverSaid"
+
 
 class AuthenticationError(Exception):
     """Base exception for authentication errors."""
@@ -326,6 +329,17 @@ class AuthService:
         self.db.add(tenant)
         self.db.commit()
         self.db.refresh(tenant)
+        return tenant
+
+    def get_or_create_default_tenant(self) -> Tenant:
+        """Get the default tenant, creating it if it doesn't exist.
+
+        Returns:
+            The default tenant.
+        """
+        tenant = self.db.query(Tenant).filter(Tenant.name == DEFAULT_TENANT_NAME).first()
+        if not tenant:
+            tenant = self.create_tenant(DEFAULT_TENANT_NAME)
         return tenant
 
     def create_user(

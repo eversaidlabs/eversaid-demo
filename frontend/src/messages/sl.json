@@ -941,8 +941,40 @@
         "save": "Shrani spremembe",
         "saving": "Shranjevanje..."
       },
+      "addUser": "Dodaj uporabnika",
+      "createUserDialog": {
+        "title": "Ustvari novega uporabnika",
+        "description": "Dodajte novega uporabnika na platformo. Prejel bo začasno geslo.",
+        "email": "E-pošta",
+        "emailPlaceholder": "uporabnik@primer.si",
+        "tenant": "Organizacija",
+        "selectTenant": "Izberite organizacijo",
+        "loadingTenants": "Nalaganje organizacij...",
+        "role": "Vloga",
+        "roleHint": "Skrbniki organizacije lahko ustvarijo le običajne uporabnike",
+        "roles": {
+          "tenantUser": "Uporabnik",
+          "tenantAdmin": "Skrbnik organizacije",
+          "platformAdmin": "Skrbnik platforme"
+        },
+        "password": "Geslo",
+        "optional": "neobvezno",
+        "passwordPlaceholder": "Pustite prazno za samodejno generiranje",
+        "passwordHint": "Če pustite prazno, bo varno geslo generirano samodejno",
+        "cancel": "Prekliči",
+        "create": "Ustvari uporabnika",
+        "creating": "Ustvarjanje...",
+        "successTitle": "Uporabnik ustvarjen",
+        "successDescription": "Račun za {email} je bil ustvarjen.",
+        "temporaryPassword": "Začasno geslo",
+        "copy": "Kopiraj",
+        "copied": "Kopirano",
+        "passwordWarning": "Shranite to geslo zdaj. Uporabnik ga bo moral spremeniti ob prvi prijavi.",
+        "done": "Končano"
+      },
       "toast": {
-        "quotaUpdated": "Kvota uspešno posodobljena"
+        "quotaUpdated": "Kvota uspešno posodobljena",
+        "userCreated": "Uporabnik uspešno ustvarjen"
       }
     }
   },

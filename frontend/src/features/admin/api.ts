@@ -5,6 +5,9 @@
 import { getAccessToken } from '@/lib/auth'
 
 import type {
+  AdminTenant,
+  CreateUserRequest,
+  CreateUserResponse,
   PlatformUsersResponse,
   UpdateUserQuotaRequest,
   UserFilters,
@@ -139,4 +142,53 @@ export async function updateUserQuota(
     }
     throw new AdminApiError(response.status, errorMessage)
   }
+}
+
+/**
+ * Fetch all tenants (platform admin only).
+ */
+export async function getTenants(): Promise<AdminTenant[]> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/tenants`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    let errorMessage = 'Failed to fetch tenants'
+    try {
+      const errorBody = await response.json()
+      errorMessage = errorBody.detail || errorMessage
+    } catch {
+      errorMessage = response.statusText || errorMessage
+    }
+    throw new AdminApiError(response.status, errorMessage)
+  }
+
+  return response.json()
+}
+
+/**
+ * Create a new user.
+ */
+export async function createUser(
+  data: CreateUserRequest
+): Promise<CreateUserResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    let errorMessage = 'Failed to create user'
+    try {
+      const errorBody = await response.json()
+      errorMessage = errorBody.detail || errorMessage
+    } catch {
+      errorMessage = response.statusText || errorMessage
+    }
+    throw new AdminApiError(response.status, errorMessage)
+  }
+
+  return response.json()
 }
