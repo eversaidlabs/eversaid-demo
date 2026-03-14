@@ -18,9 +18,9 @@ export function HeroTranscript() {
       <style jsx>{`
         .removed {
           display: inline;
-          color: rgba(255, 255, 255, 0.45);
+          color: rgba(255, 255, 255, 0.15);
           position: relative;
-          animation: strikeWord 8s ease-in-out infinite;
+          animation: strikeWord 8s ease-in-out 3 forwards;
         }
 
         .removed::after {
@@ -31,21 +31,21 @@ export function HeroTranscript() {
           top: 50%;
           height: 2px;
           background: rgba(239, 68, 68, 0.6);
-          transform: scaleX(0);
+          transform: scaleX(1);
           transform-origin: left;
-          animation: strikeLine 8s ease-in-out infinite;
+          animation: strikeLine 8s ease-in-out 3 forwards;
         }
 
         @keyframes strikeWord {
           0%, 10% { color: rgba(255, 255, 255, 0.45); }
           25%, 80% { color: rgba(255, 255, 255, 0.15); }
-          95%, 100% { color: rgba(255, 255, 255, 0.45); }
+          95%, 100% { color: rgba(255, 255, 255, 0.15); }
         }
 
         @keyframes strikeLine {
           0%, 10% { transform: scaleX(0); }
           25%, 80% { transform: scaleX(1); }
-          95%, 100% { transform: scaleX(0); }
+          95%, 100% { transform: scaleX(1); }
         }
 
         .removed:nth-of-type(1), .removed:nth-of-type(1)::after { animation-delay: 0s; }
@@ -60,7 +60,7 @@ export function HeroTranscript() {
           display: inline;
           color: rgba(255, 255, 255, 0.92);
           position: relative;
-          animation: addWord 8s ease-in-out infinite;
+          animation: addWord 8s ease-in-out 3 forwards;
         }
 
         .added::before {
@@ -70,20 +70,36 @@ export function HeroTranscript() {
           background: rgba(74, 222, 128, 0.15);
           border-radius: 4px;
           opacity: 0;
-          animation: addBg 8s ease-in-out infinite;
+          animation: addBg 8s ease-in-out 3 forwards;
         }
 
         @keyframes addWord {
           0%, 15% { opacity: 0; }
           30% { opacity: 1; color: #4ade80; }
           50%, 80% { opacity: 1; color: rgba(255, 255, 255, 0.92); }
-          95%, 100% { opacity: 0; }
+          95%, 100% { opacity: 1; color: rgba(255, 255, 255, 0.92); }
         }
 
         @keyframes addBg {
           0%, 15% { opacity: 0; }
           30% { opacity: 1; }
           50%, 100% { opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .removed, .removed::after, .added, .added::before {
+            animation: none;
+          }
+          .removed {
+            color: rgba(255, 255, 255, 0.15);
+          }
+          .removed::after {
+            transform: scaleX(1);
+          }
+          .added {
+            opacity: 1;
+            color: rgba(255, 255, 255, 0.92);
+          }
         }
 
         @media (max-width: 1024px) {

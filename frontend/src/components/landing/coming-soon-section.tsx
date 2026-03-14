@@ -39,7 +39,7 @@ const typingStyles = `
   }
   .cs-typing-dot {
     width: 6px; height: 6px; border-radius: 50%;
-    background: #CBD5E1; animation: comingSoonBounce 1.2s infinite;
+    background: #CBD5E1; animation: comingSoonBounce 1.2s 5 forwards;
   }
   .cs-typing-dot:nth-child(2) { animation-delay: 0.15s; }
   .cs-typing-dot:nth-child(3) { animation-delay: 0.3s; }
