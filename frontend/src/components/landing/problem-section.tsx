@@ -2,7 +2,8 @@
 
 import { useTranslations } from "next-intl"
 import { MotionDiv } from "@/components/motion"
-import { fadeUp, sectionHeader, sectionSubtitle, staggerContainer, staggerItem } from "@/lib/animation-variants"
+import { useAnimationVariants } from "@/lib/animation-variants"
+import type { Variants } from "motion/react"
 
 // ─── Comparison Item Component ────────────────────────────────────────────────
 
@@ -11,13 +12,14 @@ interface ComparisonItemProps {
   title: string
   description: string
   variant: "without" | "with"
+  itemVariants: Variants
 }
 
-function ComparisonItem({ emoji, title, description, variant }: ComparisonItemProps) {
+function ComparisonItem({ emoji, title, description, variant, itemVariants }: ComparisonItemProps) {
   const isWithout = variant === "without"
 
   return (
-    <MotionDiv variants={staggerItem} className="flex gap-4 items-start">
+    <MotionDiv variants={itemVariants} className="flex gap-4 items-start">
       <span
         className={`w-12 h-12 rounded-[14px] flex items-center justify-center text-2xl shrink-0 ${
           isWithout ? "bg-red-600/10" : "bg-green-600/10"
@@ -49,6 +51,7 @@ function ComparisonItem({ emoji, title, description, variant }: ComparisonItemPr
 
 export function ProblemSection() {
   const t = useTranslations("landing.problem")
+  const { fadeUp, sectionHeader, sectionSubtitle, staggerContainer, staggerItem } = useAnimationVariants()
 
   return (
     <section className="snap-start snap-always min-h-screen flex items-center px-8 md:px-16 pt-24 pb-16 bg-[#F8FAFC]">
@@ -105,24 +108,28 @@ export function ProblemSection() {
                 title={t("without.item1.title")}
                 description={t("without.item1.description")}
                 variant="without"
+                itemVariants={staggerItem}
               />
               <ComparisonItem
                 emoji="⏰"
                 title={t("without.item2.title")}
                 description={t("without.item2.description")}
                 variant="without"
+                itemVariants={staggerItem}
               />
               <ComparisonItem
                 emoji="🤷"
                 title={t("without.item3.title")}
                 description={t("without.item3.description")}
                 variant="without"
+                itemVariants={staggerItem}
               />
               <ComparisonItem
                 emoji="🔓"
                 title={t("without.item4.title")}
                 description={t("without.item4.description")}
                 variant="without"
+                itemVariants={staggerItem}
               />
             </div>
           </MotionDiv>
@@ -154,24 +161,28 @@ export function ProblemSection() {
                 title={t("with.item1.title")}
                 description={t("with.item1.description")}
                 variant="with"
+                itemVariants={staggerItem}
               />
               <ComparisonItem
                 emoji="⚡"
                 title={t("with.item2.title")}
                 description={t("with.item2.description")}
                 variant="with"
+                itemVariants={staggerItem}
               />
               <ComparisonItem
                 emoji="👁️"
                 title={t("with.item3.title")}
                 description={t("with.item3.description")}
                 variant="with"
+                itemVariants={staggerItem}
               />
               <ComparisonItem
                 emoji="🔒"
                 title={t("with.item4.title")}
                 description={t("with.item4.description")}
                 variant="with"
+                itemVariants={staggerItem}
               />
             </div>
           </MotionDiv>

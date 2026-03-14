@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl"
 import { MotionDiv } from "@/components/motion"
-import { fadeUp, sectionHeader, sectionSubtitle } from "@/lib/animation-variants"
+import { useAnimationVariants } from "@/lib/animation-variants"
 import type { Variants } from "motion/react"
 
 // ─── Animation Variants ─────────────────────────────────────────────────────
@@ -101,6 +101,7 @@ function AiCardHeader({ label }: { label: string }) {
 
 export function ComingSoonSection() {
   const t = useTranslations("landing.comingSoon")
+  const { fadeUp, sectionHeader, sectionSubtitle } = useAnimationVariants()
 
   return (
     <section id="coming-soon" className="snap-start snap-always px-8 md:px-16 py-20">

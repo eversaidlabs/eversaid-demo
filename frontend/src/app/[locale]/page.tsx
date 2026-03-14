@@ -12,25 +12,28 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { MotionDiv } from "@/components/motion"
 import { SectionDivider, DIVIDER_COLORS } from "@/components/landing/section-divider"
 import { ProblemSection } from "@/components/landing/problem-section"
-import {
-  heroTitle,
-  heroSubtitle,
-  heroCta,
-  heroNote,
-  sectionHeader,
-  sectionSubtitle,
-  staggerContainer,
-  cardItem,
-  fadeUp,
-  scaleFade,
-  stepsContainer,
-  stepItem,
-} from "@/lib/animation-variants"
+import { useAnimationVariants } from "@/lib/animation-variants"
 
 export default function HomePage() {
   const t = useTranslations('landing')
   const tNav = useTranslations('navigation')
   const tRoot = useTranslations()
+
+  // Animation variants (respects prefers-reduced-motion)
+  const {
+    heroTitle,
+    heroSubtitle,
+    heroCta,
+    heroNote,
+    sectionHeader,
+    sectionSubtitle,
+    staggerContainer,
+    cardItem,
+    fadeUp,
+    scaleFade,
+    stepsContainer,
+    stepItem,
+  } = useAnimationVariants()
 
   // Header scroll state
   const [isScrolled, setIsScrolled] = useState(false)
