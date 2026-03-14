@@ -16,20 +16,23 @@ Two user modes:
 
 ### Frontend (in `frontend/`)
 ```bash
-npm run dev          # Start dev server (port 3000)
-npm run build        # Production build
-npm run lint         # ESLint
-npm run test         # Vitest watch mode
-npm run test:run     # Vitest single run
-npm run test:coverage # Vitest with coverage
-npm run test:e2e     # Playwright E2E tests (headless)
-npm run test:e2e:ui  # Playwright interactive UI mode
-npm run storybook    # Component development (port 6006)
+npm install                                  # Install dependencies
+npm run dev                                  # Start dev server (port 3000)
+npm run build                                # Production build
+npm run lint                                 # ESLint
+npm run test                                 # Vitest watch mode
+npm run test:run                             # Vitest single run
+npm run test -- src/lib/diff-utils.test.ts   # Run single test file
+npm run test:coverage                        # Vitest with coverage
+npm run test:e2e                             # Playwright E2E tests (headless)
+npm run test:e2e:ui                          # Playwright interactive UI mode
+npm run storybook                            # Component development (port 6006)
 ```
 
 ### Backend (in `backend/`)
 ```bash
-uvicorn app.main:app --reload --port 8001   # Start dev server
+pip install -r requirements-dev.txt          # Install dependencies (includes test deps)
+uvicorn app.main:app --reload --port 8001    # Start dev server
 pytest tests/ -v                             # Run all tests
 pytest tests/test_session.py -v              # Run single test file
 pytest tests/ -k "test_name" -v              # Run tests matching pattern

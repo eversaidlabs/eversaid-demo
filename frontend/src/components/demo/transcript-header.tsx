@@ -2,7 +2,7 @@
 import { useState, useRef } from "react"
 import type { Segment } from "@/components/demo/types"
 import type { ModelInfo, CleanupType, CleanupSummary } from "@/features/transcription/types"
-import { Eye, EyeOff, Copy, Loader2, Check, Info } from "lucide-react"
+import { Eye, EyeOff, Copy, Loader2, Check, Info, PanelLeftClose, PanelLeft } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { capture } from "@/lib/analytics"
@@ -121,6 +121,14 @@ export interface TranscriptHeaderProps {
   showCopyButton?: boolean
   /** Cleanup options (only for AI CLEANED header) */
   cleanupOptions?: CleanupOptionsProps
+  /** Show collapse button (for raw column) */
+  showCollapseButton?: boolean
+  /** Callback when collapse button is clicked */
+  onCollapse?: () => void
+  /** Show expand button (for cleaned column when raw is collapsed) */
+  showExpandButton?: boolean
+  /** Callback when expand button is clicked */
+  onExpand?: () => void
 }
 
 export function TranscriptHeader({
@@ -132,6 +140,10 @@ export function TranscriptHeader({
   onToggleDiff,
   showCopyButton = true,
   cleanupOptions,
+  showCollapseButton = false,
+  onCollapse,
+  showExpandButton = false,
+  onExpand,
 }: TranscriptHeaderProps) {
   const t = useTranslations("demo.cleanup")
   const [showCompareModal, setShowCompareModal] = useState(false)
@@ -195,6 +207,30 @@ export function TranscriptHeader({
       <div className="flex justify-between items-center w-full">
         <div className="flex items-center gap-3">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-[1px]">{title}</span>
+
+          {/* Collapse button for raw column */}
+          {showCollapseButton && onCollapse && (
+            <button
+              onClick={onCollapse}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border bg-background hover:bg-secondary text-xs font-medium text-foreground/70 hover:text-foreground transition-colors"
+              aria-label="Hide original"
+            >
+              <PanelLeftClose className="w-3.5 h-3.5" />
+              Hide
+            </button>
+          )}
+
+          {/* Expand button for cleaned column when raw is collapsed */}
+          {showExpandButton && onExpand && (
+            <button
+              onClick={onExpand}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Show original"
+            >
+              <PanelLeft className="w-3.5 h-3.5" />
+              Show original
+            </button>
+          )}
 
           {/* Cleanup options */}
           {cleanupOptions && (

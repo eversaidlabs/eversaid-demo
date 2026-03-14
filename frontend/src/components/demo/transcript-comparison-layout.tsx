@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import { RawSegmentList } from "./raw-segment-list"
 import { EditableSegmentList } from "./editable-segment-list"
@@ -88,8 +88,24 @@ export function TranscriptComparisonLayout({
   const cleanedScrollRef = useRef<HTMLDivElement>(null)
   const isSyncingScrollRef = useRef(false)
 
+  // Collapse state with localStorage persistence
+  const [isRawCollapsed, setIsRawCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('eversaid_raw_column_collapsed') === 'true'
+  })
+
+  const handleCollapse = useCallback(() => {
+    setIsRawCollapsed(true)
+    localStorage.setItem('eversaid_raw_column_collapsed', 'true')
+  }, [])
+
+  const handleExpand = useCallback(() => {
+    setIsRawCollapsed(false)
+    localStorage.setItem('eversaid_raw_column_collapsed', 'false')
+  }, [])
+
   const handleRawScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (isSyncingScrollRef.current) return
+    if (isSyncingScrollRef.current || isRawCollapsed) return
 
     const rawEl = e.currentTarget
     const cleanedEl = cleanedScrollRef.current
@@ -112,7 +128,7 @@ export function TranscriptComparisonLayout({
   }
 
   const handleCleanedScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (isSyncingScrollRef.current) return
+    if (isSyncingScrollRef.current || isRawCollapsed) return
 
     const cleanedEl = e.currentTarget
     const rawEl = rawScrollRef.current
@@ -136,6 +152,9 @@ export function TranscriptComparisonLayout({
 
   // Sync heights of corresponding segments so they align horizontally
   useEffect(() => {
+    // Skip height sync when raw column is collapsed
+    if (isRawCollapsed) return
+
     const syncHeights = () => {
       segments.forEach((seg) => {
         const rawEl = rawScrollRef.current?.querySelector(`[data-segment-id="${seg.id}"]`) as HTMLElement | null
@@ -164,17 +183,21 @@ export function TranscriptComparisonLayout({
     // Re-sync on window resize
     window.addEventListener('resize', syncHeights)
     return () => window.removeEventListener('resize', syncHeights)
-  }, [segments, showDiff, editingSegmentId])
+  }, [segments, showDiff, editingSegmentId, isRawCollapsed])
 
   return (
     <div className="relative flex flex-col flex-1 min-h-0 h-full">
-      <div className="grid grid-cols-2 border-b border-border flex-shrink-0">
-        <TranscriptHeader
-          title={t('rawTitle')}
-          segments={segments}
-          textKey="rawText"
-          showCopyButton={showCopyButton}
-        />
+      <div className={`${isRawCollapsed ? '' : 'grid grid-cols-2'} border-b border-border flex-shrink-0`}>
+        {!isRawCollapsed && (
+          <TranscriptHeader
+            title={t('rawTitle')}
+            segments={segments}
+            textKey="rawText"
+            showCopyButton={showCopyButton}
+            showCollapseButton
+            onCollapse={handleCollapse}
+          />
+        )}
         <TranscriptHeader
           title={t('cleanedTitle')}
           segments={segments}
@@ -184,25 +207,29 @@ export function TranscriptComparisonLayout({
           onToggleDiff={onToggleDiff}
           showCopyButton={showCopyButton}
           cleanupOptions={cleanupOptions}
+          showExpandButton={isRawCollapsed}
+          onExpand={handleExpand}
         />
       </div>
 
-      <div className="grid grid-cols-2 overflow-hidden flex-1 min-h-0">
-        <RawSegmentList
-          ref={rawScrollRef}
-          segments={segments}
-          activeSegmentId={activeSegmentId}
-          showSpeakerLabels={showSpeakerLabels}
-          isSelectingMoveTarget={isSelectingMoveTarget && textMoveSelection?.sourceColumn === "raw"}
-          moveSourceSegmentId={textMoveSelection?.sourceColumn === "raw" ? textMoveSelection.sourceSegmentId : null}
-          activeWordIndex={activeWordIndex}
-          isPlaying={isPlaying}
-          onSegmentClick={
-            isSelectingMoveTarget && textMoveSelection?.sourceColumn === "raw" ? onRawMoveTargetClick : onSegmentClick
-          }
-          onTextSelect={onRawTextSelect}
-          onScroll={handleRawScroll}
-        />
+      <div className={`${isRawCollapsed ? '' : 'grid grid-cols-2'} overflow-hidden flex-1 min-h-0`}>
+        {!isRawCollapsed && (
+          <RawSegmentList
+            ref={rawScrollRef}
+            segments={segments}
+            activeSegmentId={activeSegmentId}
+            showSpeakerLabels={showSpeakerLabels}
+            isSelectingMoveTarget={isSelectingMoveTarget && textMoveSelection?.sourceColumn === "raw"}
+            moveSourceSegmentId={textMoveSelection?.sourceColumn === "raw" ? textMoveSelection.sourceSegmentId : null}
+            activeWordIndex={activeWordIndex}
+            isPlaying={isPlaying}
+            onSegmentClick={
+              isSelectingMoveTarget && textMoveSelection?.sourceColumn === "raw" ? onRawMoveTargetClick : onSegmentClick
+            }
+            onTextSelect={onRawTextSelect}
+            onScroll={handleRawScroll}
+          />
+        )}
         <EditableSegmentList
           ref={cleanedScrollRef}
           segments={segments}

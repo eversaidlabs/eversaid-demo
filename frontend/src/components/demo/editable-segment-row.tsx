@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useRef, useEffect } from "react"
-import { RotateCcw, Check, X, Undo2 } from "lucide-react"
+import { RotateCcw, Undo2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { SpellcheckError } from "./types"
 import { DiffSegmentDisplay } from "./diff-segment-display"
@@ -210,45 +210,24 @@ export function EditableSegmentRow({
               </span>
             )}
           </div>
-          {showRevertButton && (
+          {showRevertButton && !isEditing && (
             <div className="flex gap-2">
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={onSave}
-                    className="flex items-center gap-1 px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-md text-[11px] font-semibold text-emerald-700 transition-all"
-                  >
-                    <Check className="w-3 h-3" />
-                    Save
-                  </button>
-                  <button
-                    onClick={onEditCancel}
-                    className="flex items-center gap-1 px-2.5 py-1 bg-background hover:bg-secondary border border-border rounded-md text-[11px] font-semibold text-muted-foreground transition-all"
-                  >
-                    <X className="w-3 h-3" />
-                    Cancel
-                  </button>
-                </>
+              {isReverted ? (
+                <button
+                  onClick={onUndoRevert}
+                  className="flex items-center justify-center w-7 h-7 bg-blue-100 hover:bg-blue-200 border border-blue-300 rounded-md text-blue-700 transition-all"
+                  aria-label="Undo revert"
+                >
+                  <Undo2 className="w-3.5 h-3.5" />
+                </button>
               ) : (
-                <>
-                  {isReverted ? (
-                    <button
-                      onClick={onUndoRevert}
-                      className="flex items-center justify-center w-7 h-7 bg-blue-100 hover:bg-blue-200 border border-blue-300 rounded-md text-blue-700 transition-all"
-                      aria-label="Undo revert"
-                    >
-                      <Undo2 className="w-3.5 h-3.5" />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={onRevert}
-                      className="flex items-center justify-center w-7 h-7 bg-background hover:bg-red-50 border border-border hover:border-red-300 rounded-md text-muted-foreground hover:text-red-600 transition-all"
-                      aria-label="Revert to original"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </>
+                <button
+                  onClick={onRevert}
+                  className="flex items-center justify-center w-7 h-7 bg-background hover:bg-red-50 border border-border hover:border-red-300 rounded-md text-muted-foreground hover:text-red-600 transition-all"
+                  aria-label="Revert to original"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
               )}
             </div>
           )}
@@ -259,13 +238,27 @@ export function EditableSegmentRow({
             ref={textareaRef}
             value={editedText}
             onChange={(e) => onTextChange(e.target.value)}
-            onDoubleClick={onEditStart}
-            className="w-full text-[15px] leading-[1.7] text-foreground p-4 rounded-lg border-2 border-primary bg-background font-inherit overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-sm"
+            onBlur={() => {
+              // Auto-save on blur if there are changes
+              if (editedText !== text) {
+                onSave()
+              } else {
+                onEditCancel()
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.preventDefault()
+                onEditCancel()
+              }
+            }}
+            className="w-full text-[15px] leading-[1.7] text-foreground bg-blue-50/30 rounded-md p-0 border-0 font-inherit overflow-hidden focus:outline-none focus:ring-0 caret-primary"
             style={{
               fontFamily: "inherit",
-              minHeight: "60px",
+              minHeight: "24px",
               resize: "none"
             }}
+            autoFocus
           />
         ) : (
           <div className="text-[15px] leading-[1.7] text-foreground select-text" onDoubleClick={onEditStart}>
