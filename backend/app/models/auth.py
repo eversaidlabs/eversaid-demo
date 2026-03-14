@@ -12,10 +12,14 @@ from app.models.core import generate_uuid, utc_now
 # Max signed 32-bit int - "effectively unlimited" value for quotas
 MAX_QUOTA_LIMIT = 2147483647
 
-# Default pilot limits
+# Default limits for account users (monthly reset on 1st of month)
 DEFAULT_TRANSCRIPTION_SECONDS = 1800   # 30 minutes
-DEFAULT_TEXT_CLEANUP_WORDS = 30000     # 30k words
-DEFAULT_ANALYSIS_COUNT = 50            # 50 analyses
+DEFAULT_TEXT_CLEANUP_WORDS = 50000     # 50k words
+DEFAULT_ANALYSIS_COUNT = MAX_QUOTA_LIMIT  # Unlimited analyses
+
+# Demo mode limits (reset when session expires after 30 days)
+DEMO_TRANSCRIPTION_SECONDS = 900       # 15 minutes
+DEMO_TEXT_CLEANUP_WORDS = 10000        # 10k words
 
 DB_SCHEMA = get_settings().DB_SCHEMA
 
