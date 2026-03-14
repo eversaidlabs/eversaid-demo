@@ -1,7 +1,7 @@
 "use client"
 import { useTranslations } from "next-intl"
 import { X, Check } from "lucide-react"
-import { CLEANUP_LEVELS, DEFAULT_CLEANUP_LEVEL, VISIBLE_CLEANUP_LEVELS, DISABLED_CLEANUP_LEVELS } from "@/lib/level-config"
+import { DEFAULT_CLEANUP_LEVEL, VISIBLE_CLEANUP_LEVELS, DISABLED_CLEANUP_LEVELS } from "@/lib/level-config"
 import type { CleanupType } from "@/features/transcription/types"
 
 // Wrapper to use parent translations

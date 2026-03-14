@@ -558,7 +558,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions): UseAudioPlayerRe
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setBlobUrl(null)
       }
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoadingAudio(false)
     }
   }, [requiresAuth, audioUrl]) // eslint-disable-line react-hooks/exhaustive-deps

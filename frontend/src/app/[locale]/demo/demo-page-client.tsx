@@ -49,7 +49,8 @@ import { capture } from "@/lib/analytics"
 
 // Singleton promise for session initialization - prevents concurrent calls
 // from Suspense/hydration remounts while allowing re-init after navigation
-let sessionInitPromise: Promise<void> | null = null
+// NOTE: Currently unused but kept for future session initialization needs
+const _sessionInitPromise: Promise<void> | null = null
 
 // LocalStorage key for persisting model selection per-entry
 const STORAGE_KEY_MODEL_SELECTION = 'eversaid_model_selection'
@@ -302,6 +303,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcription.segments.length, transcription.reset])
 
   // Load entry from URL query param on mount
@@ -323,6 +325,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       // Demo entries detected by "demo-*" ID pattern
       transcription.loadEntry(entryId, turnstile.getToken())
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionReady, searchParams, transcription.entryId, transcription.status, transcription.loadEntry, turnstile.isEnabled, turnstile.token, turnstile.getToken])
 
   // Update URL when entry is loaded (creates browser history entry)
@@ -679,6 +682,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       setSelectedCleanupModel(previousModel)
       toast.error(t('demo.cleanup.modelChangeFailed'))
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcription, selectedCleanupLevel, selectedCleanupModel, cleanupCache, selectedCleanupTemp, turnstile, t])
 
   // Handler for cleanup level change - uses cached cleanup if available
@@ -733,6 +737,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       setSelectedCleanupLevel(previousLevel)
       toast.error(t('demo.cleanup.levelChangeFailed'))
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcription, selectedCleanupModel, selectedCleanupLevel, cleanupCache, hasManualCleanupModelSelection, selectedCleanupTemp, turnstile, t])
 
   // Handler for temperature change - uses cached cleanup if available
@@ -988,7 +993,8 @@ function DemoPageContent({ config }: DemoPageContentProps) {
   }, [audioPlayer.isPlaying, audioPlayer.activeSegmentId])
 
   // Waitlist Handlers
-  const handleOpenWaitlist = useCallback((type: "extended_usage" | "api_access" = "extended_usage") => {
+  // NOTE: Currently unused but kept for future waitlist trigger scenarios
+  const _handleOpenWaitlist = useCallback((type: "extended_usage" | "api_access" = "extended_usage") => {
     capture('waitlist_form_opened')
     setWaitlistType(type)
     setWaitlistState("form")

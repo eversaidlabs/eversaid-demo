@@ -56,7 +56,7 @@ export interface EntryDetailContainerProps {
 export function EntryDetailContainer({
   entryId,
   entryType,
-  locale,
+  locale: _locale,
   onClose,
 }: EntryDetailContainerProps) {
   const t = useTranslations('dashboard')
@@ -69,6 +69,7 @@ export function EntryDetailContainer({
     if (entryId && transcription.status === 'idle') {
       transcription.loadEntry(entryId)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entryId, transcription.status, transcription.loadEntry])
 
   // Audio playback hook (only for audio entries) with authenticated audio

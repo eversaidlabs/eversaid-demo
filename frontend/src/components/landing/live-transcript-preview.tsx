@@ -520,7 +520,8 @@ export function LiveTranscriptPreview({
     [onCleanedMoveTargetClick, internalTextMoveSelection],
   )
 
-  const handleMoveClick = useCallback(() => {
+  // NOTE: These handlers are kept for future use when text move feature is enabled
+  const _handleMoveClick = useCallback(() => {
     if (onMoveClick) {
       onMoveClick()
     } else {
@@ -528,7 +529,7 @@ export function LiveTranscriptPreview({
     }
   }, [onMoveClick])
 
-  const handleCancelTextMove = useCallback(() => {
+  const _handleCancelTextMove = useCallback(() => {
     if (onCancelTextMove) {
       onCancelTextMove()
     } else {
@@ -576,7 +577,8 @@ export function LiveTranscriptPreview({
     return uniqueSpeakers.size > 1
   }, [segments])
 
-  const editingCount = Array.from(editedTextsState.entries()).filter(([id, text]) => {
+  // NOTE: editingCount computed for potential future use
+  const _editingCount = Array.from(editedTextsState.entries()).filter(([id, text]) => {
     const segment = segments.find((s) => s.id === id)
     return segment && text !== segment.cleanedText
   }).length
