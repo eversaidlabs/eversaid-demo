@@ -4,6 +4,7 @@ import { Inter, Comfortaa, DM_Sans } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
 import { ConfigProvider } from "@/lib/config-context"
+import { MotionProvider } from "@/components/motion"
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { locales } from '@/i18n/config'
@@ -132,10 +133,12 @@ export default async function LocaleLayout({
       </head>
       <body className={`font-sans antialiased`}>
         <ConfigProvider>
-          <NextIntlClientProvider messages={messages}>
-            {children}
-            <Toaster />
-          </NextIntlClientProvider>
+          <MotionProvider>
+            <NextIntlClientProvider messages={messages}>
+              {children}
+              <Toaster />
+            </NextIntlClientProvider>
+          </MotionProvider>
         </ConfigProvider>
         <Analytics />
       </body>
