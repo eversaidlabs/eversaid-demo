@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
-import { cn } from '@/lib/utils'
+import { cn, getLandingUrl } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
 import { SidebarNav } from './sidebar-nav'
 import { SidebarQuota } from './sidebar-quota'
@@ -31,9 +31,9 @@ export function Sidebar({ className, onClose }: SidebarProps) {
     >
       {/* Header with logo */}
       <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
-        <Link href={`/${locale}`}>
+        <a href={`${getLandingUrl()}/${locale}`}>
           <Logo size="md" variant="light" />
-        </Link>
+        </a>
         {/* Close button for mobile */}
         {onClose && (
           <button

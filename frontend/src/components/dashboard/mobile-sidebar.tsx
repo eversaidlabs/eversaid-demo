@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { cn } from '@/lib/utils'
+import { cn, getLandingUrl } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
 import { Sidebar } from './sidebar'
 
@@ -43,9 +42,9 @@ export function MobileSidebar() {
             />
           </svg>
         </button>
-        <Link href={`/${locale}`}>
+        <a href={`${getLandingUrl()}/${locale}`}>
           <Logo size="sm" variant="dark" />
-        </Link>
+        </a>
       </div>
 
       {/* Overlay */}
