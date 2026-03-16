@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Sparkles, X, Star } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { motion, AnimatePresence } from "@/components/motion"
+import { m, AnimatePresence } from "@/components/motion"
 
 export interface FloatingFeedbackWidgetProps {
   rating: number
@@ -74,7 +74,7 @@ export function FloatingFeedbackWidget({
     <div ref={widgetRef} className="fixed bottom-6 right-6 z-50">
       <AnimatePresence mode="wait">
         {isExpanded ? (
-          <motion.div
+          <m.div
             key="expanded"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -123,13 +123,13 @@ export function FloatingFeedbackWidget({
                   </div>
 
                   {isSubmitted ? (
-                    <motion.p
+                    <m.p
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="text-sm text-green-600 font-medium text-center py-2"
                     >
                       {t("thanks")}
-                    </motion.p>
+                    </m.p>
                   ) : (
                     <>
                       {/* Textarea */}
@@ -162,9 +162,9 @@ export function FloatingFeedbackWidget({
                 </>
               )}
             </div>
-          </motion.div>
+          </m.div>
         ) : (
-          <motion.button
+          <m.button
             key="collapsed"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -189,7 +189,7 @@ export function FloatingFeedbackWidget({
             </div>
             {/* Question text */}
             <span className="text-sm text-gray-500">{tWidget("collapsed")}</span>
-          </motion.button>
+          </m.button>
         )}
       </AnimatePresence>
     </div>

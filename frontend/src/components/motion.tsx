@@ -1,13 +1,14 @@
 "use client"
 
-import { motion, AnimatePresence, LazyMotion, domAnimation, useReducedMotion, LayoutGroup } from "motion/react"
+import { m, motion, AnimatePresence, LazyMotion, domAnimation, useReducedMotion, LayoutGroup } from "motion/react"
 
-export { motion, AnimatePresence, LazyMotion, domAnimation, useReducedMotion, LayoutGroup }
+export { m, motion, AnimatePresence, LazyMotion, domAnimation, useReducedMotion, LayoutGroup }
 
 // Re-export commonly used motion components for convenience
-export const MotionDiv = motion.div
-export const MotionSpan = motion.span
-export const MotionButton = motion.button
+// Using `m` instead of `motion` for LazyMotion tree shaking compatibility
+export const MotionDiv = m.div
+export const MotionSpan = m.span
+export const MotionButton = m.button
 
 // LazyMotion provider for optimized animation loading
 export function MotionProvider({ children }: { children: React.ReactNode }) {

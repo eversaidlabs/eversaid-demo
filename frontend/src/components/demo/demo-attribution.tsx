@@ -2,7 +2,7 @@
 
 import { ExternalLink } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { motion } from "@/components/motion"
+import { m } from "@/components/motion"
 import { useState } from "react"
 import type { DemoConfig } from "@/lib/app-config"
 
@@ -62,7 +62,7 @@ export function DemoAttribution({ filename, isDemo, demoConfig }: DemoAttributio
 
   return (
     <div className="px-6 py-4 border-t border-border">
-      <motion.a
+      <m.a
         href={source.url}
         target="_blank"
         rel="noopener noreferrer"
@@ -75,7 +75,7 @@ export function DemoAttribution({ filename, isDemo, demoConfig }: DemoAttributio
 
         {/* Animated Gradient Overlay (Right to Left flow) */}
         {isHovered && (
-          <motion.div
+          <m.div
             key="gradient-flow"
             className="absolute inset-0"
             initial={{ x: "100%" }}
@@ -112,7 +112,7 @@ export function DemoAttribution({ filename, isDemo, demoConfig }: DemoAttributio
             <ExternalLink className="w-3.5 h-3.5" />
           </span>
         </div>
-      </motion.a>
+      </m.a>
     </div>
   )
 }

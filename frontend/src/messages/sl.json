@@ -235,7 +235,8 @@
       "cleanupType": "Slog čiščenja",
       "cleanupMinimal": "Minimalno",
       "cleanupClean": "Čisto",
-      "cleanupEdited": "Urejeno"
+      "cleanupEdited": "Urejeno",
+      "consent": "Z nalaganjem ali snemanjem se strinjate z našimi <terms>pogoji uporabe</terms> in <privacy>politiko zasebnosti</privacy>."
     },
     "import": {
       "failed": "Uvoz besedila ni uspel. Poskusite znova."
@@ -981,5 +982,23 @@
   "metadata": {
     "title": "EverSaid | Pametna transkripcija. AI posluša. Vi odločate.",
     "description": "AI čiščenje, ki ga lahko pregledate, prilagodite in mu zaupate. Vsaka sprememba vidna. Vsaka beseda preverljiva."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Politika zasebnosti",
+      "description": "Preberite, kako EverSaid zbira, uporablja in ščiti vaše osebne podatke v skladu z GDPR."
+    },
+    "terms": {
+      "title": "Pogoji uporabe",
+      "description": "Pogoji za uporabo EverSaid storitev transkripcije in AI čiščenja."
+    },
+    "cookies": {
+      "title": "Politika piškotkov",
+      "description": "Informacije o tem, kako EverSaid uporablja piškotke in podobne tehnologije."
+    },
+    "subProcessors": {
+      "title": "Podizvajalci",
+      "description": "Seznam storitev tretjih oseb, ki obdelujejo podatke v imenu EverSaid."
+    }
   }
 }

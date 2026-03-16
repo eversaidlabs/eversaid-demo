@@ -568,10 +568,10 @@ export default function HomePage() {
           </span>
         </div>
         <div className="flex gap-8 items-center">
-          <Link href="#" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
+          <Link href="/privacy" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
             {t('footer.privacy')}
           </Link>
-          <Link href="#" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
+          <Link href="/terms" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
             {t('footer.terms')}
           </Link>
           <a href="mailto:hello@eversaid.ai" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">

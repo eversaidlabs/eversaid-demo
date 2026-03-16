@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { motion } from "@/components/motion"
+import { m } from "@/components/motion"
 
 export type DemoTabType = "transcript" | "analysis"
 
@@ -33,7 +33,7 @@ export function DemoTabs({ activeTab, onTabChange }: DemoTabsProps) {
           >
             {tab.label}
             {activeTab === tab.id && (
-              <motion.div
+              <m.div
                 layoutId="demo-tab-indicator"
                 className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
                 transition={{

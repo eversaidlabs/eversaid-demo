@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useCallback, useReducer } from "react"
-import { motion, AnimatePresence } from "@/components/motion"
+import { m, AnimatePresence } from "@/components/motion"
 import { TriangleAlert, X } from "lucide-react"
 
 interface PersistentWarningProps {
@@ -98,7 +98,7 @@ export function PersistentWarning({
   if (!show) return null
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: -20, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -20, scale: 0.9 }}
@@ -124,7 +124,7 @@ export function PersistentWarning({
           }}
         >
           <div className="overflow-hidden">
-            <motion.div
+            <m.div
               initial={false}
               animate={{ opacity: isExpanded ? 1 : 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
@@ -140,7 +140,7 @@ export function PersistentWarning({
                   <X className="h-4 w-4" />
                 </button>
               )}
-            </motion.div>
+            </m.div>
           </div>
         </div>
       </div>
@@ -148,7 +148,7 @@ export function PersistentWarning({
       {/* Tooltip hint when collapsed */}
       <AnimatePresence>
         {!isExpanded && hasBeenSeen && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 10 }}
@@ -158,9 +158,9 @@ export function PersistentWarning({
             <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
               Click to view warning
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </m.div>
   )
 }

@@ -235,7 +235,8 @@
       "cleanupType": "Cleanup style",
       "cleanupMinimal": "Minimal",
       "cleanupClean": "Clean",
-      "cleanupEdited": "Edited"
+      "cleanupEdited": "Edited",
+      "consent": "By uploading or recording, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
     },
     "import": {
       "failed": "Failed to import text. Please try again."
@@ -981,5 +982,23 @@
   "metadata": {
     "title": "EverSaid | Smart transcription. AI listens. You decide.",
     "description": "AI-powered cleanup you can review, refine, and trust. See every edit. Verify against the original audio."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Privacy Policy",
+      "description": "Learn how EverSaid collects, uses, and protects your personal data in compliance with GDPR."
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "description": "Terms and conditions for using EverSaid's transcription and AI cleanup services."
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "description": "Information about how EverSaid uses cookies and similar technologies."
+    },
+    "subProcessors": {
+      "title": "Sub-processors",
+      "description": "List of third-party services that process data on behalf of EverSaid."
+    }
   }
 }

@@ -3,6 +3,7 @@
 import type React from "react"
 import { FileAudio, FileText, X } from "lucide-react"
 import { useTranslations } from 'next-intl'
+import { Link } from "@/i18n/routing"
 import { useConfig } from '@/lib/config-context'
 import type { ProcessingStage, StageId, CleanupType } from "@/features/transcription/types"
 import { ProcessingStages } from "./processing-stages"
@@ -391,6 +392,22 @@ export function UploadZone({
             </button>
           )
         )}
+
+        {/* Consent message */}
+        <p className="text-[11px] text-[#94A3B8] text-center mt-4">
+          {t.rich('consent', {
+            terms: (chunks) => (
+              <Link href="/terms" className="text-[#64748B] hover:text-[#0F172A] underline transition-colors">
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link href="/privacy" className="text-[#64748B] hover:text-[#0F172A] underline transition-colors">
+                {chunks}
+              </Link>
+            ),
+          })}
+        </p>
       </div>
     </div>
   )

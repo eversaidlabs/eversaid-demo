@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, AnimatePresence } from "motion/react"
+import { m, AnimatePresence } from "@/components/motion"
 
 interface WaveformOverlayProps {
   visible: boolean
@@ -18,7 +18,7 @@ export function WaveformOverlay({ visible }: WaveformOverlayProps) {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
@@ -39,7 +39,7 @@ export function WaveformOverlay({ visible }: WaveformOverlayProps) {
             {/* Animated wave bars */}
             <div className="flex items-center gap-[3px]">
               {waveConfig.map((config, index) => (
-                <motion.div
+                <m.div
                   key={index}
                   className="w-[4px] rounded-full"
                   style={{
@@ -59,7 +59,7 @@ export function WaveformOverlay({ visible }: WaveformOverlayProps) {
               ))}
             </div>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   )

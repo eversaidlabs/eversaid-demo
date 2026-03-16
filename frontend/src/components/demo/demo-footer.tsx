@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl"
+import { Link } from "@/i18n/routing"
 
 export function DemoFooter() {
   const t = useTranslations("landing.footer")
@@ -11,12 +12,12 @@ export function DemoFooter() {
         <span className="text-xs text-white/40">{t("builtIn")}</span>
       </div>
       <div className="flex gap-6 items-center">
-        <a href="#" className="text-[13px] text-white/60 hover:text-white transition-colors">
+        <Link href="/privacy" className="text-[13px] text-white/60 hover:text-white transition-colors">
           {t("privacy")}
-        </a>
-        <a href="#" className="text-[13px] text-white/60 hover:text-white transition-colors">
+        </Link>
+        <Link href="/terms" className="text-[13px] text-white/60 hover:text-white transition-colors">
           {t("terms")}
-        </a>
+        </Link>
         <a href="mailto:hello@eversaid.ai" className="text-[13px] text-white/60 hover:text-white transition-colors">
           hello@eversaid.ai
         </a>
