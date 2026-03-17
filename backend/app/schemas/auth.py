@@ -33,6 +33,12 @@ class ChangePasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=8)
 
 
+class AcceptTermsRequest(BaseModel):
+    """Accept terms request."""
+
+    terms_version: str = Field(..., min_length=1, max_length=20)
+
+
 # =============================================================================
 # Response Schemas
 # =============================================================================
@@ -65,6 +71,8 @@ class UserResponse(BaseModel):
     role: UserRole
     password_change_required: bool
     password_changed_at: Optional[datetime] = None
+    terms_accepted_at: Optional[datetime] = None
+    terms_version: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     # Quota limits (2147483647 = effectively unlimited)
@@ -84,6 +92,7 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int  # Access token expiry in seconds
     password_change_required: bool = False
+    terms_acceptance_required: bool = False
 
 
 class MeResponse(BaseModel):
@@ -91,6 +100,7 @@ class MeResponse(BaseModel):
 
     user: UserResponse
     tenant: TenantResponse
+    terms_acceptance_required: bool = False
 
 
 # =============================================================================

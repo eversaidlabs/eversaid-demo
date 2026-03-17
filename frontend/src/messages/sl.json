@@ -754,6 +754,20 @@
       "error": "Sprememba gesla ni uspela",
       "passwordMismatch": "Gesli se ne ujemata",
       "passwordTooShort": "Geslo mora imeti vsaj 8 znakov"
+    },
+    "acceptTerms": {
+      "title": "Sprejmite pogoje",
+      "subtitle": "Za nadaljevanje preglejte in sprejmite naše pogoje",
+      "description": "Pred uporabo EverSaid preberite in sprejmite naše pogoje uporabe in politiko zasebnosti.",
+      "updateTitle": "Posodobljeni pogoji",
+      "updateSubtitle": "Naši pogoji so se od vašega zadnjega sprejema spremenili",
+      "updateDescription": "Spremenili smo pogoje uporabe in politiko zasebnosti. Za nadaljnjo uporabo EverSaid preglejte in sprejmite posodobljene pogoje.",
+      "terms": "Pogoji uporabe",
+      "privacy": "Politika zasebnosti",
+      "checkbox": "Prebral/a sem in se strinjam s pogoji uporabe in politiko zasebnosti",
+      "accept": "Sprejmi in nadaljuj",
+      "accepting": "Sprejemanje...",
+      "error": "Sprejemanje pogojev ni uspelo. Poskusite znova."
     }
   },
   "dashboard": {

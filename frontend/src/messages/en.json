@@ -754,6 +754,20 @@
       "error": "Failed to change password",
       "passwordMismatch": "Passwords do not match",
       "passwordTooShort": "Password must be at least 8 characters"
+    },
+    "acceptTerms": {
+      "title": "Accept Terms",
+      "subtitle": "Please review and accept our terms to continue",
+      "description": "Before using EverSaid, please read and accept our Terms of Service and Privacy Policy.",
+      "updateTitle": "Terms Updated",
+      "updateSubtitle": "Our terms have been updated since your last acceptance",
+      "updateDescription": "We've made changes to our Terms of Service and Privacy Policy. Please review and accept the updated terms to continue using EverSaid.",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "checkbox": "I have read and agree to the Terms of Service and Privacy Policy",
+      "accept": "Accept and Continue",
+      "accepting": "Accepting...",
+      "error": "Failed to accept terms. Please try again."
     }
   },
   "dashboard": {

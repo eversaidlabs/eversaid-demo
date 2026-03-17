@@ -30,6 +30,8 @@ export interface User {
   role: UserRole
   password_change_required: boolean
   password_changed_at: string | null
+  terms_accepted_at: string | null
+  terms_version: string | null
   created_at: string
   updated_at: string
   // User-level quota limits (2147483647 = effectively unlimited)
@@ -44,6 +46,7 @@ export interface User {
 export interface MeResponse {
   user: User
   tenant: Tenant
+  terms_acceptance_required: boolean
 }
 
 /**
@@ -55,6 +58,7 @@ export interface TokenResponse {
   token_type: string
   expires_in: number
   password_change_required: boolean
+  terms_acceptance_required: boolean
 }
 
 /**

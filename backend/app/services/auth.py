@@ -60,6 +60,12 @@ class PasswordChangeRequiredError(AuthenticationError):
     pass
 
 
+class InvalidTermsVersionError(AuthenticationError):
+    """Invalid or mismatched terms version."""
+
+    pass
+
+
 class AuthService:
     """Service for authentication operations."""
 
@@ -67,6 +73,20 @@ class AuthService:
         """Initialize auth service with database session."""
         self.db = db
         self.settings = get_settings()
+
+    def is_terms_acceptance_required(self, user: User) -> bool:
+        """Check if user needs to accept terms.
+
+        Terms acceptance is required if:
+        - User has never accepted terms (terms_accepted_at is None), or
+        - User's accepted version is older than current version
+        """
+        if user.terms_accepted_at is None:
+            return True
+        if user.terms_version is None:
+            return True
+        # Compare versions (they're date strings like "2026-03-15")
+        return user.terms_version < self.settings.CURRENT_TERMS_VERSION
 
     def _create_tokens(self, user: User) -> Tuple[str, str, int]:
         """Create access and refresh tokens for a user.
@@ -173,6 +193,7 @@ class AuthService:
             refresh_token=refresh_token,
             expires_in=expires_in,
             password_change_required=user.password_change_required,
+            terms_acceptance_required=self.is_terms_acceptance_required(user),
         )
 
     def refresh_tokens(
@@ -251,6 +272,7 @@ class AuthService:
             refresh_token=new_refresh_token,
             expires_in=expires_in,
             password_change_required=user.password_change_required,
+            terms_acceptance_required=self.is_terms_acceptance_required(user),
         )
 
     def logout(self, refresh_token: str) -> bool:
@@ -405,3 +427,27 @@ class AuthService:
             query = query.filter(User.role == role)
 
         return query.all()
+
+    def accept_terms(self, user_id: str) -> None:
+        """Record user's acceptance of current terms.
+
+        The server records its own CURRENT_TERMS_VERSION - client doesn't need
+        to know or send the version.
+
+        Args:
+            user_id: User ID.
+
+        Raises:
+            InvalidCredentialsError: If user not found.
+        """
+        user = self.db.query(User).filter(User.id == user_id).first()
+
+        if not user:
+            raise InvalidCredentialsError("User not found")
+
+        now = datetime.now(timezone.utc)
+        user.terms_accepted_at = now
+        user.terms_version = self.settings.CURRENT_TERMS_VERSION
+        user.updated_at = now
+
+        self.db.commit()

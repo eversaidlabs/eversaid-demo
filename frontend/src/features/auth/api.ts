@@ -131,6 +131,37 @@ export async function changePassword(
 }
 
 /**
+ * Accept terms of service for the current user.
+ *
+ * The server records which terms version was current at the time of acceptance.
+ * After successful acceptance, the terms_acceptance_required flag is cleared.
+ */
+export async function acceptTerms(): Promise<void> {
+  const accessToken = getAccessToken()
+  if (!accessToken) {
+    throw new AuthError(401, 'Not authenticated')
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/auth/accept-terms`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  if (!response.ok) {
+    let errorMessage = 'Failed to accept terms'
+    try {
+      const errorBody = await response.json()
+      errorMessage = errorBody.detail || errorMessage
+    } catch {
+      errorMessage = response.statusText || errorMessage
+    }
+    throw new AuthError(response.status, errorMessage)
+  }
+}
+
+/**
  * Logout the current user.
  *
  * Invalidates the refresh token on the server and clears local tokens.

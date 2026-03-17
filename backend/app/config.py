@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "production"  # development, staging, production
 
+    # Terms version - update this when terms change to require re-acceptance
+    CURRENT_TERMS_VERSION: str = "2026-03-17"
+
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "text"  # "text" (human-readable) or "json" (for Loki)

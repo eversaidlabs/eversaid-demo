@@ -86,6 +86,8 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     password_change_required = Column(Boolean, default=True, nullable=False)
     password_changed_at = Column(DateTime(timezone=True), nullable=True)
+    terms_accepted_at = Column(DateTime(timezone=True), nullable=True)
+    terms_version = Column(String(20), nullable=True)  # e.g., "2026-03-15"
     is_active = Column(Boolean, default=True, nullable=False)
     role = Column(Enum(UserRole, schema=DB_SCHEMA), nullable=False, default=UserRole.tenant_user)
     created_at = Column(DateTime(timezone=True), default=utc_now)

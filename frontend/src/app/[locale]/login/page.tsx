@@ -101,6 +101,8 @@ export default function LoginPage({
 
       if (result.password_change_required) {
         router.push(`/${locale}/change-password`)
+      } else if (result.terms_acceptance_required) {
+        router.push(`/${locale}/accept-terms`)
       } else {
         router.push(`/${locale}/audio`)
       }

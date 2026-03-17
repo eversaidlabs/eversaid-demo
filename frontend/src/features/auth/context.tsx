@@ -38,7 +38,7 @@ import {
 } from './types'
 
 // Paths that don't require authentication
-const PUBLIC_PATHS = ['/login', '/change-password']
+const PUBLIC_PATHS = ['/login', '/change-password', '/accept-terms']
 
 // Check if a path is public (doesn't need auth)
 function isPublicPath(pathname: string): boolean {
@@ -48,7 +48,9 @@ function isPublicPath(pathname: string): boolean {
 }
 
 export interface AuthContextValue extends AuthState {
-  login: (credentials: LoginRequest) => Promise<{ passwordChangeRequired: boolean }>
+  login: (
+    credentials: LoginRequest
+  ) => Promise<{ passwordChangeRequired: boolean; termsAcceptanceRequired: boolean }>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -98,12 +100,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(me.user)
           setTenant(me.tenant)
 
+          // Extract locale from pathname
+          const localeMatch = pathname.match(/^\/(en|sl)/)
+          const locale = localeMatch ? localeMatch[1] : 'en'
+
           // If password change required, redirect to change-password
           if (me.user.password_change_required && !isPublicPath(pathname)) {
-            // Extract locale from pathname
-            const localeMatch = pathname.match(/^\/(en|sl)/)
-            const locale = localeMatch ? localeMatch[1] : 'en'
             router.replace(`/${locale}/change-password`)
+            return
+          }
+
+          // If terms acceptance required (non-anonymous user needs to accept or re-accept terms)
+          const isAnonymousUser = me.user.tenant_id === ANONYMOUS_TENANT_ID
+          if (
+            !isAnonymousUser &&
+            me.terms_acceptance_required &&
+            !isPublicPath(pathname)
+          ) {
+            router.replace(`/${locale}/accept-terms`)
           }
         }
       } catch (_err) {
@@ -128,7 +142,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Login handler
   const login = useCallback(
-    async (credentials: LoginRequest): Promise<{ passwordChangeRequired: boolean }> => {
+    async (
+      credentials: LoginRequest
+    ): Promise<{ passwordChangeRequired: boolean; termsAcceptanceRequired: boolean }> => {
       setError(null)
       setIsLoading(true)
 
@@ -140,7 +156,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(me.user)
         setTenant(me.tenant)
 
-        return { passwordChangeRequired: tokenResponse.password_change_required }
+        return {
+          passwordChangeRequired: tokenResponse.password_change_required,
+          termsAcceptanceRequired: tokenResponse.terms_acceptance_required,
+        }
       } catch (err) {
         const message = err instanceof AuthError ? err.message : 'Login failed'
         setError(message)

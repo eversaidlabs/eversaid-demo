@@ -311,6 +311,101 @@ class TestAuthService:
         assert temp_password is not None
         assert verify_password(temp_password, user.hashed_password)
 
+    def test_authenticate_user_returns_terms_acceptance_required_for_new_user(
+        self, test_db, tenant, test_settings
+    ):
+        """New user without terms accepted should have terms_acceptance_required=True."""
+        # Create user without terms accepted
+        user = User(
+            email="noterms@test.com",
+            tenant_id=tenant.id,
+            hashed_password=hash_password("test-password"),
+            role=UserRole.tenant_user,
+            password_change_required=False,
+            terms_accepted_at=None,
+            terms_version=None,
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        auth_service = AuthService(test_db)
+        response = auth_service.authenticate_user(
+            email="noterms@test.com",
+            password="test-password",
+        )
+
+        assert response.terms_acceptance_required is True
+
+    def test_authenticate_user_returns_terms_acceptance_required_false_after_acceptance(
+        self, test_db, tenant, test_settings
+    ):
+        """User with current terms version accepted should have terms_acceptance_required=False."""
+        from datetime import datetime, timezone
+
+        # Create user with terms accepted (current version)
+        user = User(
+            email="termsaccepted@test.com",
+            tenant_id=tenant.id,
+            hashed_password=hash_password("test-password"),
+            role=UserRole.tenant_user,
+            password_change_required=False,
+            terms_accepted_at=datetime.now(timezone.utc),
+            terms_version=test_settings.CURRENT_TERMS_VERSION,
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        auth_service = AuthService(test_db)
+        response = auth_service.authenticate_user(
+            email="termsaccepted@test.com",
+            password="test-password",
+        )
+
+        assert response.terms_acceptance_required is False
+
+    def test_authenticate_user_returns_terms_acceptance_required_for_old_version(
+        self, test_db, tenant, test_settings
+    ):
+        """User with old terms version should have terms_acceptance_required=True."""
+        from datetime import datetime, timezone
+
+        # Create user with old terms version
+        user = User(
+            email="oldterms@test.com",
+            tenant_id=tenant.id,
+            hashed_password=hash_password("test-password"),
+            role=UserRole.tenant_user,
+            password_change_required=False,
+            terms_accepted_at=datetime.now(timezone.utc),
+            terms_version="2020-01-01",  # Old version
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        auth_service = AuthService(test_db)
+        response = auth_service.authenticate_user(
+            email="oldterms@test.com",
+            password="test-password",
+        )
+
+        assert response.terms_acceptance_required is True
+
+    def test_accept_terms_sets_fields(self, test_db, user, test_settings):
+        """accept_terms should set terms_accepted_at and terms_version."""
+        auth_service = AuthService(test_db)
+
+        # Verify user has no terms accepted initially
+        assert user.terms_accepted_at is None
+        assert user.terms_version is None
+
+        # Accept terms - server uses its own CURRENT_TERMS_VERSION
+        auth_service.accept_terms(user_id=user.id)
+
+        # Refresh and verify
+        test_db.refresh(user)
+        assert user.terms_accepted_at is not None
+        assert user.terms_version == test_settings.CURRENT_TERMS_VERSION
+
 
 class TestAuthEndpoints:
     """Tests for auth API endpoints."""
@@ -446,6 +541,64 @@ class TestAuthEndpoints:
             json={"email": "test@test.com", "password": "new-password-123"},
         )
         assert new_login.status_code == 200
+
+    def test_login_returns_terms_acceptance_required_for_new_user(self, client, test_db):
+        """Login should return terms_acceptance_required=True for user without terms accepted."""
+        tenant = Tenant(name="Terms Test Tenant")
+        test_db.add(tenant)
+        test_db.commit()
+        test_db.refresh(tenant)
+
+        user = User(
+            email="noterms@test.com",
+            tenant_id=tenant.id,
+            hashed_password=hash_password("test-password"),
+            role=UserRole.tenant_user,
+            password_change_required=False,
+            terms_accepted_at=None,
+            terms_version=None,
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        response = client.post(
+            "/api/auth/login",
+            json={"email": "noterms@test.com", "password": "test-password"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["terms_acceptance_required"] is True
+
+    def test_accept_terms_endpoint(self, client, setup_user):
+        """POST /api/auth/accept-terms should set terms fields."""
+        # Login
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "test-password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # Accept terms - no body needed, server uses its own version
+        response = client.post(
+            "/api/auth/accept-terms",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 204
+
+        # Verify by logging in again - terms_acceptance_required should be False
+        new_login = client.post(
+            "/api/auth/login",
+            json={"email": "test@test.com", "password": "test-password"},
+        )
+        assert new_login.status_code == 200
+        assert new_login.json()["terms_acceptance_required"] is False
+
+    def test_accept_terms_endpoint_no_auth(self, client):
+        """POST /api/auth/accept-terms without token should return 401."""
+        response = client.post("/api/auth/accept-terms")
+        assert response.status_code == 401
 
 
 class TestAdminEndpoints:

@@ -264,6 +264,27 @@ def change_password(
         )
 
 
+@router.post("/accept-terms", status_code=status.HTTP_204_NO_CONTENT)
+def accept_terms(
+    user: AuthenticatedUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Accept terms of service for authenticated user.
+
+    Records the timestamp and current terms version. The server uses its own
+    CURRENT_TERMS_VERSION - client doesn't need to send it.
+    """
+    auth_service = AuthService(db)
+
+    try:
+        auth_service.accept_terms(user_id=user.user_id)
+    except InvalidCredentialsError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+
 @router.get("/me", response_model=MeResponse)
 def get_me(
     user: AuthenticatedUser = Depends(get_current_user),
@@ -283,4 +304,5 @@ def get_me(
     return MeResponse(
         user=UserResponse.model_validate(db_user),
         tenant=TenantResponse.model_validate(db_user.tenant),
+        terms_acceptance_required=auth_service.is_terms_acceptance_required(db_user),
     )
