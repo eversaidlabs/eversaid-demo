@@ -199,7 +199,7 @@ async def import_text(
 @router.get("/api/transcriptions/{transcription_id}")
 async def get_transcription(
     transcription_id: str,
-    user: AuthenticatedUser = Depends(get_user_with_terms),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get transcription status, text, and segments."""
@@ -227,7 +227,7 @@ async def get_transcription(
 async def list_entries(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    user: AuthenticatedUser = Depends(get_user_with_terms),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List all entries for the current user.
@@ -257,7 +257,7 @@ async def list_entries(
 @router.get("/api/entries/{entry_id}")
 async def get_entry(
     entry_id: str,
-    user: AuthenticatedUser = Depends(get_user_with_terms),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get entry details with transcription segments and cleanup.
@@ -356,7 +356,7 @@ async def get_entry(
 @router.get("/api/entries/{entry_id}/cleaned")
 async def list_cleaned_entries(
     entry_id: str,
-    user: AuthenticatedUser = Depends(get_user_with_terms),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List all cleanup records for an entry.
@@ -443,7 +443,7 @@ async def update_entry(
 @router.get("/api/entries/{entry_id}/audio")
 async def get_entry_audio(
     entry_id: str,
-    user: AuthenticatedUser = Depends(get_user_with_terms),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Stream the audio file for an entry.
@@ -551,7 +551,7 @@ async def trigger_cleanup(
 @router.get("/api/cleaned-entries/{cleanup_id}")
 async def get_cleaned_entry(
     cleanup_id: str,
-    user: AuthenticatedUser = Depends(get_user_with_terms),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get cleanup details including cleaned text and segments."""
@@ -623,7 +623,7 @@ async def revert_user_edit(
 
 @router.get("/api/analysis-profiles")
 async def list_analysis_profiles(
-    user: AuthenticatedUser = Depends(get_user_with_terms),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List available analysis profiles."""
@@ -670,7 +670,7 @@ async def trigger_analysis(
 @router.get("/api/cleaned-entries/{cleanup_id}/analyses")
 async def list_analyses(
     cleanup_id: str,
-    user: AuthenticatedUser = Depends(get_user_with_terms),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List all analyses for a cleaned entry."""
@@ -692,7 +692,7 @@ async def list_analyses(
 @router.get("/api/analyses/{analysis_id}")
 async def get_analysis(
     analysis_id: str,
-    user: AuthenticatedUser = Depends(get_user_with_terms),
+    user: AuthenticatedUser = Depends(get_current_user),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get analysis status and results."""

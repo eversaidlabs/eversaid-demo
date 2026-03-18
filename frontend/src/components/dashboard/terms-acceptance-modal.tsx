@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, m, useReducedMotion } from '@/components/motion'
 
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/ui/logo'
@@ -14,8 +14,8 @@ export interface TermsAcceptanceModalProps {
   isOpen: boolean
   /** Whether this is a terms update (user has accepted before) */
   isTermsUpdate?: boolean
-  /** Called after successful acceptance */
-  onAccept: () => void
+  /** Called after successful acceptance (awaited before page reload) */
+  onAccept: () => void | Promise<void>
   /** Current locale for links */
   locale: string
 }
@@ -46,7 +46,8 @@ export function TermsAcceptanceModal({
 
     try {
       await acceptTerms()
-      onAccept()
+      await onAccept()
+      // No reload needed - data already loaded successfully (read operations work without terms)
     } catch (err) {
       if (err instanceof AuthError) {
         setError(err.message)
@@ -62,14 +63,14 @@ export function TermsAcceptanceModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <m.div
           role="dialog"
           aria-modal="true"
           aria-labelledby="terms-modal-title"
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
         >
           {/* Backdrop with blur */}
-          <motion.div
+          <m.div
             className="absolute inset-0 bg-black/50 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -78,7 +79,7 @@ export function TermsAcceptanceModal({
           />
 
           {/* Modal card */}
-          <motion.div
+          <m.div
             className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white/95 shadow-2xl backdrop-blur-sm"
             initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
             animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
@@ -162,8 +163,8 @@ export function TermsAcceptanceModal({
                 {isLoading ? t('acceptTerms.accepting') : t('acceptTerms.accept')}
               </Button>
             </form>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   )

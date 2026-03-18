@@ -1203,8 +1203,18 @@ class TestTermsEnforcementOnCoreEndpoints:
 
         return {"tenant": tenant, "user": user}
 
-    def test_list_entries_blocked_without_terms(self, client, setup_user_without_terms):
-        """User without terms acceptance should get 403 on /api/entries."""
+    def test_list_entries_allowed_without_terms(
+        self, client, setup_user_without_terms, test_settings
+    ):
+        """User without terms acceptance should be able to read entries (read operations allowed)."""
+        import respx
+        from httpx import Response
+
+        # Mock Core API response for entries
+        respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries").mock(
+            return_value=Response(200, json={"entries": [], "total": 0})
+        )
+
         # Login
         login_response = client.post(
             "/api/auth/login",
@@ -1213,18 +1223,26 @@ class TestTermsEnforcementOnCoreEndpoints:
         assert login_response.status_code == 200
         access_token = login_response.json()["access_token"]
 
-        # Try to list entries
+        # Read operations should be allowed without terms acceptance
         response = client.get(
             "/api/entries",
             headers={"Authorization": f"Bearer {access_token}"},
         )
 
-        assert response.status_code == 403
-        assert response.json()["detail"] == "Terms acceptance required"
-        assert response.headers.get("X-Terms-Required") == "true"
+        assert response.status_code == 200
 
-    def test_list_entries_blocked_with_old_terms(self, client, setup_user_with_old_terms):
-        """User with old terms version should get 403 on /api/entries."""
+    def test_list_entries_allowed_with_old_terms(
+        self, client, setup_user_with_old_terms, test_settings
+    ):
+        """User with old terms version should still be able to read entries (read operations allowed)."""
+        import respx
+        from httpx import Response
+
+        # Mock Core API response for entries
+        respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries").mock(
+            return_value=Response(200, json={"entries": [], "total": 0})
+        )
+
         # Login
         login_response = client.post(
             "/api/auth/login",
@@ -1233,15 +1251,13 @@ class TestTermsEnforcementOnCoreEndpoints:
         assert login_response.status_code == 200
         access_token = login_response.json()["access_token"]
 
-        # Try to list entries
+        # Read operations should be allowed even with old terms version
         response = client.get(
             "/api/entries",
             headers={"Authorization": f"Bearer {access_token}"},
         )
 
-        assert response.status_code == 403
-        assert response.json()["detail"] == "Terms acceptance required"
-        assert response.headers.get("X-Terms-Required") == "true"
+        assert response.status_code == 200
 
     def test_list_entries_allowed_with_current_terms(
         self, client, setup_user_with_current_terms, test_settings
@@ -1295,16 +1311,45 @@ class TestTermsEnforcementOnCoreEndpoints:
         )
         assert accept_response.status_code == 204
 
-    def test_accept_terms_then_access_entries(
+    def test_write_operations_blocked_without_terms(
         self, client, setup_user_without_terms, test_settings
     ):
-        """After accepting terms, user should be able to access entries."""
+        """Write operations should be blocked without terms acceptance."""
+        # Login
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "noterms@test.com", "password": "test-password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # DELETE entry should be blocked without terms
+        response = client.delete(
+            "/api/entries/test-entry-id",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Terms acceptance required"
+        assert response.headers.get("X-Terms-Required") == "true"
+
+        # PATCH entry should be blocked without terms
+        response = client.patch(
+            "/api/entries/test-entry-id",
+            headers={"Authorization": f"Bearer {access_token}"},
+            json={"title": "New Title"},
+        )
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Terms acceptance required"
+
+    def test_accept_terms_then_write_operations_allowed(
+        self, client, setup_user_without_terms, test_settings
+    ):
+        """After accepting terms, write operations should be allowed."""
         import respx
         from httpx import Response
 
-        # Mock Core API response for entries
-        respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries").mock(
-            return_value=Response(200, json={"entries": [], "total": 0})
+        # Mock Core API response for delete
+        respx.delete(f"{test_settings.CORE_API_URL}/api/v1/entries/test-entry-id").mock(
+            return_value=Response(200, json={"success": True})
         )
 
         # Login
@@ -1314,9 +1359,9 @@ class TestTermsEnforcementOnCoreEndpoints:
         )
         access_token = login_response.json()["access_token"]
 
-        # Verify blocked before accepting
-        response = client.get(
-            "/api/entries",
+        # Verify write blocked before accepting
+        response = client.delete(
+            "/api/entries/test-entry-id",
             headers={"Authorization": f"Bearer {access_token}"},
         )
         assert response.status_code == 403
@@ -1327,9 +1372,9 @@ class TestTermsEnforcementOnCoreEndpoints:
             headers={"Authorization": f"Bearer {access_token}"},
         )
 
-        # Now entries should be accessible
-        response = client.get(
-            "/api/entries",
+        # Now write operations should work
+        response = client.delete(
+            "/api/entries/test-entry-id",
             headers={"Authorization": f"Bearer {access_token}"},
         )
         assert response.status_code == 200
