@@ -1,12 +1,14 @@
 """JWT authentication middleware and dependencies."""
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Generator, Optional
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Session
 
-from app.models.auth import UserRole
+from app.config import Settings, get_settings
+from app.models.auth import User, UserRole
 from app.utils.jwt import (
     InvalidTokenError,
     TokenExpiredError,
@@ -115,6 +117,66 @@ def get_platform_admin(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Platform admin access required",
+        )
+
+    return user
+
+
+def get_db() -> Generator[Session, None, None]:
+    """Lazy import to avoid circular dependency."""
+    from app.database import get_db as db_get_db
+    yield from db_get_db()
+
+
+def get_user_with_terms(
+    user: AuthenticatedUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> AuthenticatedUser:
+    """FastAPI dependency that requires terms acceptance for authenticated users.
+
+    This dependency wraps get_current_user and additionally checks that
+    the user has accepted the current terms version. Anonymous users
+    (demo mode) are exempt from this check.
+
+    Usage:
+        @router.post("/api/protected")
+        def protected_route(user: AuthenticatedUser = Depends(get_user_with_terms)):
+            ...
+
+    Raises:
+        HTTPException 403: If user hasn't accepted current terms.
+    """
+    # Late import to avoid circular dependency
+    from app.routes.auth import ANONYMOUS_TENANT_ID
+
+    # Skip terms check for anonymous users (demo mode)
+    if user.tenant_id == ANONYMOUS_TENANT_ID:
+        return user
+
+    # Query user from database to check terms status
+    db_user = db.query(User).filter(User.id == user.user_id).first()
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Check if terms acceptance is required
+    terms_required = False
+    if db_user.terms_accepted_at is None:
+        terms_required = True
+    elif db_user.terms_version is None:
+        terms_required = True
+    elif db_user.terms_version < settings.CURRENT_TERMS_VERSION:
+        terms_required = True
+
+    if terms_required:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Terms acceptance required",
+            headers={"X-Terms-Required": "true"},
         )
 
     return user

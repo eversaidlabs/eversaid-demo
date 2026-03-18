@@ -52,6 +52,7 @@ export interface AuthContextValue extends AuthState {
     credentials: LoginRequest
   ) => Promise<{ passwordChangeRequired: boolean; termsAcceptanceRequired: boolean }>
   logout: () => Promise<void>
+  /** Refresh user info from server (call after accepting terms) */
   refreshUser: () => Promise<void>
 }
 
@@ -69,6 +70,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [tenant, setTenant] = useState<Tenant | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [termsAcceptanceRequired, setTermsAcceptanceRequired] = useState(false)
 
   const isAuthenticated = user !== null
   const isAnonymous = user?.tenant_id === ANONYMOUS_TENANT_ID
@@ -100,6 +102,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(me.user)
           setTenant(me.tenant)
 
+          // Track terms acceptance requirement for non-anonymous users
+          const isAnonymousUser = me.user.tenant_id === ANONYMOUS_TENANT_ID
+          setTermsAcceptanceRequired(!isAnonymousUser && me.terms_acceptance_required)
+
           // Extract locale from pathname
           const localeMatch = pathname.match(/^\/(en|sl)/)
           const locale = localeMatch ? localeMatch[1] : 'en'
@@ -109,22 +115,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
             router.replace(`/${locale}/change-password`)
             return
           }
-
-          // If terms acceptance required (non-anonymous user needs to accept or re-accept terms)
-          const isAnonymousUser = me.user.tenant_id === ANONYMOUS_TENANT_ID
-          if (
-            !isAnonymousUser &&
-            me.terms_acceptance_required &&
-            !isPublicPath(pathname)
-          ) {
-            router.replace(`/${locale}/accept-terms`)
-          }
         }
       } catch (_err) {
         if (mounted) {
           // Token invalid or expired
           setUser(null)
           setTenant(null)
+          setTermsAcceptanceRequired(false)
         }
       } finally {
         if (mounted) {
@@ -188,16 +185,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [pathname, router])
 
-  // Refresh user info
+  // Refresh user info (called after actions like accepting terms)
   const refreshUser = useCallback(async () => {
     try {
       const me = await getMe()
       setUser(me.user)
       setTenant(me.tenant)
+
+      // Update terms acceptance state
+      const isAnonymousUser = me.user.tenant_id === ANONYMOUS_TENANT_ID
+      setTermsAcceptanceRequired(!isAnonymousUser && me.terms_acceptance_required)
     } catch (_err) {
       // If refresh fails, user might be logged out
       setUser(null)
       setTenant(null)
+      setTermsAcceptanceRequired(false)
     }
   }, [])
 
@@ -208,12 +210,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isLoading,
       isAuthenticated,
       isAnonymous,
+      termsAcceptanceRequired,
       error,
       login,
       logout,
       refreshUser,
     }),
-    [user, tenant, isLoading, isAuthenticated, isAnonymous, error, login, logout, refreshUser]
+    [user, tenant, isLoading, isAuthenticated, isAnonymous, termsAcceptanceRequired, error, login, logout, refreshUser]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -72,7 +72,7 @@ The wrapper backend handles:
 - Multi-tenant JWT authentication for dashboard users
 - Rate limiting (per-session, per-IP, global)
 - Proxying requests with Bearer auth to Core API
-- Feedback and waitlist collection (PostgreSQL)
+- Feedback, waitlist, and user account storage (PostgreSQL)
 
 ## Frontend Architecture Rules
 
@@ -98,7 +98,8 @@ src/
 │   │   ├── api.ts          # All demo API calls
 │   │   └── types.ts        # TypeScript types
 │   ├── auth/               # Authentication (login, tokens, context)
-│   └── dashboard/          # Dashboard hooks (entry list, quota, actions)
+│   ├── dashboard/          # Dashboard hooks (entry list, quota, actions)
+│   └── admin/              # Admin panel hooks (user management, tenant admin)
 ├── lib/                    # Utilities (session, storage, diff-utils)
 ├── i18n/                   # Internationalization config
 └── messages/               # Translation files (sl.json, en.json)
@@ -112,10 +113,11 @@ src/
 ### Key Libraries
 - Custom diff utilities (`src/lib/diff-utils.ts`): LCS-based segment-level diff computation
 - react-virtuoso: Virtualized scrolling for long transcript segment lists
-- Motion.js: Animations
-- Sonner: Toast notifications
-- react-hook-form + Zod: Form validation
+- motion (Motion.js): Animations (respects prefers-reduced-motion)
+- sonner: Toast notifications
+- react-hook-form + zod: Form validation
 - recharts: Data visualization for analysis results
+- @marsidev/react-turnstile: Cloudflare CAPTCHA integration
 
 ### Testing
 - **Frontend unit tests**: `src/**/*.test.{ts,tsx}` (co-located with source, setup in `src/tests/setup.ts`)
@@ -140,7 +142,8 @@ backend/app/
 │   └── logging.py   # Request/response logging
 ├── services/
 │   ├── auth.py      # Auth business logic (login, tokens, users)
-│   └── quota.py     # Quota limits computation (user + tenant)
+│   ├── quota.py     # Quota limits computation (user + tenant)
+│   └── email.py     # Brevo transactional emails (waitlist notifications)
 ├── models/
 │   ├── core.py      # Session, RateLimitEntry, Feedback, Waitlist
 │   └── auth.py      # Tenant, User, AuthSession, UserRole
@@ -190,6 +193,15 @@ Key backend configuration (see `docker-compose.yml` for full list):
 - Anonymous sessions via cookies (`eversaid_session_id`)
 - Auto-registration with Core API using `anon-{uuid}@anon.eversaid.example`
 - Token refresh when within 1 hour of expiry
+
+## Entry Types
+
+Two types of entries, distinguished by `is_transcript_only` field:
+
+- **Audio entries** (`is_transcript_only=false`): Uploaded audio files with transcription, cleanup, and analysis
+- **Text entries** (`is_transcript_only=true`): Direct text imports without audio, support cleanup and analysis only
+
+Dashboard routes `/audio` and `/text` filter by this field. Both types share the same API endpoints.
 
 ## Design System
 

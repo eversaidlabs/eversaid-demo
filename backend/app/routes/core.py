@@ -9,7 +9,7 @@ from starlette.background import BackgroundTask
 
 from app.config import Settings, get_settings
 from app.core_client import CoreAPIClient, CoreAPIError, get_core_api
-from app.middleware.auth import AuthenticatedUser, get_current_user
+from app.middleware.auth import AuthenticatedUser, get_current_user, get_user_with_terms
 from app.turnstile import require_turnstile
 from app.utils.audio import AudioValidationError, validate_audio_duration, validate_audio_file_size
 
@@ -97,7 +97,7 @@ async def transcribe(
     # Analysis options (separate from cleanup)
     analysis_llm_model: Optional[str] = Form(None),  # LLM model for analysis
     settings: Settings = Depends(get_settings),
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
     _turnstile: None = Depends(require_turnstile()),
 ):
@@ -164,7 +164,7 @@ async def transcribe(
 @router.post("/api/import-text", status_code=202)
 async def import_text(
     body: ImportTextRequest,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
     _turnstile: None = Depends(require_turnstile()),
 ):
@@ -199,7 +199,7 @@ async def import_text(
 @router.get("/api/transcriptions/{transcription_id}")
 async def get_transcription(
     transcription_id: str,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get transcription status, text, and segments."""
@@ -227,7 +227,7 @@ async def get_transcription(
 async def list_entries(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List all entries for the current user.
@@ -257,7 +257,7 @@ async def list_entries(
 @router.get("/api/entries/{entry_id}")
 async def get_entry(
     entry_id: str,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get entry details with transcription segments and cleanup.
@@ -356,7 +356,7 @@ async def get_entry(
 @router.get("/api/entries/{entry_id}/cleaned")
 async def list_cleaned_entries(
     entry_id: str,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List all cleanup records for an entry.
@@ -382,7 +382,7 @@ async def list_cleaned_entries(
 @router.delete("/api/entries/{entry_id}")
 async def delete_entry(
     entry_id: str,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Delete an entry and all associated data."""
@@ -411,7 +411,7 @@ class UpdateEntryRequest(BaseModel):
 async def update_entry(
     entry_id: str,
     body: UpdateEntryRequest,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Update entry metadata (e.g., rename).
@@ -443,7 +443,7 @@ async def update_entry(
 @router.get("/api/entries/{entry_id}/audio")
 async def get_entry_audio(
     entry_id: str,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Stream the audio file for an entry.
@@ -516,7 +516,7 @@ async def get_entry_audio(
 async def trigger_cleanup(
     transcription_id: str,
     body: CleanupRequest = Body(default=CleanupRequest()),
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
     _turnstile: None = Depends(require_turnstile()),
 ):
@@ -551,7 +551,7 @@ async def trigger_cleanup(
 @router.get("/api/cleaned-entries/{cleanup_id}")
 async def get_cleaned_entry(
     cleanup_id: str,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get cleanup details including cleaned text and segments."""
@@ -574,7 +574,7 @@ async def get_cleaned_entry(
 async def update_user_edit(
     cleanup_id: str,
     body: UserEditRequest,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Save user edits to cleaned text."""
@@ -597,7 +597,7 @@ async def update_user_edit(
 @router.delete("/api/cleaned-entries/{cleanup_id}/user-edit")
 async def revert_user_edit(
     cleanup_id: str,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Revert to AI-generated cleaned text."""
@@ -623,7 +623,7 @@ async def revert_user_edit(
 
 @router.get("/api/analysis-profiles")
 async def list_analysis_profiles(
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List available analysis profiles."""
@@ -646,7 +646,7 @@ async def list_analysis_profiles(
 async def trigger_analysis(
     cleanup_id: str,
     body: AnalyzeRequest = Body(default=AnalyzeRequest()),
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Trigger analysis on a cleaned entry."""
@@ -670,7 +670,7 @@ async def trigger_analysis(
 @router.get("/api/cleaned-entries/{cleanup_id}/analyses")
 async def list_analyses(
     cleanup_id: str,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """List all analyses for a cleaned entry."""
@@ -692,7 +692,7 @@ async def list_analyses(
 @router.get("/api/analyses/{analysis_id}")
 async def get_analysis(
     analysis_id: str,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
 ):
     """Get analysis status and results."""

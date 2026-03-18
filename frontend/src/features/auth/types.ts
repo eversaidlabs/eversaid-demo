@@ -92,5 +92,7 @@ export interface AuthState {
   isAuthenticated: boolean
   /** True if user is an anonymous demo user (should not access dashboard) */
   isAnonymous: boolean
+  /** True if user needs to accept (or re-accept) terms before using the app */
+  termsAcceptanceRequired: boolean
   error: string | null
 }

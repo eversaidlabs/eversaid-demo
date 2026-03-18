@@ -1125,3 +1125,259 @@ class TestPlatformAdminUserManagement:
         )
 
         assert response.status_code == 403
+
+
+class TestTermsEnforcementOnCoreEndpoints:
+    """Tests for terms acceptance enforcement on core API endpoints."""
+
+    @pytest.fixture
+    def setup_user_without_terms(self, test_db):
+        """Create a user who has not accepted terms."""
+        tenant = Tenant(name="Terms Test Tenant")
+        test_db.add(tenant)
+        test_db.commit()
+        test_db.refresh(tenant)
+
+        user = User(
+            email="noterms@test.com",
+            tenant_id=tenant.id,
+            hashed_password=hash_password("test-password"),
+            role=UserRole.tenant_user,
+            password_change_required=False,
+            terms_accepted_at=None,  # Never accepted terms
+            terms_version=None,
+        )
+        test_db.add(user)
+        test_db.commit()
+        test_db.refresh(user)
+
+        return {"tenant": tenant, "user": user}
+
+    @pytest.fixture
+    def setup_user_with_old_terms(self, test_db):
+        """Create a user who has accepted old terms version."""
+        from datetime import datetime, timezone
+
+        tenant = Tenant(name="Old Terms Tenant")
+        test_db.add(tenant)
+        test_db.commit()
+        test_db.refresh(tenant)
+
+        user = User(
+            email="oldtermsuser@test.com",
+            tenant_id=tenant.id,
+            hashed_password=hash_password("test-password"),
+            role=UserRole.tenant_user,
+            password_change_required=False,
+            terms_accepted_at=datetime.now(timezone.utc),
+            terms_version="2020-01-01",  # Old version
+        )
+        test_db.add(user)
+        test_db.commit()
+        test_db.refresh(user)
+
+        return {"tenant": tenant, "user": user}
+
+    @pytest.fixture
+    def setup_user_with_current_terms(self, test_db, test_settings):
+        """Create a user who has accepted current terms version."""
+        from datetime import datetime, timezone
+
+        tenant = Tenant(name="Current Terms Tenant")
+        test_db.add(tenant)
+        test_db.commit()
+        test_db.refresh(tenant)
+
+        user = User(
+            email="currentterms@test.com",
+            tenant_id=tenant.id,
+            hashed_password=hash_password("test-password"),
+            role=UserRole.tenant_user,
+            password_change_required=False,
+            terms_accepted_at=datetime.now(timezone.utc),
+            terms_version=test_settings.CURRENT_TERMS_VERSION,
+        )
+        test_db.add(user)
+        test_db.commit()
+        test_db.refresh(user)
+
+        return {"tenant": tenant, "user": user}
+
+    def test_list_entries_blocked_without_terms(self, client, setup_user_without_terms):
+        """User without terms acceptance should get 403 on /api/entries."""
+        # Login
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "noterms@test.com", "password": "test-password"},
+        )
+        assert login_response.status_code == 200
+        access_token = login_response.json()["access_token"]
+
+        # Try to list entries
+        response = client.get(
+            "/api/entries",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Terms acceptance required"
+        assert response.headers.get("X-Terms-Required") == "true"
+
+    def test_list_entries_blocked_with_old_terms(self, client, setup_user_with_old_terms):
+        """User with old terms version should get 403 on /api/entries."""
+        # Login
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "oldtermsuser@test.com", "password": "test-password"},
+        )
+        assert login_response.status_code == 200
+        access_token = login_response.json()["access_token"]
+
+        # Try to list entries
+        response = client.get(
+            "/api/entries",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Terms acceptance required"
+        assert response.headers.get("X-Terms-Required") == "true"
+
+    def test_list_entries_allowed_with_current_terms(
+        self, client, setup_user_with_current_terms, test_settings
+    ):
+        """User with current terms version should be allowed to access /api/entries."""
+        import respx
+        from httpx import Response
+
+        # Mock Core API response for entries
+        respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries").mock(
+            return_value=Response(200, json={"entries": [], "total": 0})
+        )
+
+        # Login
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "currentterms@test.com", "password": "test-password"},
+        )
+        assert login_response.status_code == 200
+        access_token = login_response.json()["access_token"]
+
+        # List entries should succeed
+        response = client.get(
+            "/api/entries",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        assert response.status_code == 200
+
+    def test_terms_enforcement_allows_auth_endpoints(self, client, setup_user_without_terms):
+        """Auth endpoints should not require terms acceptance."""
+        # Login should work even without terms accepted
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "noterms@test.com", "password": "test-password"},
+        )
+        assert login_response.status_code == 200
+        access_token = login_response.json()["access_token"]
+
+        # /api/auth/me should work
+        me_response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert me_response.status_code == 200
+
+        # /api/auth/accept-terms should work
+        accept_response = client.post(
+            "/api/auth/accept-terms",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert accept_response.status_code == 204
+
+    def test_accept_terms_then_access_entries(
+        self, client, setup_user_without_terms, test_settings
+    ):
+        """After accepting terms, user should be able to access entries."""
+        import respx
+        from httpx import Response
+
+        # Mock Core API response for entries
+        respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries").mock(
+            return_value=Response(200, json={"entries": [], "total": 0})
+        )
+
+        # Login
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "noterms@test.com", "password": "test-password"},
+        )
+        access_token = login_response.json()["access_token"]
+
+        # Verify blocked before accepting
+        response = client.get(
+            "/api/entries",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert response.status_code == 403
+
+        # Accept terms
+        client.post(
+            "/api/auth/accept-terms",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        # Now entries should be accessible
+        response = client.get(
+            "/api/entries",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert response.status_code == 200
+
+    def test_anonymous_user_exempt_from_terms(
+        self, client, test_db, test_settings
+    ):
+        """Anonymous (demo) users should not be blocked by terms requirement."""
+        import respx
+        from httpx import Response
+        from tests.conftest import ANONYMOUS_TENANT_ID
+
+        # Ensure anonymous tenant exists
+        existing = test_db.query(Tenant).filter(Tenant.id == ANONYMOUS_TENANT_ID).first()
+        if not existing:
+            tenant = Tenant(id=ANONYMOUS_TENANT_ID, name="anonymous", is_active=True)
+            test_db.add(tenant)
+            test_db.commit()
+
+        # Create anonymous user without terms
+        user = User(
+            email="anon-test@anon.eversaid.example",
+            tenant_id=ANONYMOUS_TENANT_ID,
+            hashed_password=hash_password("test-password"),
+            role=UserRole.tenant_user,
+            password_change_required=False,
+            terms_accepted_at=None,
+            terms_version=None,
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        # Mock Core API response for entries
+        respx.get(f"{test_settings.CORE_API_URL}/api/v1/entries").mock(
+            return_value=Response(200, json={"entries": [], "total": 0})
+        )
+
+        # Login
+        login_response = client.post(
+            "/api/auth/login",
+            json={"email": "anon-test@anon.eversaid.example", "password": "test-password"},
+        )
+        assert login_response.status_code == 200
+        access_token = login_response.json()["access_token"]
+
+        # Anonymous user should be able to list entries without terms
+        response = client.get(
+            "/api/entries",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert response.status_code == 200

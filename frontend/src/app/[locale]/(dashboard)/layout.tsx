@@ -7,6 +7,7 @@ import { AuthProvider } from '@/features/auth/context'
 import { useAuth } from '@/features/auth/hooks'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { MobileSidebar } from '@/components/dashboard/mobile-sidebar'
+import { TermsAcceptanceModal } from '@/components/dashboard/terms-acceptance-modal'
 import { Logo } from '@/components/ui/logo'
 
 /**
@@ -35,9 +36,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 }
 
 function DashboardContent({ children }: { children: ReactNode }) {
-  const { isLoading, isAuthenticated, isAnonymous, user } = useAuth()
+  const { isLoading, isAuthenticated, isAnonymous, user, termsAcceptanceRequired, refreshUser } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+
+  // Extract locale from pathname
+  const locale = useMemo(() => {
+    const match = pathname.match(/^\/(en|sl)/)
+    return match ? match[1] : 'en'
+  }, [pathname])
+
+  // Check if this is a terms update (user has accepted before but needs to re-accept)
+  const isTermsUpdate = user?.terms_accepted_at !== null
 
   // Check if we're on an entry detail page (full-screen side-by-side view)
   const isFullscreenView = useMemo(() => isEntryDetailPath(pathname), [pathname])
@@ -88,6 +98,14 @@ function DashboardContent({ children }: { children: ReactNode }) {
     return (
       <div className="min-h-screen bg-slate-50">
         {children}
+
+        {/* Terms acceptance modal overlay */}
+        <TermsAcceptanceModal
+          isOpen={termsAcceptanceRequired}
+          isTermsUpdate={isTermsUpdate}
+          onAccept={refreshUser}
+          locale={locale}
+        />
       </div>
     )
   }
@@ -104,6 +122,14 @@ function DashboardContent({ children }: { children: ReactNode }) {
       <main className="flex-1 md:ml-[260px]">
         <div className="p-6 pt-20 md:p-8 md:pt-8">{children}</div>
       </main>
+
+      {/* Terms acceptance modal overlay */}
+      <TermsAcceptanceModal
+        isOpen={termsAcceptanceRequired}
+        isTermsUpdate={isTermsUpdate}
+        onAccept={refreshUser}
+        locale={locale}
+      />
     </div>
   )
 }
