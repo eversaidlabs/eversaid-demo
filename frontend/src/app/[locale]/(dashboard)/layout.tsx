@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import posthog from 'posthog-js'
 
 import { AuthProvider } from '@/features/auth/context'
 import { useAuth } from '@/features/auth/hooks'
@@ -75,6 +76,13 @@ function DashboardContent({ children }: { children: ReactNode }) {
       router.replace(`/${locale}/change-password`)
     }
   }, [isLoading, user, pathname, router])
+
+  // Disable PostHog session recording for authenticated users
+  useEffect(() => {
+    if (isAuthenticated && posthog.__loaded) {
+      posthog.stopSessionRecording()
+    }
+  }, [isAuthenticated])
 
   // Show loading state while checking auth
   if (isLoading) {
