@@ -180,3 +180,28 @@ class TestImportTextEndpoint:
         )
 
         assert response.status_code == 500
+
+    def test_import_text_empty_text(self, client, auth_headers):
+        """Test text import with empty text (validation error)."""
+        response = client.post(
+            "/api/import-text",
+            json={"text": ""},
+            headers=auth_headers,
+        )
+
+        # Pydantic validation should fail (min_length=1)
+        assert response.status_code == 422
+
+    def test_import_text_exceeding_max_length(self, client, auth_headers):
+        """Test text import with text exceeding 500KB limit (validation error)."""
+        # Create text just over the 500,000 character limit
+        oversized_text = "a" * 500_001
+
+        response = client.post(
+            "/api/import-text",
+            json={"text": oversized_text},
+            headers=auth_headers,
+        )
+
+        # Pydantic validation should fail (max_length=500_000)
+        assert response.status_code == 422

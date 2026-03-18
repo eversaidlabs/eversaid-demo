@@ -130,7 +130,7 @@ Requires Turnstile token in `CF-Turnstile-Response` header.
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| text | string | Yes | - | Text to import |
+| text | string | Yes | - | Text to import (1-500,000 characters) |
 | language | string | No | "en" | Text language |
 | cleanup_type | string | No | "clean" | One of: minimal, clean, edited |
 | llm_model | string | No | - | LLM model for cleanup |
@@ -145,6 +145,7 @@ Returns entry and transcription IDs from Core API.
 | Code | Description |
 |------|-------------|
 | 401 | Token missing or expired |
+| 422 | Validation failed (empty text or exceeds 500KB limit) |
 | 429 | Rate limit exceeded |
 
 ---

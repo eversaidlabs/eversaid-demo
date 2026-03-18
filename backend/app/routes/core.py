@@ -4,7 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, Form, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.background import BackgroundTask
 
 from app.config import Settings, get_settings
@@ -70,7 +70,7 @@ class AnalyzeRequest(BaseModel):
 class ImportTextRequest(BaseModel):
     """Request body for importing text and running cleanup."""
 
-    text: str
+    text: str = Field(..., min_length=1, max_length=500_000)
     language: str = "en"
     cleanup_type: str = "clean"
     llm_model: Optional[str] = None
