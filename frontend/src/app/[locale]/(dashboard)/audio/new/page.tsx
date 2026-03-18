@@ -68,7 +68,7 @@ export default function NewAudioPage({
     setError(null)
 
     try {
-      await uploadAndTranscribe(file, {
+      const response = await uploadAndTranscribe(file, {
         language: selectedLanguage,
         speakerCount,
         // Enable diarization when auto (null) or more than 1 speaker
@@ -76,7 +76,8 @@ export default function NewAudioPage({
       })
 
       toast.success(t('upload.success'))
-      router.push(`/${locale}/audio`)
+      // Redirect to entry detail page to show progress immediately
+      router.push(`/${locale}/audio/${response.entry_id}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : t('upload.failed')
       setError(message)

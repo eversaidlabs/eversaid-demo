@@ -145,8 +145,9 @@ export interface UseTranscriptionReturn {
    *
    * @param entryId - UUID of the entry to load
    * @param turnstileToken - Turnstile CAPTCHA token (optional, needed if auto-triggering cleanup)
+   * @param skipLoadingState - If true, don't reset to loading state (used by polling callbacks to prevent UI flickering)
    */
-  loadEntry: (entryId: string, turnstileToken?: string | null) => Promise<void>
+  loadEntry: (entryId: string, turnstileToken?: string | null, skipLoadingState?: boolean) => Promise<void>
 
   /**
    * Whether current entry is a demo entry.
@@ -316,7 +317,7 @@ export function useTranscription(
 
   // Ref to store loadEntry function for circular dependency resolution
   // pollCleanupStatus needs to call loadEntry, but loadEntry calls pollCleanupStatus
-  const loadEntryRef = useRef<((entryId: string) => Promise<void>) | null>(null)
+  const loadEntryRef = useRef<((entryId: string, turnstileToken?: string | null, skipLoadingState?: boolean) => Promise<void>) | null>(null)
 
   // Parse time strings into start/end times
   const segmentsWithTime = useMemo(
@@ -680,8 +681,9 @@ export function useTranscription(
 
             // Reload entry to get full data
             // This will work because now cleanup exists, so loadEntry won't re-trigger
+            // Pass skipLoadingState=true to prevent UI flickering
             if (loadEntryRef.current) {
-              await loadEntryRef.current(entryIdToLoad)
+              await loadEntryRef.current(entryIdToLoad, undefined, true)
             }
           } else if (cleanedEntry.status === "failed") {
             setError(cleanedEntry.error_message || "Cleanup failed")
@@ -718,7 +720,8 @@ export function useTranscription(
               clearTimeout(pollingRef.current)
               pollingRef.current = null
             }
-            loadEntryRef.current?.(entryIdToLoad)
+            // Pass skipLoadingState=true to prevent UI flickering
+            loadEntryRef.current?.(entryIdToLoad, undefined, true)
           } else if (transcriptionStatus.status === "failed") {
             if (pollingRef.current) {
               clearTimeout(pollingRef.current)
@@ -929,7 +932,7 @@ export function useTranscription(
    * Demo entries are identified by filename pattern (demo-*.mp3) for UI display only.
    */
   const loadEntry = useCallback(
-    async (entryIdToLoad: string, turnstileToken?: string | null): Promise<void> => {
+    async (entryIdToLoad: string, turnstileToken?: string | null, skipLoadingState?: boolean): Promise<void> => {
       console.log("[loadEntry] Starting to load entry:", entryIdToLoad)
 
       // Clean up any existing polling
@@ -939,9 +942,14 @@ export function useTranscription(
       }
 
       setError(null)
-      setStatus("loading")
-      setSegments([])
-      setRevertedSegments(new Map())
+
+      // Skip loading state reset when called from polling callbacks
+      // This prevents UI flickering when polling completes and reloads entry
+      if (!skipLoadingState) {
+        setStatus("loading")
+        setSegments([])
+        setRevertedSegments(new Map())
+      }
 
       try {
         // Fetch entry from API
@@ -961,8 +969,9 @@ export function useTranscription(
           setEntryId(entryIdToLoad)
           setStatus("transcribing")
           // No transcription ID to poll - set up interval to retry loadEntry
+          // Pass skipLoadingState=true to prevent UI flickering
           pollingRef.current = setTimeout(() => {
-            loadEntryRef.current?.(entryIdToLoad)
+            loadEntryRef.current?.(entryIdToLoad, undefined, true)
           }, POLL_INTERVAL_MS)
           return
         }

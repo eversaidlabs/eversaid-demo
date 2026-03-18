@@ -66,13 +66,13 @@ export default function NewTextPage({
     setError(null)
 
     try {
-      await importAndCleanup({
+      const response = await importAndCleanup({
         text: text.trim(),
         language: selectedLanguage,
       })
 
-      toast.success(t('import.success'))
-      router.push(`/${locale}/text`)
+      // Redirect to entry detail page immediately to show processing state
+      router.push(`/${locale}/text/${response.entry_id}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : t('import.failed')
       setError(message)
