@@ -51,7 +51,7 @@ export function ProcessingStages({
             <div className="flex flex-col items-center">
               <div
                 className={`
-                  w-[clamp(3rem,6vw,5rem)] h-[clamp(3rem,6vw,5rem)] rounded-full flex items-center justify-center
+                  w-[clamp(2.5rem,5vw,4rem)] h-[clamp(2.5rem,5vw,4rem)] rounded-full flex items-center justify-center
                   transition-all duration-300
                   ${stage.status === "completed"
                     ? "bg-[#1D3557] text-white"
@@ -64,13 +64,13 @@ export function ProcessingStages({
                 `}
               >
                 {stage.status === "completed" ? (
-                  <Check className="w-[clamp(1.5rem,3vw,2.5rem)] h-[clamp(1.5rem,3vw,2.5rem)]" />
+                  <Check className="w-[clamp(1.25rem,2.5vw,2rem)] h-[clamp(1.25rem,2.5vw,2rem)]" />
                 ) : stage.status === "active" ? (
-                  <Loader2 className="w-[clamp(1.5rem,3vw,2.5rem)] h-[clamp(1.5rem,3vw,2.5rem)] animate-spin" />
+                  <Loader2 className="w-[clamp(1.25rem,2.5vw,2rem)] h-[clamp(1.25rem,2.5vw,2rem)] animate-spin" />
                 ) : stage.status === "error" ? (
-                  <span className="text-[clamp(1rem,2vw,1.5rem)] font-bold">!</span>
+                  <span className="text-[clamp(0.875rem,1.75vw,1.25rem)] font-bold">!</span>
                 ) : (
-                  <span className="text-[clamp(1rem,2vw,1.5rem)] font-medium">{index + 1}</span>
+                  <span className="text-[clamp(0.875rem,1.75vw,1.25rem)] font-medium">{index + 1}</span>
                 )}
               </div>
               <span
@@ -92,7 +92,7 @@ export function ProcessingStages({
             {index < stages.length - 1 && (
               <div
                 className={`
-                  w-[clamp(2rem,6vw,5rem)] h-[2px] mx-[clamp(0.5rem,1vw,1rem)] mt-[clamp(-1.5rem,-3vh,-2.5rem)]
+                  w-[clamp(1.5rem,4vw,3rem)] h-[2px] mx-[clamp(0.25rem,0.75vw,0.75rem)] mt-[clamp(-1.25rem,-2.5vh,-2rem)]
                   transition-colors duration-300
                   ${stage.status === "completed"
                     ? "bg-[#1D3557]"
