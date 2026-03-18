@@ -65,6 +65,9 @@ export async function getPlatformUsers(
   if (filters.quotaStatus) {
     params.set('quota_status', filters.quotaStatus)
   }
+  if (filters.showAnonymous) {
+    params.set('show_anonymous', 'true')
+  }
   params.set('limit', limit.toString())
   params.set('offset', offset.toString())
 

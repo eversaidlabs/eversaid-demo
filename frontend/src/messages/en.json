@@ -938,6 +938,7 @@
         "registeredBefore": "Registered before",
         "quotaStatus": "Quota status",
         "allStatuses": "All statuses",
+        "showAnonymous": "Show demo users",
         "apply": "Apply",
         "clear": "Clear"
       },

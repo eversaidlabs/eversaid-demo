@@ -100,6 +100,7 @@ export interface UserFilters {
   registeredAfter?: string // ISO date string
   registeredBefore?: string // ISO date string
   quotaStatus?: QuotaStatus
+  showAnonymous?: boolean // Include anonymous demo users
 }
 
 /**

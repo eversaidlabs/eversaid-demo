@@ -336,6 +336,7 @@ async def list_platform_users(
     quota_status: Optional[Literal["ok", "warning", "critical"]] = Query(
         None, description="Filter by quota status"
     ),
+    show_anonymous: bool = Query(False, description="Include anonymous demo users"),
     limit: int = Query(50, ge=1, le=100, description="Max users to return"),
     offset: int = Query(0, ge=0, description="Number of users to skip"),
     user: AuthenticatedUser = Depends(get_platform_admin),
@@ -357,6 +358,10 @@ async def list_platform_users(
     # Apply filters
     if email:
         query = query.filter(User.email.ilike(f"%{email}%"))
+
+    # Filter out anonymous users by default
+    if not show_anonymous:
+        query = query.filter(~User.email.like("anon-%@anon.eversaid.example"))
 
     if registered_after:
         query = query.filter(func.date(User.created_at) >= registered_after)

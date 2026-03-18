@@ -153,9 +153,6 @@ export default function NewAudioPage({
                 {t('upload.browse')}
               </span>
             </label>
-            <p className="mt-4 text-xs text-slate-400">
-              {t('upload.formats')}
-            </p>
           </div>
         )}
       </div>

@@ -874,7 +874,7 @@
       "language": "Jezik posnetka",
       "languageSlovenian": "Slovenščina",
       "languageEnglish": "English",
-      "submit": "Naloži in transkribir",
+      "submit": "Naloži in transkribiraj",
       "uploading": "Nalaganje...",
       "success": "Nalaganje uspešno! Obdelava se je začela.",
       "failed": "Nalaganje ni uspelo. Poskusite znova.",
@@ -938,6 +938,7 @@
         "registeredBefore": "Registriran pred",
         "quotaStatus": "Status kvote",
         "allStatuses": "Vsi statusi",
+        "showAnonymous": "Prikaži demo uporabnike",
         "apply": "Uporabi",
         "clear": "Počisti"
       },

@@ -31,6 +31,9 @@ export function UserFiltersComponent({
   const [quotaStatus, setQuotaStatus] = useState<QuotaStatus | ''>(
     filters.quotaStatus || ''
   )
+  const [showAnonymous, setShowAnonymous] = useState(
+    filters.showAnonymous || false
+  )
 
   const handleApply = useCallback(() => {
     const newFilters: UserFilters = {}
@@ -38,19 +41,21 @@ export function UserFiltersComponent({
     if (registeredAfter) newFilters.registeredAfter = registeredAfter
     if (registeredBefore) newFilters.registeredBefore = registeredBefore
     if (quotaStatus) newFilters.quotaStatus = quotaStatus
+    if (showAnonymous) newFilters.showAnonymous = showAnonymous
     onFiltersChange(newFilters)
-  }, [email, registeredAfter, registeredBefore, quotaStatus, onFiltersChange])
+  }, [email, registeredAfter, registeredBefore, quotaStatus, showAnonymous, onFiltersChange])
 
   const handleClear = useCallback(() => {
     setEmail('')
     setRegisteredAfter('')
     setRegisteredBefore('')
     setQuotaStatus('')
+    setShowAnonymous(false)
     onFiltersChange({})
   }, [onFiltersChange])
 
   const hasFilters =
-    email || registeredAfter || registeredBefore || quotaStatus
+    email || registeredAfter || registeredBefore || quotaStatus || showAnonymous
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -111,6 +116,20 @@ export function UserFiltersComponent({
             <option value="warning">{t('quotaStatus.warning')}</option>
             <option value="critical">{t('quotaStatus.critical')}</option>
           </select>
+        </div>
+
+        {/* Show anonymous users checkbox */}
+        <div className="flex h-9 items-center gap-2">
+          <input
+            type="checkbox"
+            id="show-anonymous"
+            checked={showAnonymous}
+            onChange={(e) => setShowAnonymous(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+          />
+          <Label htmlFor="show-anonymous" className="text-sm font-normal">
+            {t('filters.showAnonymous')}
+          </Label>
         </div>
 
         {/* Action buttons */}
