@@ -46,6 +46,12 @@ interface TranscriptComparisonLayoutProps {
   showCopyButton?: boolean
   /** Cleanup options for AI CLEANED header (model/level selection) */
   cleanupOptions?: CleanupOptionsProps
+  /** Entry title for export filename (e.g., original filename) */
+  entryTitle?: string
+  /** Whether this is an audio entry (shows download audio option) */
+  isAudioEntry?: boolean
+  /** Callback to download audio file */
+  onDownloadAudio?: () => void
 }
 
 export function TranscriptComparisonLayout({
@@ -82,6 +88,9 @@ export function TranscriptComparisonLayout({
   showRevertButton = true,
   showCopyButton = true,
   cleanupOptions,
+  entryTitle,
+  isAudioEntry = false,
+  onDownloadAudio,
 }: TranscriptComparisonLayoutProps) {
   const t = useTranslations('demo.transcript')
   const rawScrollRef = useRef<HTMLDivElement>(null)
@@ -196,6 +205,9 @@ export function TranscriptComparisonLayout({
             showCopyButton={showCopyButton}
             showCollapseButton
             onCollapse={handleCollapse}
+            entryTitle={entryTitle}
+            isAudioEntry={isAudioEntry}
+            onDownloadAudio={onDownloadAudio}
           />
         )}
         <TranscriptHeader
@@ -209,6 +221,9 @@ export function TranscriptComparisonLayout({
           cleanupOptions={cleanupOptions}
           showExpandButton={isRawCollapsed}
           onExpand={handleExpand}
+          entryTitle={entryTitle}
+          isAudioEntry={isAudioEntry}
+          onDownloadAudio={onDownloadAudio}
         />
       </div>
 

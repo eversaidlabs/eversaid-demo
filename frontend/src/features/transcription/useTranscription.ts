@@ -162,6 +162,11 @@ export interface UseTranscriptionReturn {
    */
   demoLocale: string | null
 
+  /**
+   * Original filename of the entry (for export feature).
+   */
+  originalFilename: string | null
+
   // Utilities
   /**
    * Get a segment by ID
@@ -306,6 +311,9 @@ export function useTranscription(
   const [isDemo, setIsDemo] = useState<boolean>(false)
   const [demoLocale, setDemoLocale] = useState<string | null>(null)
   const [_demoAudioUrl, _setDemoAudioUrl] = useState<string | null>(null)
+
+  // Original filename for export feature
+  const [originalFilename, setOriginalFilename] = useState<string | null>(null)
 
   // Track reverted segments for undo functionality
   const [revertedSegments, setRevertedSegments] = useState<Map<string, string>>(
@@ -1101,6 +1109,9 @@ export function useTranscription(
         // Set duration from API response (used as fallback when audio element can't determine duration)
         setDurationSeconds(entryDetails.duration_seconds || 0)
 
+        // Set original filename for export feature
+        setOriginalFilename(entryDetails.original_filename || null)
+
         // Detect demo entry by filename pattern (demo-*.mp3)
         const isDemoEntry = entryDetails.original_filename?.startsWith("demo-") &&
                             entryDetails.original_filename?.endsWith(".mp3")
@@ -1156,6 +1167,7 @@ export function useTranscription(
     setIsDemo(false)
     setDemoLocale(null)
     _setDemoAudioUrl(null)
+    setOriginalFilename(null)
   }, [initialSegments])
 
   /**
@@ -1261,6 +1273,7 @@ export function useTranscription(
     loadEntry,
     isDemo,
     demoLocale,
+    originalFilename,
     getSegmentById,
     getSegmentAtTime,
     reset,

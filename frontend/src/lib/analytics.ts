@@ -14,6 +14,8 @@ interface AnalyticsEventMap {
   diff_view_opened: Record<string, never>
   quality_rated: { rating: number }
   copy_clicked: { side: 'raw' | 'cleaned' }
+  export_copy: { side: 'raw' | 'cleaned'; hasTimestamps: boolean; multipleSpeakers: boolean }
+  export_download: { side: 'raw' | 'cleaned'; hasTimestamps: boolean; multipleSpeakers: boolean }
   waitlist_form_opened: Record<string, never>
   waitlist_joined: { user_role: string }
   share_feedback_clicked: Record<string, never>

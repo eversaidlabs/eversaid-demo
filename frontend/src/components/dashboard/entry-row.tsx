@@ -11,16 +11,12 @@ import { EntryCardDropdown } from './entry-card-dropdown'
 interface EntryRowProps {
   entry: EntrySummary
   onRename: (entryId: string, currentName: string) => void
-  onDownloadTranscript: (entryId: string, filename: string) => void
-  onDownloadAudio?: (entryId: string, filename: string) => void
   onDelete: (entryId: string) => void
 }
 
 export function EntryRow({
   entry,
   onRename,
-  onDownloadTranscript,
-  onDownloadAudio,
   onDelete,
 }: EntryRowProps) {
   const t = useTranslations('dashboard')
@@ -116,18 +112,9 @@ export function EntryRow({
           <EntryCardDropdown
             entryId={entry.id}
             filename={displayName}
-            isAudio={isAudio}
             isOpen={isDropdownOpen}
             onOpenChange={setIsDropdownOpen}
             onRename={() => onRename(entry.id, displayName)}
-            onDownloadTranscript={() =>
-              onDownloadTranscript(entry.id, displayName)
-            }
-            onDownloadAudio={
-              isAudio && onDownloadAudio
-                ? () => onDownloadAudio(entry.id, displayName)
-                : undefined
-            }
             onDelete={() => onDelete(entry.id)}
           />
         </div>

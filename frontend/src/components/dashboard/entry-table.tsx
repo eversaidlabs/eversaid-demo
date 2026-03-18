@@ -8,8 +8,6 @@ import { EntryRow } from './entry-row'
 interface EntryTableProps {
   entries: EntrySummary[]
   onRename: (entryId: string, currentName: string) => void
-  onDownloadTranscript: (entryId: string, filename: string) => void
-  onDownloadAudio?: (entryId: string, filename: string) => void
   onDelete: (entryId: string) => void
 }
 
@@ -20,8 +18,6 @@ interface EntryTableProps {
 export function EntryTable({
   entries,
   onRename,
-  onDownloadTranscript,
-  onDownloadAudio,
   onDelete,
 }: EntryTableProps) {
   const t = useTranslations('dashboard')
@@ -58,8 +54,6 @@ export function EntryTable({
                 key={entry.id}
                 entry={entry}
                 onRename={onRename}
-                onDownloadTranscript={onDownloadTranscript}
-                onDownloadAudio={onDownloadAudio}
                 onDelete={onDelete}
               />
             ))}

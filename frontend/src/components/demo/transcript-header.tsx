@@ -1,12 +1,13 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import type { Segment } from "@/components/demo/types"
 import type { ModelInfo, CleanupType, CleanupSummary } from "@/features/transcription/types"
-import { Eye, EyeOff, Copy, Loader2, Check, Info, PanelLeftClose, PanelLeft } from "lucide-react"
+import { Eye, EyeOff, Copy, Loader2, Check, Info, PanelLeftClose, PanelLeft, Download, ChevronDown, Music } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { capture } from "@/lib/analytics"
 import { CLEANUP_TEMPERATURES, getDefaultModelForLevel, temperaturesMatch, DEFAULT_CLEANUP_LEVEL, VISIBLE_CLEANUP_LEVELS, DISABLED_CLEANUP_LEVELS } from "@/lib/level-config"
+import { hasMultipleSpeakers, formatTranscriptForExport, generateExportFilename, downloadAsTextFile } from "@/lib/export-utils"
 import { CleanupCompareModal } from "./cleanup-compare-modal"
 import {
   Tooltip,
@@ -129,6 +130,12 @@ export interface TranscriptHeaderProps {
   showExpandButton?: boolean
   /** Callback when expand button is clicked */
   onExpand?: () => void
+  /** Entry title for export filename (e.g., original filename) */
+  entryTitle?: string
+  /** Whether this is an audio entry (shows download audio option) */
+  isAudioEntry?: boolean
+  /** Callback to download audio file */
+  onDownloadAudio?: () => void
 }
 
 export function TranscriptHeader({
@@ -144,6 +151,9 @@ export function TranscriptHeader({
   onCollapse,
   showExpandButton = false,
   onExpand,
+  entryTitle,
+  isAudioEntry = false,
+  onDownloadAudio,
 }: TranscriptHeaderProps) {
   const t = useTranslations("demo.cleanup")
   const [showCompareModal, setShowCompareModal] = useState(false)
@@ -156,6 +166,59 @@ export function TranscriptHeader({
   const levelHoldTimerRef = useRef<NodeJS.Timeout | null>(null)
   const levelDidFireRef = useRef(false)
   const allowLevelLongPress = cleanupOptions?.environment && cleanupOptions.environment !== 'production'
+
+  // Export menu state
+  const [showExportMenu, setShowExportMenu] = useState(false)
+  const [includeTimestamps, setIncludeTimestamps] = useState(false)
+  const exportMenuRef = useRef<HTMLDivElement>(null)
+
+  const multipleSpeakers = hasMultipleSpeakers(segments)
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setShowExportMenu(false)
+      }
+    }
+
+    if (showExportMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showExportMenu])
+
+  const handleExportCopy = useCallback(() => {
+    capture('export_copy', {
+      side: textKey === 'rawText' ? 'raw' : 'cleaned',
+      hasTimestamps: includeTimestamps,
+      multipleSpeakers,
+    })
+    const text = formatTranscriptForExport(segments, textKey, { includeTimestamps })
+    navigator.clipboard.writeText(text)
+    toast.success(t("copySuccess"))
+    setShowExportMenu(false)
+  }, [segments, textKey, includeTimestamps, multipleSpeakers, t])
+
+  const handleExportDownload = useCallback(() => {
+    capture('export_download', {
+      side: textKey === 'rawText' ? 'raw' : 'cleaned',
+      hasTimestamps: includeTimestamps,
+      multipleSpeakers,
+    })
+    const text = formatTranscriptForExport(segments, textKey, { includeTimestamps })
+    const filename = generateExportFilename(entryTitle, textKey)
+    downloadAsTextFile(text, filename)
+    toast.success(t("downloadSuccess"))
+    setShowExportMenu(false)
+  }, [segments, textKey, includeTimestamps, multipleSpeakers, entryTitle, t])
+
+  const handleExportAudio = useCallback(() => {
+    if (onDownloadAudio) {
+      onDownloadAudio()
+      setShowExportMenu(false)
+    }
+  }, [onDownloadAudio])
 
   const handleCopy = () => {
     capture('copy_clicked', { side: textKey === 'rawText' ? 'raw' : 'cleaned' })
@@ -368,13 +431,65 @@ export function TranscriptHeader({
           </button>
         )}
         {showCopyButton && (
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-secondary hover:bg-muted rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-all"
-          >
-            <Copy className="w-3.5 h-3.5" />
-            {t("copy")}
-          </button>
+          <div className="relative" ref={exportMenuRef}>
+            <button
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-secondary hover:bg-muted rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-all"
+            >
+              {t("export")}
+              <ChevronDown className="w-3 h-3" />
+            </button>
+
+            {/* Export dropdown menu */}
+            {showExportMenu && (
+              <div className="absolute right-0 mt-1 w-48 bg-background border border-border rounded-lg shadow-lg z-50 py-1">
+                {/* Copy option */}
+                <button
+                  onClick={handleExportCopy}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                >
+                  <Copy className="w-4 h-4 text-muted-foreground" />
+                  {t("copy")}
+                </button>
+
+                {/* Download option */}
+                <button
+                  onClick={handleExportDownload}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                >
+                  <Download className="w-4 h-4 text-muted-foreground" />
+                  {t("download")}
+                </button>
+
+                {/* Download audio option - only shown for audio entries */}
+                {isAudioEntry && onDownloadAudio && (
+                  <button
+                    onClick={handleExportAudio}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                  >
+                    <Music className="w-4 h-4 text-muted-foreground" />
+                    {t("downloadAudio")}
+                  </button>
+                )}
+
+                {/* Timestamps checkbox - only shown when multiple speakers */}
+                {multipleSpeakers && (
+                  <>
+                    <div className="h-px bg-border my-1" />
+                    <label className="flex items-center gap-2 px-3 py-2 text-sm text-foreground cursor-pointer hover:bg-muted transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={includeTimestamps}
+                        onChange={(e) => setIncludeTimestamps(e.target.checked)}
+                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      {t("includeTimestamps")}
+                    </label>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         )}
         </div>
       </div>

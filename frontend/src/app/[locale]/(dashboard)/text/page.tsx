@@ -19,7 +19,6 @@ export default function TextListPage() {
   const {
     renameEntry,
     isRenaming,
-    downloadTranscript,
     removeEntry,
     isDeleting,
   } = useEntryActions()
@@ -75,13 +74,6 @@ export default function TextListPage() {
     }
   }, [deleteTargetId, removeEntry, refresh, t])
 
-  const handleDownloadTranscript = useCallback(
-    (entryId: string, filename: string) => {
-      downloadTranscript(entryId, filename)
-    },
-    [downloadTranscript]
-  )
-
   // Loading state
   if (isLoading && entries.length === 0) {
     return (
@@ -119,7 +111,6 @@ export default function TextListPage() {
         <EntryTable
           entries={entries}
           onRename={handleOpenRename}
-          onDownloadTranscript={handleDownloadTranscript}
           onDelete={handleOpenDelete}
         />
       )}

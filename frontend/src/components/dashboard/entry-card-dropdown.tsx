@@ -8,24 +8,18 @@ import { cn } from '@/lib/utils'
 interface EntryCardDropdownProps {
   entryId: string
   filename: string
-  isAudio: boolean
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   onRename: () => void
-  onDownloadTranscript: () => void
-  onDownloadAudio?: () => void
   onDelete: () => void
 }
 
 export function EntryCardDropdown({
   entryId: _entryId,
   filename: _filename,
-  isAudio,
   isOpen,
   onOpenChange,
   onRename,
-  onDownloadTranscript,
-  onDownloadAudio,
   onDelete,
 }: EntryCardDropdownProps) {
   const t = useTranslations('dashboard')
@@ -87,26 +81,6 @@ export function EntryCardDropdown({
               onRename()
             }}
           />
-
-          <DropdownItem
-            icon={<DownloadIcon />}
-            label={t('dropdown.downloadTranscript')}
-            onClick={() => {
-              onOpenChange(false)
-              onDownloadTranscript()
-            }}
-          />
-
-          {isAudio && onDownloadAudio && (
-            <DropdownItem
-              icon={<AudioIcon />}
-              label={t('dropdown.downloadAudio')}
-              onClick={() => {
-                onOpenChange(false)
-                onDownloadAudio()
-              }}
-            />
-          )}
 
           <div className="my-1 h-px bg-slate-100" />
 
@@ -190,44 +164,6 @@ function RenameIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-      />
-    </svg>
-  )
-}
-
-function DownloadIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={2}
-      stroke="currentColor"
-      className="size-4"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-      />
-    </svg>
-  )
-}
-
-function AudioIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={2}
-      stroke="currentColor"
-      className="size-4"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
       />
     </svg>
   )

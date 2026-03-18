@@ -1303,6 +1303,9 @@ function DemoPageContent({ config }: DemoPageContentProps) {
                       onCleanedMoveTargetClick={handleCleanedMoveTargetClick}
                       activeWordIndex={wordHighlight.activeWordIndex}
                       isPlaying={audioPlayer.isPlaying}
+                      entryTitle={transcription.originalFilename ?? undefined}
+                      isAudioEntry={!!audioUrl}
+                      onDownloadAudio={audioUrl ? handleDownload : undefined}
                       cleanupOptions={{
                         models: cleanupModels,
                         selectedModel: selectedCleanupModel,

@@ -19,8 +19,6 @@ export default function AudioListPage() {
   const {
     renameEntry,
     isRenaming,
-    downloadTranscript,
-    downloadAudio,
     removeEntry,
     isDeleting,
   } = useEntryActions()
@@ -76,20 +74,6 @@ export default function AudioListPage() {
     }
   }, [deleteTargetId, removeEntry, refresh, t])
 
-  const handleDownloadTranscript = useCallback(
-    (entryId: string, filename: string) => {
-      downloadTranscript(entryId, filename)
-    },
-    [downloadTranscript]
-  )
-
-  const handleDownloadAudio = useCallback(
-    (entryId: string, filename: string) => {
-      downloadAudio(entryId, filename)
-    },
-    [downloadAudio]
-  )
-
   // Loading state
   if (isLoading && entries.length === 0) {
     return (
@@ -127,8 +111,6 @@ export default function AudioListPage() {
         <EntryTable
           entries={entries}
           onRename={handleOpenRename}
-          onDownloadTranscript={handleDownloadTranscript}
-          onDownloadAudio={handleDownloadAudio}
           onDelete={handleOpenDelete}
         />
       )}

@@ -720,6 +720,9 @@ export function EntryDetailContainer({
             onCleanedTextSelect={handleCleanedTextSelect}
             onRawMoveTargetClick={handleRawMoveTargetClick}
             onCleanedMoveTargetClick={handleCleanedMoveTargetClick}
+            entryTitle={transcription.originalFilename ?? undefined}
+            isAudioEntry={entryType === 'audio'}
+            onDownloadAudio={entryType === 'audio' ? handleDownload : undefined}
             cleanupOptions={{
               models: cleanupModels,
               selectedModel: selectedCleanupModel,
