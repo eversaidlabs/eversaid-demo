@@ -8,6 +8,7 @@ import { EntryRow } from './entry-row'
 interface EntryTableProps {
   entries: EntrySummary[]
   onRename: (entryId: string, currentName: string) => void
+  onRenameInline: (entryId: string, newName: string) => Promise<void>
   onDelete: (entryId: string) => void
 }
 
@@ -18,6 +19,7 @@ interface EntryTableProps {
 export function EntryTable({
   entries,
   onRename,
+  onRenameInline,
   onDelete,
 }: EntryTableProps) {
   const t = useTranslations('dashboard')
@@ -54,6 +56,7 @@ export function EntryTable({
                 key={entry.id}
                 entry={entry}
                 onRename={onRename}
+                onRenameInline={onRenameInline}
                 onDelete={onDelete}
               />
             ))}

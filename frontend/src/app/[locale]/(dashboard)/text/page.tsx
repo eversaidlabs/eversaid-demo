@@ -40,6 +40,21 @@ export default function TextListPage() {
     setRenameDialogOpen(true)
   }, [])
 
+  // Inline rename handler (used by EditableTitle)
+  const handleRenameInline = useCallback(
+    async (entryId: string, newName: string) => {
+      try {
+        await renameEntry(entryId, newName)
+        toast.success(t('toast.renamed'))
+        refresh()
+      } catch (_err) {
+        toast.error(t('toast.renameFailed'))
+        throw _err // Re-throw so EditableTitle can revert
+      }
+    },
+    [renameEntry, refresh, t]
+  )
+
   const handleRename = useCallback(
     async (newName: string) => {
       if (!renameTarget) return
@@ -111,6 +126,7 @@ export default function TextListPage() {
         <EntryTable
           entries={entries}
           onRename={handleOpenRename}
+          onRenameInline={handleRenameInline}
           onDelete={handleOpenDelete}
         />
       )}

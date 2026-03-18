@@ -7,16 +7,19 @@ import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import type { EntrySummary } from '@/features/transcription/types'
 import { EntryCardDropdown } from './entry-card-dropdown'
+import { EditableTitle } from './editable-title'
 
 interface EntryRowProps {
   entry: EntrySummary
   onRename: (entryId: string, currentName: string) => void
+  onRenameInline: (entryId: string, newName: string) => Promise<void>
   onDelete: (entryId: string) => void
 }
 
 export function EntryRow({
   entry,
   onRename,
+  onRenameInline,
   onDelete,
 }: EntryRowProps) {
   const t = useTranslations('dashboard')
@@ -83,9 +86,11 @@ export function EntryRow({
 
       {/* Title cell */}
       <td className="max-w-[200px] py-3 pr-2 sm:max-w-xs lg:max-w-md">
-        <span className="block truncate font-medium text-slate-900 group-hover:text-sky-600">
-          {displayName}
-        </span>
+        <EditableTitle
+          value={displayName}
+          onSave={(newName) => onRenameInline(entry.id, newName)}
+          className="font-medium text-slate-900"
+        />
       </td>
 
       {/* Status cell */}
