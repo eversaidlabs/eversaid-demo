@@ -12,8 +12,8 @@
 const ACCESS_TOKEN_KEY = 'eversaid_access_token'
 const REFRESH_TOKEN_KEY = 'eversaid_refresh_token'
 
-// API base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
+// API base URL - exported for use by api-client.ts
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 /**
  * Token response from auth endpoints

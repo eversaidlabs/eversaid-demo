@@ -17,7 +17,9 @@ import type {
   UserStats,
 } from './types'
 
-// Re-export ApiClientError as AdminApiError for backwards compatibility
+// Re-export ApiClientError as AdminApiError for backwards compatibility.
+// Note: The .name property will be 'ApiClientError', not 'AdminApiError'.
+// This is acceptable since no existing code checks .name on this error type.
 export { ApiClientError as AdminApiError }
 
 /**
