@@ -586,7 +586,7 @@ export function EntryDetailContainer({
         {/* Main content */}
         <main className="flex-1 md:ml-[260px]">
           <div className="p-6 pt-20 md:p-8 md:pt-8 flex items-center justify-center min-h-screen">
-            <div className="w-full max-w-2xl bg-white rounded-xl border border-[#E2E8F0] shadow-lg p-8">
+            <div className="w-full max-w-4xl bg-white rounded-xl border border-[#E2E8F0] shadow-lg p-8">
               <ProcessingStages
                 stages={processingStages.stages}
                 currentStageId={processingStages.currentStageId}

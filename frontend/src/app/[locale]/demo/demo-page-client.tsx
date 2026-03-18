@@ -1236,7 +1236,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
               ) : transcription.segments.length === 0 ? (
                 /* Processing State - transcribing/cleaning in progress */
                 <div className="flex-1 flex items-center justify-center p-6">
-                  <div className="w-[65%] h-[40%] bg-white rounded-xl border border-[#E2E8F0] shadow-lg flex items-center justify-center">
+                  <div className="w-full max-w-4xl bg-white rounded-xl border border-[#E2E8F0] shadow-lg flex items-center justify-center">
                     <ProcessingStages
                       stages={processingStages.stages}
                       currentStageId={processingStages.currentStageId}
