@@ -31,6 +31,8 @@ import {
   FloatingFeedbackWidget,
   TranscriptLoadingSkeleton,
 } from '@/components/transcript'
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { MobileSidebar } from '@/components/dashboard/mobile-sidebar'
 
 export type EntryType = 'audio' | 'text'
 
@@ -576,15 +578,22 @@ export function EntryDetailContainer({
   // Processing state (check BEFORE error state to handle empty segments during processing)
   if (transcription.status === 'transcribing' || transcription.status === 'cleaning') {
     return (
-      <div className="bg-card border-b border-border overflow-hidden flex flex-col fixed inset-0 z-30">
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-[65%] h-[40%] bg-white rounded-xl border border-[#E2E8F0] shadow-lg flex items-center justify-center">
-            <ProcessingStages
-              stages={processingStages.stages}
-              currentStageId={processingStages.currentStageId}
-            />
+      <div className="flex min-h-screen bg-slate-50">
+        {/* Mobile sidebar */}
+        <MobileSidebar />
+        {/* Desktop sidebar */}
+        <Sidebar className="hidden md:flex" />
+        {/* Main content */}
+        <main className="flex-1 md:ml-[260px]">
+          <div className="p-6 pt-20 md:p-8 md:pt-8 flex items-center justify-center min-h-screen">
+            <div className="w-full max-w-2xl bg-white rounded-xl border border-[#E2E8F0] shadow-lg p-8">
+              <ProcessingStages
+                stages={processingStages.stages}
+                currentStageId={processingStages.currentStageId}
+              />
+            </div>
           </div>
-        </div>
+        </main>
       </div>
     )
   }

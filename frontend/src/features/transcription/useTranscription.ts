@@ -703,6 +703,49 @@ export function useTranscription(
   )
 
   /**
+   * Poll for transcription status only (when cleanup doesn't exist yet).
+   * When transcription completes, calls loadEntry to fetch full state.
+   */
+  const pollTranscriptionOnly = useCallback(
+    (transcriptionIdToPoll: string, entryIdToLoad: string): void => {
+      const poll = async (): Promise<void> => {
+        try {
+          const transcriptionStatus = await getTranscriptionStatus(transcriptionIdToPoll)
+
+          if (transcriptionStatus.status === "completed") {
+            // Clear polling and reload entry to get cleanup
+            if (pollingRef.current) {
+              clearTimeout(pollingRef.current)
+              pollingRef.current = null
+            }
+            loadEntryRef.current?.(entryIdToLoad)
+          } else if (transcriptionStatus.status === "failed") {
+            if (pollingRef.current) {
+              clearTimeout(pollingRef.current)
+              pollingRef.current = null
+            }
+            setError(transcriptionStatus.error || "Transcription failed")
+            setStatus("error")
+          } else {
+            // Still processing, continue polling
+            pollingRef.current = setTimeout(poll, POLL_INTERVAL_MS)
+          }
+        } catch (err) {
+          if (pollingRef.current) {
+            clearTimeout(pollingRef.current)
+            pollingRef.current = null
+          }
+          setError(err instanceof Error ? err.message : "Polling failed")
+          setStatus("error")
+        }
+      }
+
+      poll()
+    },
+    []
+  )
+
+  /**
    * Reprocess cleanup with new options (model, cleanup type, temperature).
    * Sets status to cleaning, triggers new cleanup, polls for completion, then reloads entry.
    */
@@ -917,6 +960,10 @@ export function useTranscription(
           console.log("[loadEntry] No transcription data, setting status to transcribing")
           setEntryId(entryIdToLoad)
           setStatus("transcribing")
+          // No transcription ID to poll - set up interval to retry loadEntry
+          pollingRef.current = setTimeout(() => {
+            loadEntryRef.current?.(entryIdToLoad)
+          }, POLL_INTERVAL_MS)
           return
         }
 
@@ -925,6 +972,10 @@ export function useTranscription(
           setEntryId(entryIdToLoad)
           setTranscriptionId(transcription.id || null)
           setStatus("transcribing")
+          // Start polling for transcription completion
+          if (transcription.id) {
+            pollTranscriptionOnly(transcription.id, entryIdToLoad)
+          }
           return
         }
 
