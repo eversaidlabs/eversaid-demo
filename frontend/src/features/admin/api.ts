@@ -1,8 +1,11 @@
 /**
  * API client for platform admin user management.
+ *
+ * Uses centralized authJsonFetch for automatic token refresh
+ * and redirect to login on session expiry.
  */
 
-import { getAccessToken } from '@/lib/auth'
+import { authJsonFetch, ApiClientError } from '@/lib/api-client'
 
 import type {
   AdminTenant,
@@ -14,34 +17,8 @@ import type {
   UserStats,
 } from './types'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
-
-/**
- * API error for admin operations.
- */
-export class AdminApiError extends Error {
-  constructor(
-    public status: number,
-    message: string
-  ) {
-    super(message)
-    this.name = 'AdminApiError'
-  }
-}
-
-/**
- * Get authorization headers with access token.
- */
-function getAuthHeaders(): HeadersInit {
-  const token = getAccessToken()
-  if (!token) {
-    throw new AdminApiError(401, 'Not authenticated')
-  }
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  }
-}
+// Re-export ApiClientError as AdminApiError for backwards compatibility
+export { ApiClientError as AdminApiError }
 
 /**
  * Fetch all users across tenants (platform admin only).
@@ -71,52 +48,16 @@ export async function getPlatformUsers(
   params.set('limit', limit.toString())
   params.set('offset', offset.toString())
 
-  const response = await fetch(
-    `${API_BASE_URL}/api/admin/platform/users?${params.toString()}`,
-    {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    }
+  return authJsonFetch<PlatformUsersResponse>(
+    `/api/admin/platform/users?${params.toString()}`
   )
-
-  if (!response.ok) {
-    let errorMessage = 'Failed to fetch users'
-    try {
-      const errorBody = await response.json()
-      errorMessage = errorBody.detail || errorMessage
-    } catch {
-      errorMessage = response.statusText || errorMessage
-    }
-    throw new AdminApiError(response.status, errorMessage)
-  }
-
-  return response.json()
 }
 
 /**
  * Get user statistics (entry counts and quota usage).
  */
 export async function getUserStats(userId: string): Promise<UserStats> {
-  const response = await fetch(
-    `${API_BASE_URL}/api/admin/users/${userId}/stats`,
-    {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    }
-  )
-
-  if (!response.ok) {
-    let errorMessage = 'Failed to fetch user stats'
-    try {
-      const errorBody = await response.json()
-      errorMessage = errorBody.detail || errorMessage
-    } catch {
-      errorMessage = response.statusText || errorMessage
-    }
-    throw new AdminApiError(response.status, errorMessage)
-  }
-
-  return response.json()
+  return authJsonFetch<UserStats>(`/api/admin/users/${userId}/stats`)
 }
 
 /**
@@ -126,48 +67,17 @@ export async function updateUserQuota(
   userId: string,
   quota: UpdateUserQuotaRequest
 ): Promise<void> {
-  const response = await fetch(
-    `${API_BASE_URL}/api/admin/users/${userId}/quota`,
-    {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(quota),
-    }
-  )
-
-  if (!response.ok) {
-    let errorMessage = 'Failed to update quota'
-    try {
-      const errorBody = await response.json()
-      errorMessage = errorBody.detail || errorMessage
-    } catch {
-      errorMessage = response.statusText || errorMessage
-    }
-    throw new AdminApiError(response.status, errorMessage)
-  }
+  await authJsonFetch(`/api/admin/users/${userId}/quota`, {
+    method: 'PUT',
+    body: quota,
+  })
 }
 
 /**
  * Fetch all tenants (platform admin only).
  */
 export async function getTenants(): Promise<AdminTenant[]> {
-  const response = await fetch(`${API_BASE_URL}/api/admin/tenants`, {
-    method: 'GET',
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    let errorMessage = 'Failed to fetch tenants'
-    try {
-      const errorBody = await response.json()
-      errorMessage = errorBody.detail || errorMessage
-    } catch {
-      errorMessage = response.statusText || errorMessage
-    }
-    throw new AdminApiError(response.status, errorMessage)
-  }
-
-  return response.json()
+  return authJsonFetch<AdminTenant[]>('/api/admin/tenants')
 }
 
 /**
@@ -176,22 +86,8 @@ export async function getTenants(): Promise<AdminTenant[]> {
 export async function createUser(
   data: CreateUserRequest
 ): Promise<CreateUserResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+  return authJsonFetch<CreateUserResponse>('/api/admin/users', {
     method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(data),
+    body: data,
   })
-
-  if (!response.ok) {
-    let errorMessage = 'Failed to create user'
-    try {
-      const errorBody = await response.json()
-      errorMessage = errorBody.detail || errorMessage
-    } catch {
-      errorMessage = response.statusText || errorMessage
-    }
-    throw new AdminApiError(response.status, errorMessage)
-  }
-
-  return response.json()
 }
