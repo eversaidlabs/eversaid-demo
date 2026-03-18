@@ -10,7 +10,7 @@ from starlette.background import BackgroundTask
 from app.config import Settings, get_settings
 from app.core_client import CoreAPIClient, CoreAPIError, get_core_api
 from app.middleware.auth import AuthenticatedUser, get_current_user, get_user_with_terms
-from app.turnstile import require_turnstile
+from app.turnstile import require_turnstile_for_anonymous
 from app.utils.audio import AudioValidationError, validate_audio_duration, validate_audio_file_size
 
 router = APIRouter(tags=["core"])
@@ -99,7 +99,7 @@ async def transcribe(
     settings: Settings = Depends(get_settings),
     user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
-    _turnstile: None = Depends(require_turnstile()),
+    _turnstile: None = Depends(require_turnstile_for_anonymous()),
 ):
     """Upload audio and start transcription + cleanup + analysis.
 
@@ -166,7 +166,7 @@ async def import_text(
     body: ImportTextRequest,
     user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
-    _turnstile: None = Depends(require_turnstile()),
+    _turnstile: None = Depends(require_turnstile_for_anonymous()),
 ):
     """Import text and run cleanup (skip transcription).
 
@@ -518,7 +518,7 @@ async def trigger_cleanup(
     body: CleanupRequest = Body(default=CleanupRequest()),
     user: AuthenticatedUser = Depends(get_user_with_terms),
     core_api: CoreAPIClient = Depends(get_core_api),
-    _turnstile: None = Depends(require_turnstile()),
+    _turnstile: None = Depends(require_turnstile_for_anonymous()),
 ):
     """Trigger LLM cleanup for a completed transcription.
 

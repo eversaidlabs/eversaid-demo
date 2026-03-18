@@ -132,12 +132,13 @@ def test_turnstile_disabled_skips_verification(client, test_settings, auth_heade
         assert response.status_code != 403
 
 
-def test_turnstile_enabled_requires_token(client, test_settings, auth_headers):
-    """When TURNSTILE_ENABLED=True, requests without token get 403."""
+def test_turnstile_enabled_requires_token_for_anonymous(client, test_settings, auth_headers):
+    """When TURNSTILE_ENABLED=True, anonymous users without token get 403."""
     test_settings.TURNSTILE_ENABLED = True
     test_settings.TURNSTILE_SECRET_KEY = "test-secret"
 
     try:
+        # auth_headers is for anonymous user (tenant_id = ANONYMOUS_TENANT_ID)
         response = client.post(
             "/api/transcribe",
             data={"language": "sl", "speaker_count": "2"},
@@ -148,6 +149,87 @@ def test_turnstile_enabled_requires_token(client, test_settings, auth_headers):
         body = response.json()
         assert body["error"] == "captcha_failed"
     finally:
+        # Reset settings to avoid affecting other tests
+        test_settings.TURNSTILE_ENABLED = False
+        test_settings.TURNSTILE_SECRET_KEY = ""
+
+
+def test_turnstile_skipped_for_authenticated_user(client, test_settings, test_engine):
+    """Authenticated (non-anonymous) users skip Turnstile verification."""
+    from datetime import datetime, timezone
+    from sqlalchemy.orm import sessionmaker
+
+    from app.models.auth import Tenant, User, UserRole
+    from app.utils.jwt import create_access_token
+    from app.utils.security import hash_password
+
+    test_settings.TURNSTILE_ENABLED = True
+    test_settings.TURNSTILE_SECRET_KEY = "test-secret"
+
+    # Use the same session factory as the client fixture
+    TestingSessionLocal = sessionmaker(bind=test_engine)
+    db = TestingSessionLocal()
+
+    try:
+        # Create a non-anonymous tenant and user
+        tenant_id = "11111111-1111-1111-1111-111111111111"
+        tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+        if not tenant:
+            tenant = Tenant(
+                id=tenant_id,
+                name="test-company",
+                is_active=True,
+            )
+            db.add(tenant)
+            db.commit()
+
+        user = User(
+            id="auth-user-456",
+            tenant_id=tenant_id,
+            email="user@company.example",
+            hashed_password=hash_password("test-password"),
+            password_change_required=False,
+            role=UserRole.tenant_user,
+            is_active=True,
+            # Terms accepted so get_user_with_terms passes
+            terms_accepted_at=datetime.now(timezone.utc),
+            terms_version=test_settings.CURRENT_TERMS_VERSION,
+        )
+        db.add(user)
+        db.commit()
+
+        # Create auth headers for authenticated user
+        access_token = create_access_token(
+            user_id=user.id,
+            tenant_id=tenant_id,
+            email=user.email,
+            role=UserRole.tenant_user.value,
+        )
+        authenticated_headers = {"Authorization": f"Bearer {access_token}"}
+
+        with respx.mock(assert_all_called=False):
+            # Mock Core API endpoint
+            respx.post(f"{test_settings.CORE_API_URL}/api/v1/upload-transcribe-cleanup").mock(
+                return_value=Response(202, json={
+                    "entry_id": "entry-1",
+                    "transcription_id": "tx-1",
+                    "cleanup_id": "cl-1",
+                    "transcription_status": "pending",
+                    "cleanup_status": "pending",
+                })
+            )
+
+            # Request WITHOUT X-Turnstile-Token header should succeed
+            response = client.post(
+                "/api/transcribe",
+                data={"language": "sl", "speaker_count": "2"},
+                files={"file": ("test.wav", b"fake-audio-content", "audio/wav")},
+                headers=authenticated_headers,
+            )
+            # Should NOT be 403 - authenticated users skip Turnstile
+            assert response.status_code != 403, f"Expected non-403, got {response.status_code}: {response.json()}"
+    finally:
+        db.close()
         # Reset settings to avoid affecting other tests
         test_settings.TURNSTILE_ENABLED = False
         test_settings.TURNSTILE_SECRET_KEY = ""
