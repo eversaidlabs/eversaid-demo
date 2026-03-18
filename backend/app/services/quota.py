@@ -155,6 +155,9 @@ class QuotaService:
     ) -> Optional[User]:
         """Update quota limits for a user.
 
+        If user limits exceed tenant limits, the tenant limits are automatically
+        increased to match. This ensures user limits are always effectively applied.
+
         Args:
             user_id: The user ID.
             transcription_seconds_limit: New limit (None = don't change).
@@ -168,12 +171,26 @@ class QuotaService:
         if not user:
             return None
 
+        # Load tenant to check/update limits
+        tenant = self.db.query(Tenant).filter(Tenant.id == user.tenant_id).first()
+        if not tenant:
+            return None
+
+        # Update user limits and auto-increase tenant limits if needed
         if transcription_seconds_limit is not None:
             user.transcription_seconds_limit = transcription_seconds_limit
+            if transcription_seconds_limit > tenant.transcription_seconds_limit:
+                tenant.transcription_seconds_limit = transcription_seconds_limit
+
         if text_cleanup_words_limit is not None:
             user.text_cleanup_words_limit = text_cleanup_words_limit
+            if text_cleanup_words_limit > tenant.text_cleanup_words_limit:
+                tenant.text_cleanup_words_limit = text_cleanup_words_limit
+
         if analysis_count_limit is not None:
             user.analysis_count_limit = analysis_count_limit
+            if analysis_count_limit > tenant.analysis_count_limit:
+                tenant.analysis_count_limit = analysis_count_limit
 
         self.db.commit()
         self.db.refresh(user)

@@ -1160,3 +1160,269 @@ class TestQuotaEdgeCases:
         # Other limits should be min(user, tenant)
         assert effective.text_cleanup_words_limit == min(1000, 5000)  # tenant is 5000
         assert effective.analysis_count_limit == min(10, 10)  # tenant is 10
+
+
+class TestAutoIncreaseTenantLimits:
+    """Tests for auto-increasing tenant limits when user limits exceed them."""
+
+    def test_user_limit_exceeds_tenant_increases_tenant(self, test_db, anonymous_tenant):
+        """When user limit > tenant limit, tenant limit is auto-increased."""
+        from app.models.auth import Tenant, User, UserRole
+        from app.services.quota import QuotaService
+        from app.utils.security import hash_password
+
+        # Tenant has transcription_seconds_limit=180 (from fixture)
+        user = User(
+            id="auto-increase-user-1",
+            tenant_id=ANONYMOUS_TENANT_ID,
+            email="auto-increase-1@example.com",
+            hashed_password=hash_password("password"),
+            password_change_required=False,
+            role=UserRole.tenant_user,
+            is_active=True,
+            transcription_seconds_limit=100,  # Start lower than tenant
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        quota_service = QuotaService(test_db)
+
+        # Update user limit to 500 (higher than tenant's 180)
+        result = quota_service.update_user_quota(
+            user.id,
+            transcription_seconds_limit=500,
+        )
+
+        assert result is not None
+        assert result.transcription_seconds_limit == 500
+
+        # Verify tenant was auto-increased
+        test_db.refresh(anonymous_tenant)
+        assert anonymous_tenant.transcription_seconds_limit == 500
+
+    def test_user_limit_below_tenant_no_change(self, test_db, anonymous_tenant):
+        """When user limit <= tenant limit, tenant limit unchanged."""
+        from app.models.auth import User, UserRole
+        from app.services.quota import QuotaService
+        from app.utils.security import hash_password
+
+        # Tenant has transcription_seconds_limit=180 (from fixture)
+        original_tenant_limit = anonymous_tenant.transcription_seconds_limit
+
+        user = User(
+            id="auto-increase-user-2",
+            tenant_id=ANONYMOUS_TENANT_ID,
+            email="auto-increase-2@example.com",
+            hashed_password=hash_password("password"),
+            password_change_required=False,
+            role=UserRole.tenant_user,
+            is_active=True,
+            transcription_seconds_limit=50,
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        quota_service = QuotaService(test_db)
+
+        # Update user limit to 100 (still lower than tenant's 180)
+        result = quota_service.update_user_quota(
+            user.id,
+            transcription_seconds_limit=100,
+        )
+
+        assert result is not None
+        assert result.transcription_seconds_limit == 100
+
+        # Verify tenant was NOT changed
+        test_db.refresh(anonymous_tenant)
+        assert anonymous_tenant.transcription_seconds_limit == original_tenant_limit
+
+    def test_auto_increase_all_three_limits(self, test_db, anonymous_tenant):
+        """All three limit types are auto-increased when exceeded."""
+        from app.models.auth import User, UserRole
+        from app.services.quota import QuotaService
+        from app.utils.security import hash_password
+
+        # Tenant limits from fixture: 180 / 5000 / 10
+        user = User(
+            id="auto-increase-user-3",
+            tenant_id=ANONYMOUS_TENANT_ID,
+            email="auto-increase-3@example.com",
+            hashed_password=hash_password("password"),
+            password_change_required=False,
+            role=UserRole.tenant_user,
+            is_active=True,
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        quota_service = QuotaService(test_db)
+
+        # Update all three limits above tenant limits
+        result = quota_service.update_user_quota(
+            user.id,
+            transcription_seconds_limit=1000,   # > 180
+            text_cleanup_words_limit=10000,     # > 5000
+            analysis_count_limit=50,            # > 10
+        )
+
+        assert result is not None
+        assert result.transcription_seconds_limit == 1000
+        assert result.text_cleanup_words_limit == 10000
+        assert result.analysis_count_limit == 50
+
+        # Verify tenant was auto-increased for all three
+        test_db.refresh(anonymous_tenant)
+        assert anonymous_tenant.transcription_seconds_limit == 1000
+        assert anonymous_tenant.text_cleanup_words_limit == 10000
+        assert anonymous_tenant.analysis_count_limit == 50
+
+    def test_partial_update_only_affects_provided_fields(self, test_db, anonymous_tenant):
+        """Only provided fields trigger tenant auto-increase."""
+        from app.models.auth import User, UserRole
+        from app.services.quota import QuotaService
+        from app.utils.security import hash_password
+
+        # Tenant limits from fixture: 180 / 5000 / 10
+        original_text_cleanup = anonymous_tenant.text_cleanup_words_limit
+        original_analysis = anonymous_tenant.analysis_count_limit
+
+        user = User(
+            id="auto-increase-user-4",
+            tenant_id=ANONYMOUS_TENANT_ID,
+            email="auto-increase-4@example.com",
+            hashed_password=hash_password("password"),
+            password_change_required=False,
+            role=UserRole.tenant_user,
+            is_active=True,
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        quota_service = QuotaService(test_db)
+
+        # Only update transcription_seconds_limit
+        result = quota_service.update_user_quota(
+            user.id,
+            transcription_seconds_limit=500,  # Only this one
+        )
+
+        assert result is not None
+        assert result.transcription_seconds_limit == 500
+
+        # Verify only transcription was changed on tenant
+        test_db.refresh(anonymous_tenant)
+        assert anonymous_tenant.transcription_seconds_limit == 500
+        assert anonymous_tenant.text_cleanup_words_limit == original_text_cleanup
+        assert anonymous_tenant.analysis_count_limit == original_analysis
+
+    def test_user_limit_equals_tenant_no_change(self, test_db, anonymous_tenant):
+        """When user limit equals tenant limit, tenant unchanged."""
+        from app.models.auth import User, UserRole
+        from app.services.quota import QuotaService
+        from app.utils.security import hash_password
+
+        # Tenant has transcription_seconds_limit=180
+        user = User(
+            id="auto-increase-user-5",
+            tenant_id=ANONYMOUS_TENANT_ID,
+            email="auto-increase-5@example.com",
+            hashed_password=hash_password("password"),
+            password_change_required=False,
+            role=UserRole.tenant_user,
+            is_active=True,
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        quota_service = QuotaService(test_db)
+
+        # Update user limit to exactly match tenant
+        result = quota_service.update_user_quota(
+            user.id,
+            transcription_seconds_limit=180,  # Exactly tenant limit
+        )
+
+        assert result is not None
+        assert result.transcription_seconds_limit == 180
+
+        # Verify tenant unchanged
+        test_db.refresh(anonymous_tenant)
+        assert anonymous_tenant.transcription_seconds_limit == 180
+
+class TestAutoIncreaseTenantLimitsEndpoint:
+    """Tests for auto-increasing tenant limits via API endpoint."""
+
+    def test_update_user_quota_auto_increases_tenant(self, client, test_engine):
+        """Test that updating user quota auto-increases tenant quota when exceeded."""
+        from app.models.auth import Tenant, User, UserRole
+        from app.utils.jwt import create_access_token
+        from app.utils.security import hash_password
+
+        TestingSessionLocal = sessionmaker(bind=test_engine)
+        db = TestingSessionLocal()
+
+        try:
+            # Create tenant with low limits
+            tenant = Tenant(
+                id="auto-increase-tenant",
+                name="Auto Increase Tenant",
+                is_active=True,
+                transcription_seconds_limit=100,
+                text_cleanup_words_limit=1000,
+                analysis_count_limit=5,
+            )
+            db.add(tenant)
+
+            # Create tenant admin
+            tenant_admin = User(
+                id="auto-increase-admin",
+                tenant_id="auto-increase-tenant",
+                email="auto-admin@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.tenant_admin,
+                is_active=True,
+            )
+            db.add(tenant_admin)
+
+            # Create target user
+            target_user = User(
+                id="auto-increase-target",
+                tenant_id="auto-increase-tenant",
+                email="auto-target@example.com",
+                hashed_password=hash_password("password"),
+                password_change_required=False,
+                role=UserRole.tenant_user,
+                is_active=True,
+                transcription_seconds_limit=50,
+            )
+            db.add(target_user)
+            db.commit()
+
+            admin_token = create_access_token(
+                user_id=tenant_admin.id,
+                tenant_id=tenant_admin.tenant_id,
+                email=tenant_admin.email,
+                role=UserRole.tenant_admin.value,
+            )
+
+            # Update user quota above tenant limits
+            response = client.put(
+                f"/api/admin/users/{target_user.id}/quota",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={"transcription_seconds_limit": 500},
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["transcription_seconds_limit"] == 500
+
+            # Verify tenant was auto-increased
+            db.refresh(tenant)
+            assert tenant.transcription_seconds_limit == 500
+            # Other limits should remain unchanged
+            assert tenant.text_cleanup_words_limit == 1000
+            assert tenant.analysis_count_limit == 5
+        finally:
+            db.close()
