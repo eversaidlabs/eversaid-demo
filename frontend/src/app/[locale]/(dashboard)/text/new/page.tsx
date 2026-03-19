@@ -215,7 +215,11 @@ export default function NewTextPage({
               rows={12}
               className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
             />
-            <p className="mt-2 text-xs text-slate-500">{t('import.hint')}</p>
+            <p className="mt-2 text-xs text-slate-500">
+              {t('import.hint')}
+              <br />
+              <span className="text-slate-400">{t('import.hintExample')}</span>
+            </p>
           </div>
         </div>
 
