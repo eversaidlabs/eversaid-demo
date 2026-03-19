@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl"
 import { Check, Eye } from "lucide-react"
+import { useState, useRef, useCallback, useEffect } from "react"
 
 function Removed({ children }: { children: React.ReactNode }) {
   return (
@@ -11,20 +12,99 @@ function Removed({ children }: { children: React.ReactNode }) {
   )
 }
 
+const MAX_ROTATION = 3 // degrees
+const DEFAULT_ROTATION = { x: 1, y: -2 }
+const RETURN_TRANSITION_MS = 900
+
 export function CleanupHeroDiff() {
   const t = useTranslations("cleanupLanding.heroDiff")
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [rotation, setRotation] = useState(DEFAULT_ROTATION)
+  const [isHovering, setIsHovering] = useState(false)
+  const [isFloating, setIsFloating] = useState(true)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const floatTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+    setPrefersReducedMotion(mediaQuery.matches)
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mediaQuery.addEventListener("change", handler)
+    return () => mediaQuery.removeEventListener("change", handler)
+  }, [])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (floatTimeoutRef.current) {
+        clearTimeout(floatTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (prefersReducedMotion || !containerRef.current) return
+
+      const rect = containerRef.current.getBoundingClientRect()
+      const centerX = rect.left + rect.width / 2
+      const centerY = rect.top + rect.height / 2
+
+      // Calculate offset from center (-1 to 1)
+      const offsetX = (e.clientX - centerX) / (rect.width / 2)
+      const offsetY = (e.clientY - centerY) / (rect.height / 2)
+
+      // Apply rotation (inverted for natural feel)
+      setRotation({
+        x: -offsetY * MAX_ROTATION,
+        y: offsetX * MAX_ROTATION,
+      })
+    },
+    [prefersReducedMotion]
+  )
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovering(false)
+    setRotation(DEFAULT_ROTATION)
+    // Re-enable float animation after transition completes
+    floatTimeoutRef.current = setTimeout(() => {
+      setIsFloating(true)
+    }, RETURN_TRANSITION_MS)
+  }, [])
+
+  const handleMouseEnter = useCallback(() => {
+    // Cancel any pending float re-enable
+    if (floatTimeoutRef.current) {
+      clearTimeout(floatTimeoutRef.current)
+      floatTimeoutRef.current = null
+    }
+    setIsHovering(true)
+    setIsFloating(false)
+  }, [])
 
   return (
-    <div className="relative" style={{ perspective: "1200px" }}>
+    <div
+      ref={containerRef}
+      className="relative"
+      style={{ perspective: "1200px" }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {/* Ambient glow behind the card */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.15)_0%,transparent_70%)] blur-3xl scale-150" />
 
       {/* 3D Floating App Mock - Dark theme */}
       <div
-        className="relative bg-[#1E293B]/95 rounded-xl overflow-hidden shadow-[0_25px_80px_-12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-sm"
+        className={`relative bg-[#1E293B]/95 rounded-xl overflow-hidden shadow-[0_25px_80px_-12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-sm ${
+          isFloating && !prefersReducedMotion ? "animate-float" : ""
+        }`}
         style={{
-          transform: "rotateY(-2deg) rotateX(1deg)",
+          transform: `rotateY(${rotation.y}deg) rotateX(${rotation.x}deg)`,
           transformStyle: "preserve-3d",
+          transition: isHovering
+            ? "transform 0.1s ease-out"
+            : "transform 0.9s cubic-bezier(0.05, 0.8, 0.15, 1)",
         }}
       >
         {/* App toolbar */}

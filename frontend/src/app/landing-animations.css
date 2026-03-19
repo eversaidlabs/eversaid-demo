@@ -101,6 +101,23 @@
 }
 
 /* ============================================================================
+ * Cleanup Hero - 3D Float Animation
+ * ============================================================================ */
+
+@keyframes landing-float {
+  0%, 100% {
+    transform: rotateY(-2deg) rotateX(1deg) translateY(0px);
+  }
+  50% {
+    transform: rotateY(-1deg) rotateX(2deg) translateY(-6px);
+  }
+}
+
+.animate-float {
+  animation: landing-float 4s ease-in-out infinite;
+}
+
+/* ============================================================================
  * Coming Soon Section - Typing Indicator
  * ============================================================================ */
 
@@ -149,6 +166,10 @@
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .animate-float {
+    animation: none;
   }
 
   .landing-typing-dot {
