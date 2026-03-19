@@ -136,7 +136,8 @@
       "cleanup": {
         "title": "AI cleanup you can see and control",
         "description": "Clean mode removes fillers, stutters, and false starts while keeping your words and grammar intact. Edited mode (coming soon) also fixes grammar and polishes sentences for publication.",
-        "highlighted": true
+        "highlighted": true,
+        "learnMore": "Learn more"
       },
       "verification": {
         "title": "See every change, verify against audio",
@@ -155,7 +156,7 @@
     "useCases": {
       "sectionLabel": "Use Cases",
       "title": "Who It's For",
-      "subtitle": "Professionals who need transcripts they can trust and insights they can verify",
+      "subtitle": "Professionals who need readable or publishable transcripts they can trust and insights they can verify",
       "therapists": {
         "title": "Therapists & Coaches",
         "description": "Stop taking manual notes mid-session. Record, get a clean transcript and AI-extracted themes, and review it before your next client."
@@ -191,7 +192,7 @@
       },
       "step4": {
         "title": "Review and verify",
-        "description": "See every change in the diff view. Click any word to hear the original audio."
+        "description": "See every change in the diff view. Click any word to hear the original audio. Edit or revert any change."
       },
       "library": {
         "title": "Saved to your library",
@@ -219,7 +220,7 @@
         "title": "Explain any dense passage instantly",
         "description": "Highlight a confusing 5-minute answer and get a clear explanation that accounts for what was said before and after."
       },
-      "cta": "Coming soon. Join the waitlist to be first."
+      "cta": "Coming soon. Join the waitlist to be among first."
     },
     "faq": {
       "sectionLabel": "FAQ",
@@ -244,7 +245,7 @@
         },
         "dataStorage": {
           "question": "Where is my data stored?",
-          "answer": "EverSaid runs on Hetzner servers in Germany. For registered users, AI text processing also stays in the EU (IONOS, Germany) and transcripts are encrypted with per-user keys. Audio is processed by ElevenLabs for transcription. Your data is never used for AI model training."
+          "answer": "EverSaid runs on Hetzner servers in Germany. For registered users, AI text processing also stays in the EU (IONOS, Germany). All data: audio files, transcripts, and analysis is AES-256 encrypted at rest. Audio is processed by ElevenLabs in USA for transcription. Your data is never used for AI model training."
         },
         "pricing": {
           "question": "Do I need an account? How much does it cost?",
@@ -261,6 +262,10 @@
       "subtitle": "Upload audio. Get an accurate transcript. Clean it up with AI. Verify every change. No sign-up needed.",
       "cta": "Try Free Demo",
       "ctaSecondary": "Get Full Access",
+      "foundingPricingLine1Bold": "Free",
+      "foundingPricingLine1Suffix": "while we build",
+      "foundingPricingLine2Bold": "Founding",
+      "foundingPricingLine2Suffix": "pricing for early members",
       "trustBadges": {
         "gdpr": "GDPR Compliant",
         "encrypted": "AES-256 Encrypted",
@@ -1096,53 +1101,14 @@
       "audioLink": "Need transcription too? Start from audio →"
     },
     "heroDiff": {
-      "tabs": {
-        "original": "Original",
-        "cleaned": "Cleaned (diff view)"
+      "toolbar": {
+        "style": "Style:",
+        "clean": "Clean",
+        "edited": "Edited",
+        "export": "Export"
       },
       "speaker1": "Speaker 1",
-      "speaker2": "Speaker 2",
-      "line1": {
-        "prefix": "So",
-        "removed1": "basically",
-        "kept1": "I",
-        "removed2": "just",
-        "kept2": "wanted to",
-        "removed3": "to",
-        "kept3": "walk you through",
-        "removed4": "um",
-        "kept4": "what we're thinking for the",
-        "removed5": "the",
-        "suffix": "website redesign."
-      },
-      "line2": {
-        "removed1": "Yeah",
-        "added1": "T",
-        "removed2": "t",
-        "kept1": "hat sounds good",
-        "added2": ".",
-        "kept2": "I'm",
-        "removed3": "I'm",
-        "kept3": "really excited to",
-        "removed4": "to",
-        "kept4": "see what you've come up with",
-        "removed5": " you know",
-        "suffix": "."
-      },
-      "line3": {
-        "removed1": "Perfect so",
-        "added1": "W",
-        "removed2": "w",
-        "kept1": "e're",
-        "added2": "going to",
-        "removed3": "gonna we're gonna",
-        "kept2": "focus on three main areas",
-        "added3": ":",
-        "removed4": "I mean",
-        "kept3": "the homepage, the",
-        "removed5": "the",
-        "suffix": "product pages, and checkout."
-      }
+      "speaker2": "Speaker 2"
     },
     "howItWorks": {
       "sectionLabel": "How It Works",
@@ -1212,11 +1178,11 @@
         },
         "differentFromChatgpt": {
           "question": "How is this different from pasting into ChatGPT?",
-          "answer": "ChatGPT can't handle long transcripts in one go. You have to break them into chunks, process each one separately, and stitch the results back together. The edits are inconsistent across chunks, and you can't see what changed or revert specific words. EverSaid processes the full transcript at once, shows every change in a diff view, and lets you edit or revert anything. It won't summarize, rephrase, or add words that weren't there."
+          "answer": "ChatGPT can't handle long transcripts in one go. You have to break them into chunks, process each one separately, and stitch the results back together. Without optimised prompts and strategy, the model over-edits or changes meaning. You can't see what changed or revert specific words. EverSaid processes the full transcript at once, shows every change in a diff view, and lets you edit or revert anything. It won't summarize, rephrase, or add words that weren't there."
         },
         "formats": {
           "question": "What formats can I import?",
-          "answer": "Paste text directly or upload a plain text file, with or without speaker labels. Speaker labels like \"Speaker 1:\" are detected automatically.",
+          "answer": "Paste text directly or upload a plain text file, with or without speaker labels. Speaker labels like \"Speaker 1:\" are detected automatically. Need to import from Zoom, Teams, or another tool's export format?",
           "linkText": "Let us know through the signup form"
         },
         "account": {
@@ -1225,7 +1191,7 @@
         },
         "dataStorage": {
           "question": "Where is my data stored?",
-          "answer": "EverSaid runs on Hetzner servers in Germany. For registered users, AI text processing also stays in the EU (IONOS, Germany) and transcripts are encrypted with per-user keys. Your data is never used for AI model training."
+          "answer": "EverSaid runs on Hetzner servers in Germany. For registered users, AI text processing also stays in the EU (IONOS, Germany). All data: audio files, transcripts, and analysis is AES-256 encrypted at rest. Audio is processed by ElevenLabs in USA for transcription. Your data is never used for AI model training."
         },
         "audioToo": {
           "question": "I also need transcription from audio. Can EverSaid do that?",

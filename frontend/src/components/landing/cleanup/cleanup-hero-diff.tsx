@@ -1,118 +1,134 @@
 "use client"
 
 import { useTranslations } from "next-intl"
+import { Check, Eye } from "lucide-react"
+
+function Removed({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="text-red-400 line-through decoration-red-400/70">
+      {children}
+    </span>
+  )
+}
 
 export function CleanupHeroDiff() {
   const t = useTranslations("cleanupLanding.heroDiff")
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-7 backdrop-blur-[10px]">
-      {/* Tabs */}
-      <div className="flex gap-0 mb-5 border-b border-white/10">
-        <div className="px-4 py-2 text-[13px] font-semibold text-white/50">
-          {t("tabs.original")}
-        </div>
-        <div className="px-4 py-2 text-[13px] font-semibold text-white border-b-2 border-[#38BDF8]">
-          {t("tabs.cleaned")}
-        </div>
-      </div>
+    <div className="relative" style={{ perspective: "1200px" }}>
+      {/* Ambient glow behind the card */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.15)_0%,transparent_70%)] blur-3xl scale-150" />
 
-      {/* Diff lines */}
-      <div className="space-y-4">
-        {/* Line 1 */}
-        <div className="text-sm leading-[1.8] text-white/85">
-          <span className="text-xs font-semibold text-[#38BDF8] block mb-1">
-            {t("speaker1")}
-          </span>
-          {t("line1.prefix")}{" "}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line1.removed1")}
-          </span>{" "}
-          {t("line1.kept1")}{" "}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line1.removed2")}
-          </span>{" "}
-          {t("line1.kept2")}{" "}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line1.removed3")}
-          </span>{" "}
-          {t("line1.kept3")}{" "}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line1.removed4")}
-          </span>{" "}
-          {t("line1.kept4")}{" "}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line1.removed5")}
-          </span>{" "}
-          {t("line1.suffix")}
+      {/* 3D Floating App Mock - Dark theme */}
+      <div
+        className="relative bg-[#1E293B]/95 rounded-xl overflow-hidden shadow-[0_25px_80px_-12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-sm"
+        style={{
+          transform: "rotateY(-2deg) rotateX(1deg)",
+          transformStyle: "preserve-3d",
+        }}
+      >
+        {/* App toolbar */}
+        <div className="bg-[#1E293B] border-b border-white/10 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] text-white/50">{t("toolbar.style")}</span>
+            <div className="flex rounded-md border border-white/15 overflow-hidden">
+              <div className="px-2.5 py-1 bg-white/5 border-r border-white/10 flex items-center gap-1.5">
+                <span className="text-[11px] font-medium text-white/80">{t("toolbar.clean")}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <Check className="w-3 h-3 text-emerald-400" />
+              </div>
+              <div className="px-2.5 py-1 bg-transparent">
+                <span className="text-[11px] text-white/30">{t("toolbar.edited")}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="p-1.5 rounded-md hover:bg-white/5">
+              <Eye className="w-4 h-4 text-white/40" />
+            </button>
+            <button className="px-2.5 py-1 text-[11px] font-medium text-white/60 border border-white/15 rounded-md hover:bg-white/5">
+              {t("toolbar.export")}
+            </button>
+          </div>
         </div>
 
-        {/* Line 2 */}
-        <div className="text-sm leading-[1.8] text-white/85">
-          <span className="text-xs font-semibold text-[#10B981] block mb-1">
-            {t("speaker2")}
-          </span>
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line2.removed1")}
-          </span>{" "}
-          <span className="bg-green-600/25 text-green-300/90 px-1 rounded">
-            {t("line2.added1")}
-          </span>
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line2.removed2")}
-          </span>
-          {t("line2.kept1")}
-          <span className="bg-green-600/25 text-green-300/90 px-1 rounded">
-            {t("line2.added2")}
-          </span>{" "}
-          {t("line2.kept2")}{" "}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line2.removed3")}
-          </span>{" "}
-          {t("line2.kept3")}{" "}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line2.removed4")}
-          </span>{" "}
-          {t("line2.kept4")}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line2.removed5")}
-          </span>
-          {t("line2.suffix")}
-        </div>
+        {/* Segment cards */}
+        <div className="p-4 space-y-3">
+          {/* Segment 1 - Speaker 1 */}
+          <div className="bg-white/5 rounded-lg border border-white/8 overflow-hidden">
+            <div className="flex">
+              <div className="w-1 bg-blue-400 flex-shrink-0" />
+              <div className="p-4 flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[13px] font-semibold text-blue-400">
+                    {t("speaker1")}
+                  </span>
+                  <span className="text-[11px] text-white/40">0:00 – 0:08</span>
+                </div>
+                <p className="text-[14px] leading-[1.7] text-white/85">
+                  <Removed>So </Removed>
+                  I think{" "}
+                  <Removed>you know um </Removed>
+                  the main point here is{" "}
+                  <Removed>basically </Removed>
+                  we need to{" "}
+                  <Removed>im-</Removed>
+                  improve the user experience significantly.
+                </p>
+              </div>
+            </div>
+          </div>
 
-        {/* Line 3 */}
-        <div className="text-sm leading-[1.8] text-white/85">
-          <span className="text-xs font-semibold text-[#38BDF8] block mb-1">
-            {t("speaker1")}
-          </span>
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line3.removed1")}
-          </span>{" "}
-          <span className="bg-green-600/25 text-green-300/90 px-1 rounded">
-            {t("line3.added1")}
-          </span>
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line3.removed2")}
-          </span>
-          {t("line3.kept1")}{" "}
-          <span className="bg-green-600/25 text-green-300/90 px-1 rounded">
-            {t("line3.added2")}
-          </span>{" "}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line3.removed3")}
-          </span>{" "}
-          {t("line3.kept2")}
-          <span className="bg-green-600/25 text-green-300/90 px-1 rounded">
-            {t("line3.added3")}
-          </span>{" "}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line3.removed4")}
-          </span>{" "}
-          {t("line3.kept3")}{" "}
-          <span className="bg-red-600/25 text-red-300/90 line-through px-1 rounded">
-            {t("line3.removed5")}
-          </span>{" "}
-          {t("line3.suffix")}
+          {/* Segment 2 - Speaker 2 */}
+          <div className="bg-white/5 rounded-lg border border-white/8 overflow-hidden">
+            <div className="flex">
+              <div className="w-1 bg-emerald-400 flex-shrink-0" />
+              <div className="p-4 flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[13px] font-semibold text-emerald-400">
+                    {t("speaker2")}
+                  </span>
+                  <span className="text-[11px] text-white/40">0:08 – 0:15</span>
+                </div>
+                <p className="text-[14px] leading-[1.7] text-white/85">
+                  Right and I was actually thinking{" "}
+                  <Removed>um </Removed>
+                  what if we{" "}
+                  <Removed>foc-</Removed>
+                  focused on making{" "}
+                  <Removed>the </Removed>
+                  the onboarding{" "}
+                  <Removed>liek </Removed>
+                  way more intuitive?
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Segment 3 - Speaker 1 */}
+          <div className="bg-white/5 rounded-lg border border-white/8 overflow-hidden">
+            <div className="flex">
+              <div className="w-1 bg-blue-400 flex-shrink-0" />
+              <div className="p-4 flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[13px] font-semibold text-blue-400">
+                    {t("speaker1")}
+                  </span>
+                  <span className="text-[11px] text-white/40">0:15 – 0:21</span>
+                </div>
+                <p className="text-[14px] leading-[1.7] text-white/85">
+                  Yes exactly! That&apos;s{" "}
+                  <Removed>uh that&apos;s </Removed>
+                  what I mean.{" "}
+                  <Removed>Like t</Removed>
+                  <span className="text-emerald-400 underline decoration-emerald-400/60 decoration-dotted underline-offset-2">T</span>
+                  he current flow is just{" "}
+                  <Removed>it&apos;s just </Removed>
+                  too complicated for new users.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

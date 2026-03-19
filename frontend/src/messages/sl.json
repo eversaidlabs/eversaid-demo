@@ -136,7 +136,8 @@
       "cleanup": {
         "title": "AI čiščenje, ki ga vidite in nadzirate",
         "description": "Čisti način odstrani polnila, jecljanja in napačne začetke, medtem ko ohrani vaše besede in slovnico. Urejen način (kmalu) tudi popravi slovnico in deli predolge povedi.",
-        "highlighted": true
+        "highlighted": true,
+        "learnMore": "Več o tem"
       },
       "verification": {
         "title": "Vsaka sprememba vidna, preverljiva z zvokom",
@@ -155,7 +156,7 @@
     "useCases": {
       "sectionLabel": "Primeri uporabe",
       "title": "Za koga je namenjeno",
-      "subtitle": "Strokovnjaki, ki potrebujejo prepise, ki jim lahko zaupajo, in vpoglede, ki jih lahko preverijo",
+      "subtitle": "Strokovnjaki, ki potrebujejo berljive transkripcije, ki jim lahko zaupajo, in vpoglede, ki jih lahko preverijo",
       "therapists": {
         "title": "Terapevti in mentorji",
         "description": "Nehajte ročno pisati med sejo. Posnemite, dobite očiščen prepis in AI-izvlečene teme ter preglejte pred naslednjim klientom."
@@ -261,6 +262,10 @@
       "subtitle": "Naložite zvok. Dobite natančen prepis. Očistite z AI. Preverite vsako spremembo. Brez registracije.",
       "cta": "Preizkusite brezplačni demo",
       "ctaSecondary": "Pridobi dostop",
+      "foundingPricingLine1Bold": "Brezplačno",
+      "foundingPricingLine1Suffix": "med gradnjo",
+      "foundingPricingLine2Bold": "Ustanoviteljske",
+      "foundingPricingLine2Suffix": "cene za zgodnje člane",
       "trustBadges": {
         "gdpr": "Skladno z GDPR",
         "encrypted": "AES-256 šifrirano",
@@ -1096,53 +1101,14 @@
       "audioLink": "Potrebujete tudi transkripcijo? Začnite z zvokom →"
     },
     "heroDiff": {
-      "tabs": {
-        "original": "Original",
-        "cleaned": "Očiščeno (prikaz razlik)"
+      "toolbar": {
+        "style": "Slog:",
+        "clean": "Čisto",
+        "edited": "Urejeno",
+        "export": "Izvozi"
       },
       "speaker1": "Govorec 1",
-      "speaker2": "Govorec 2",
-      "line1": {
-        "prefix": "No",
-        "removed1": "v bistvu",
-        "kept1": "jaz",
-        "removed2": "sam",
-        "kept2": "sem hotel",
-        "removed3": "da",
-        "kept3": "vam pokazat",
-        "removed4": "um",
-        "kept4": "kaj si mislimo za",
-        "removed5": "za",
-        "suffix": "prenovo spletne strani."
-      },
-      "line2": {
-        "removed1": "Ja",
-        "added1": "T",
-        "removed2": "t",
-        "kept1": "o se sliši dobro",
-        "added2": ".",
-        "kept2": "Sem",
-        "removed3": "sem",
-        "kept3": "res navdušen, da",
-        "removed4": "da",
-        "kept4": "vidim, kaj ste pripravili",
-        "removed5": " veš",
-        "suffix": "."
-      },
-      "line3": {
-        "removed1": "Odlično no",
-        "added1": "O",
-        "removed2": "o",
-        "kept1": "sredotočili se",
-        "added2": "bomo",
-        "removed3": "bomo se bomo",
-        "kept2": "na tri glavna področja",
-        "added3": ":",
-        "removed4": "mislim",
-        "kept3": "domačo stran,",
-        "removed5": "",
-        "suffix": "strani izdelkov in nakupno košarico."
-      }
+      "speaker2": "Govorec 2"
     },
     "howItWorks": {
       "sectionLabel": "Kako deluje",
