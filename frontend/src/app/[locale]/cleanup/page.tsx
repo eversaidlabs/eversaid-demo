@@ -234,7 +234,7 @@ export default function CleanupLandingPage() {
       <CleanupFeatures />
 
       {/* FAQ Section */}
-      <CleanupFAQ />
+      <CleanupFAQ onWaitlistClick={() => handleWaitlistClick("extended_usage")} />
 
       {/* Final CTA Section */}
       <section className="snap-start snap-always px-8 md:px-16 py-24 bg-[linear-gradient(135deg,#0F172A_0%,#1E3A5F_100%)] relative overflow-hidden">

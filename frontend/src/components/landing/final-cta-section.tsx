@@ -23,9 +23,16 @@ export function FinalCtaSection({ onWaitlistClick }: FinalCtaSectionProps) {
         viewport={{ once: true, amount: 0.3 }}
       >
         <MotionDiv variants={fadeUp}>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F172A] mb-4 tracking-[-0.02em]">
-            {t("title")}
-          </h2>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F172A] tracking-[-0.02em]">
+              {t("title")}
+            </h2>
+            <span className="hidden sm:block text-[#E2E8F0] text-3xl font-light">|</span>
+            <span className="text-base text-[#64748B] text-center sm:text-left">
+              <strong className="font-semibold text-[#0F172A]">{t("foundingPricingLine1Bold")}</strong> {t("foundingPricingLine1Suffix")}<br />
+              <strong className="font-semibold text-[#0F172A]">{t("foundingPricingLine2Bold")}</strong> {t("foundingPricingLine2Suffix")}
+            </span>
+          </div>
         </MotionDiv>
 
         <MotionDiv variants={fadeUp}>
@@ -34,7 +41,7 @@ export function FinalCtaSection({ onWaitlistClick }: FinalCtaSectionProps) {
           </p>
         </MotionDiv>
 
-        <MotionDiv variants={scaleFade} className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+        <MotionDiv variants={scaleFade} className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={onWaitlistClick}
             className="inline-block bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white px-10 py-[18px] rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5 shadow-[0_8px_32px_rgba(56,189,248,0.3)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.4)]"
@@ -51,7 +58,7 @@ export function FinalCtaSection({ onWaitlistClick }: FinalCtaSectionProps) {
 
         <MotionDiv
           variants={fadeUp}
-          className="flex flex-wrap justify-center gap-6"
+          className="flex flex-wrap justify-center gap-6 mt-8"
         >
           <div className="flex items-center gap-2 text-sm text-[#64748B]">
             <Shield className="w-4 h-4 text-[#38BDF8]" />

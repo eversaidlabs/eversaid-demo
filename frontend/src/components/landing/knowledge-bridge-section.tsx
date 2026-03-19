@@ -13,7 +13,7 @@ interface ConceptCardProps {
 
 function ConceptCard({ icon, title, description }: ConceptCardProps) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm h-full">
       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center text-cyan-400 mb-4">
         {icon}
       </div>
@@ -67,21 +67,21 @@ export function KnowledgeBridgeSection() {
           viewport={{ once: true, amount: 0.2 }}
           variants={staggerContainer}
         >
-          <MotionDiv variants={staggerItem}>
+          <MotionDiv variants={staggerItem} className="h-full">
             <ConceptCard
               icon={<Search className="w-6 h-6" />}
               title={t("concept1.title")}
               description={t("concept1.description")}
             />
           </MotionDiv>
-          <MotionDiv variants={staggerItem}>
+          <MotionDiv variants={staggerItem} className="h-full">
             <ConceptCard
               icon={<History className="w-6 h-6" />}
               title={t("concept2.title")}
               description={t("concept2.description")}
             />
           </MotionDiv>
-          <MotionDiv variants={staggerItem}>
+          <MotionDiv variants={staggerItem} className="h-full">
             <ConceptCard
               icon={<Sparkles className="w-6 h-6" />}
               title={t("concept3.title")}

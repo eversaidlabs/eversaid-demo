@@ -145,8 +145,9 @@ function DemoPageContent({ config }: DemoPageContentProps) {
   const [selectedSpeakerCount, setSelectedSpeakerCount] = useState<number | null>(null)
   const [selectedAudioLanguage, setSelectedAudioLanguage] = useState<string>(locale)
 
-  // Text Import State
-  const [inputMode, setInputMode] = useState<InputMode>('audio')
+  // Text Import State - initialize from URL tab param if present
+  const initialInputMode = searchParams.get('tab') === 'text' ? 'text' : 'audio'
+  const [inputMode, setInputMode] = useState<InputMode>(initialInputMode)
   const [importText, setImportText] = useState('')
   const [selectedTextCleanupType, setSelectedTextCleanupType] = useState<CleanupType>('clean')
 

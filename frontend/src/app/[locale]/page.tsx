@@ -353,13 +353,16 @@ export default function HomePage() {
             </MotionDiv>
 
             {/* AI Cleanup (highlighted) */}
-            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[linear-gradient(135deg,rgba(56,189,248,0.08)_0%,rgba(168,85,247,0.08)_100%)] border border-purple-200 rounded-[20px] p-6 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-              <div className="w-[56px] h-[56px] bg-white rounded-[16px] flex items-center justify-center text-[28px] mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                ✨
-              </div>
-              <h3 className="text-lg font-bold text-[#0F172A] mb-2">{t('features.cleanup.title')}</h3>
-              <p className="text-sm text-[#64748B] leading-relaxed">{t('features.cleanup.description')}</p>
-            </MotionDiv>
+            <Link href="/cleanup">
+              <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[linear-gradient(135deg,rgba(56,189,248,0.08)_0%,rgba(168,85,247,0.08)_100%)] border border-purple-200 rounded-[20px] p-6 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] cursor-pointer h-full">
+                <div className="w-[56px] h-[56px] bg-white rounded-[16px] flex items-center justify-center text-[28px] mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                  ✨
+                </div>
+                <h3 className="text-lg font-bold text-[#0F172A] mb-2">{t('features.cleanup.title')}</h3>
+                <p className="text-sm text-[#64748B] leading-relaxed mb-3">{t('features.cleanup.description')}</p>
+                <span className="text-xs font-medium text-purple-600">{t('features.cleanup.learnMore')} →</span>
+              </MotionDiv>
+            </Link>
 
             {/* Verification (highlighted) */}
             <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[linear-gradient(135deg,rgba(56,189,248,0.08)_0%,rgba(168,85,247,0.08)_100%)] border border-purple-200 rounded-[20px] p-6 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">

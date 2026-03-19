@@ -101,10 +101,16 @@ export function TranscriptComparisonLayout({
   const isSyncingScrollRef = useRef(false)
 
   // Collapse state with localStorage persistence
-  const [isRawCollapsed, setIsRawCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return localStorage.getItem('eversaid_raw_column_collapsed') === 'true'
-  })
+  // Initialize as false for SSR, then sync with localStorage after mount
+  const [isRawCollapsed, setIsRawCollapsed] = useState(false)
+
+  // Sync with localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    const stored = localStorage.getItem('eversaid_raw_column_collapsed')
+    if (stored === 'true') {
+      setIsRawCollapsed(true)
+    }
+  }, [])
 
   const handleCollapse = useCallback(() => {
     setIsRawCollapsed(true)

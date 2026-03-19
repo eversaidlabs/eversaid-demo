@@ -13,11 +13,12 @@ interface FAQItemProps {
   answer: string
   linkText?: string
   linkHref?: string
+  onLinkClick?: () => void
   isOpen: boolean
   onToggle: () => void
 }
 
-function FAQItem({ question, answer, linkText, linkHref, isOpen, onToggle }: FAQItemProps) {
+function FAQItem({ question, answer, linkText, linkHref, onLinkClick, isOpen, onToggle }: FAQItemProps) {
   return (
     <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-7 py-6">
       <button
@@ -42,7 +43,14 @@ function FAQItem({ question, answer, linkText, linkHref, isOpen, onToggle }: FAQ
       >
         <div className="overflow-hidden">
           <p className="text-sm text-[#475569] leading-relaxed">{answer}</p>
-          {linkText && linkHref && (
+          {linkText && onLinkClick && (
+            <p className="text-sm text-[#94A3B8] mt-3">
+              <button onClick={onLinkClick} className="text-[#38BDF8] hover:underline">
+                {linkText}
+              </button>
+            </p>
+          )}
+          {linkText && linkHref && !onLinkClick && (
             <p className="text-sm text-[#94A3B8] mt-3">
               <Link href={linkHref} className="text-[#38BDF8] hover:underline">
                 {linkText}
@@ -64,7 +72,11 @@ const FAQ_KEYS = [
   "audioToo",
 ] as const
 
-export function CleanupFAQ() {
+interface CleanupFAQProps {
+  onWaitlistClick?: () => void
+}
+
+export function CleanupFAQ({ onWaitlistClick }: CleanupFAQProps) {
   const t = useTranslations("cleanupLanding.faq")
   const { sectionHeader, fadeUp } = useAnimationVariants()
   const [openIndex, setOpenIndex] = useState<number | null>(0)
@@ -105,7 +117,8 @@ export function CleanupFAQ() {
               question={t(`questions.${key}.question`)}
               answer={t(`questions.${key}.answer`)}
               linkText={key === "formats" || key === "audioToo" ? t(`questions.${key}.linkText`) : undefined}
-              linkHref={key === "formats" ? "#" : key === "audioToo" ? "/" : undefined}
+              linkHref={key === "audioToo" ? "/" : undefined}
+              onLinkClick={key === "formats" ? onWaitlistClick : undefined}
               isOpen={openIndex === index}
               onToggle={() => handleToggle(index)}
             />
