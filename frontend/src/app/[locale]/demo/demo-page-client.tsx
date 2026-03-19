@@ -5,7 +5,6 @@ import { useState, useCallback, useRef, useEffect, useMemo, Suspense } from "rea
 import { DemoNavigation } from "@/components/demo/demo-navigation"
 import { DemoAttribution } from "@/components/demo/demo-attribution"
 import { AnalysisSection } from "@/components/demo/analysis-section"
-import { DemoWarningBanner } from "@/components/demo/demo-warning-banner"
 import { EntryHistoryCard } from "@/components/demo/entry-history-card"
 import { FloatingFeedbackWidget } from "@/components/demo/floating-feedback-widget"
 import { DemoTabs, type DemoTabType } from "@/components/demo/demo-tabs"
@@ -1191,11 +1190,11 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       <DemoNavigation onWaitlistClick={() => setWaitlistState("form")} />
 
       {!showFullScreenMode && (
-        <div className="max-w-[1400px] mx-auto px-6 pt-8 pb-4">
-          <div className="flex items-center justify-between mb-6">
+        <div className="max-w-[1400px] mx-auto px-6 pt-4 pb-2">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-4xl font-bold text-[#1E293B] mb-2">{t('demo.title')}</h1>
-              <p className="text-[#64748B] text-lg">
+              <h1 className="text-3xl font-bold text-[#1E293B] mb-1">{t('demo.title')}</h1>
+              <p className="text-[#64748B] text-base">
                 {t('demo.subtitle')}
               </p>
             </div>
@@ -1203,7 +1202,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
 
           {/* Error display for upload/transcription errors */}
           {transcription.error && transcription.status === 'error' && (
-            <div className="mb-6">
+            <div className="mb-4">
               <ErrorDisplay
                 error={transcription.error}
                 onRetry={handleRetryUpload}
@@ -1391,9 +1390,8 @@ function DemoPageContent({ config }: DemoPageContentProps) {
           </>
         ) : (
           /* Upload Mode */
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
-              <DemoWarningBanner />
               <UploadZone
                 selectedSpeakerCount={selectedSpeakerCount}
                 isUploading={processingStages.isProcessing}

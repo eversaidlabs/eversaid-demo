@@ -209,7 +209,7 @@ export default function CleanupLandingPage() {
                 {t('hero.noSignup')}
               </div>
               <Link
-                href="/"
+                href="/demo"
                 className="flex items-center gap-2 text-sm text-white/50 hover:text-[#38BDF8] transition-colors"
               >
                 <Mic className="w-4 h-4" />

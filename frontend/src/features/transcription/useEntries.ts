@@ -99,6 +99,7 @@ function transformEntry(entry: EntrySummary, demoConfig?: DemoConfig): HistoryEn
     ),
     timestamp: entry.uploaded_at,
     isDemo: isDemoEntry || undefined,
+    isTextEntry: entry.is_transcript_only || undefined,
   }
 }
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Upload, Check, Trash2, Loader2 } from "lucide-react"
+import { Check, Trash2, Loader2, FileText, Volume2, Upload } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import {
   AlertDialog,
@@ -80,7 +80,11 @@ export function EntryHistoryCard({
                   }`}
                 >
                   <div className="w-9 h-9 bg-[linear-gradient(135deg,var(--color-primary)_0%,#A855F7_100%)] rounded-lg flex items-center justify-center">
-                    <Upload className="w-[18px] h-[18px] stroke-primary-foreground" />
+                    {entry.isTextEntry ? (
+                      <FileText className="w-[18px] h-[18px] stroke-primary-foreground" />
+                    ) : (
+                      <Volume2 className="w-[18px] h-[18px] stroke-primary-foreground" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -108,7 +112,7 @@ export function EntryHistoryCard({
                       {onDelete && !entry.isDemo && (
                         <button
                           onClick={(e) => handleDeleteClick(e, entry.id)}
-                          className="w-6 h-6 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-100 transition-all"
+                          className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-100 transition-all"
                           aria-label={tDelete('button')}
                         >
                           <Trash2 className="w-3.5 h-3.5 text-red-500" />
@@ -118,7 +122,7 @@ export function EntryHistoryCard({
                   ) : onDelete && !entry.isDemo ? (
                     <button
                       onClick={(e) => handleDeleteClick(e, entry.id)}
-                      className="w-6 h-6 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-100 transition-all"
+                      className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-100 transition-all"
                       aria-label={tDelete('button')}
                     >
                       <Trash2 className="w-3.5 h-3.5 text-red-500" />

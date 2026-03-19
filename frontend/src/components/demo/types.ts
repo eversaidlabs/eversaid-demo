@@ -30,6 +30,11 @@ export interface HistoryEntry {
    * edits are stored in localStorage, and they cannot be deleted.
    */
   isDemo?: boolean
+  /**
+   * True if entry was created via text import (no audio file).
+   * False/undefined if entry was created via audio upload.
+   */
+  isTextEntry?: boolean
 }
 
 export interface SegmentEditState {

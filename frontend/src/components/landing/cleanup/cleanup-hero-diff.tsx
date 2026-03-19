@@ -12,7 +12,7 @@ function Removed({ children }: { children: React.ReactNode }) {
   )
 }
 
-const MAX_ROTATION = 3 // degrees
+const MAX_ROTATION = 2 // degrees
 const DEFAULT_ROTATION = { x: 1, y: -2 }
 const RETURN_TRANSITION_MS = 900
 

@@ -110,8 +110,8 @@ export function UploadZone({
     <div className="bg-white rounded-[20px] border border-[#E2E8F0] overflow-hidden">
       {/* Mode Toggle */}
       {showModeToggle && (
-        <div className="p-4 border-b border-[#E2E8F0]">
-          <div className="inline-flex bg-[#F1F5F9] rounded-lg p-1">
+        <div className="px-4 py-3 border-b border-[#E2E8F0]">
+          <div className="inline-flex bg-[#F1F5F9] rounded-lg p-0.5">
             <button
               onClick={() => onInputModeChange?.('audio')}
               className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
@@ -144,38 +144,38 @@ export function UploadZone({
           <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="p-6 m-6 border-2 border-dashed border-[#E2E8F0] rounded-2xl text-center hover:border-[#38BDF8] hover:bg-[rgba(56,189,248,0.02)] transition-all cursor-pointer"
+            className="p-4 m-4 border-2 border-dashed border-[#E2E8F0] rounded-2xl text-center hover:border-[#38BDF8] hover:bg-[rgba(56,189,248,0.02)] transition-all cursor-pointer"
           >
-            <div className="w-20 h-20 bg-[linear-gradient(135deg,rgba(56,189,248,0.1)_0%,rgba(168,85,247,0.1)_100%)] rounded-[24px] flex items-center justify-center mx-auto mb-6">
-              <svg className="w-9 h-9 stroke-[#38BDF8]" viewBox="0 0 24 24" fill="none" strokeWidth="2">
+            <div className="w-14 h-14 bg-[linear-gradient(135deg,rgba(56,189,248,0.1)_0%,rgba(168,85,247,0.1)_100%)] rounded-[16px] flex items-center justify-center mx-auto mb-3">
+              <svg className="w-7 h-7 stroke-[#38BDF8]" viewBox="0 0 24 24" fill="none" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
             </div>
-            <h3 className="text-[20px] font-bold text-[#0F172A] mb-2">{t('dropTitle')}</h3>
-            <p className="text-[15px] text-[#64748B] mb-5">{t('formats', {
+            <h3 className="text-[18px] font-bold text-[#0F172A] mb-1">{t('dropTitle')}</h3>
+            <p className="text-[14px] text-[#64748B] mb-3">{t('formats', {
               maxSizeMb: limits?.maxAudioFileSizeMb ?? 50,
               maxDurationMin: Math.floor((limits?.maxAudioDurationSeconds ?? 180) / 60),
             })}</p>
-            <label className="px-6 py-3 bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-sm font-semibold rounded-[10px] transition-colors cursor-pointer inline-block">
+            <label className="px-5 py-2.5 bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-sm font-semibold rounded-[10px] transition-colors cursor-pointer inline-block">
               {t('browse')}
               <input type="file" accept="audio/*" onChange={handleFileInput} className="hidden" />
             </label>
           </div>
 
-          <div className="flex items-center gap-4 px-6 text-[13px] font-medium text-[#94A3B8]">
+          <div className="flex items-center gap-4 px-4 text-[13px] font-medium text-[#94A3B8]">
             <div className="flex-1 h-px bg-[#E2E8F0]" />
             {tCommon('or')}
             <div className="flex-1 h-px bg-[#E2E8F0]" />
           </div>
 
-          <div className="p-6 flex items-center justify-center">
+          <div className="p-4 flex items-center justify-center">
             <button
               onClick={onRecordClick}
-              className="flex items-center gap-2.5 px-7 py-3.5 bg-white hover:bg-[#FEF2F2] border-2 border-[#E2E8F0] hover:border-[#EF4444] rounded-xl text-[15px] font-semibold text-[#0F172A] transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-[#FEF2F2] border-2 border-[#E2E8F0] hover:border-[#EF4444] rounded-xl text-[14px] font-semibold text-[#0F172A] transition-all"
             >
-              <div className="w-3 h-3 bg-[#EF4444] rounded-full" />
+              <div className="w-2.5 h-2.5 bg-[#EF4444] rounded-full" />
               {t('record')}
             </button>
           </div>
@@ -184,47 +184,47 @@ export function UploadZone({
 
       {/* Text Mode Content */}
       {inputMode === 'text' && (
-        <div className="p-6">
+        <div className="p-4">
           <textarea
             value={text}
             onChange={(e) => onTextChange?.(e.target.value)}
             placeholder={t('textPlaceholder')}
-            className="w-full h-48 p-4 border-2 border-[#E2E8F0] rounded-xl text-[15px] text-[#0F172A] placeholder-[#94A3B8] resize-none focus:outline-none focus:border-[#38BDF8] transition-colors"
+            className="w-full h-36 p-3 border-2 border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] placeholder-[#94A3B8] resize-none focus:outline-none focus:border-[#38BDF8] transition-colors"
           />
-          <p className="text-[12px] text-[#94A3B8] mt-2 mb-4">{t('textHint')}</p>
+          <p className="text-[11px] text-[#94A3B8] mt-1.5 mb-3">{t('textHint')}</p>
         </div>
       )}
 
       {/* Audio mode: show selected file */}
       {inputMode === 'audio' && selectedFile && (
-        <div className="px-6 pb-6">
-          <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 flex items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-[#E2E8F0]">
-              <FileAudio className="w-6 h-6 text-[#38BDF8]" />
+        <div className="px-4 pb-4">
+          <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-[#E2E8F0]">
+              <FileAudio className="w-5 h-5 text-[#38BDF8]" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-semibold text-[#0F172A] truncate mb-0.5">{selectedFile.name}</div>
-              <div className="text-[13px] text-[#64748B]">
+              <div className="text-[14px] font-semibold text-[#0F172A] truncate">{selectedFile.name}</div>
+              <div className="text-[12px] text-[#64748B]">
                 {formatFileSize(selectedFile.size)} · {selectedFile.type || t('audioFile')}
               </div>
             </div>
             <button
               onClick={onRemoveFile}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#FEE2E2] text-[#64748B] hover:text-[#EF4444] transition-all flex-shrink-0"
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#FEE2E2] text-[#64748B] hover:text-[#EF4444] transition-all flex-shrink-0"
               aria-label="Remove file"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
-      <div className="px-6 pb-6">
+      <div className="px-4 pb-4">
         {/* Language selection (both modes) */}
-        <div className="text-[13px] font-semibold text-[#64748B] mb-3">
+        <div className="text-[12px] font-semibold text-[#64748B] mb-2">
           {inputMode === 'audio' ? t('audioLanguage') : t('textLanguage')}
         </div>
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-3">
           {[
             { code: 'sl', label: t('languageSlovenian') },
             { code: 'en', label: t('languageEnglish') },
@@ -232,7 +232,7 @@ export function UploadZone({
             <button
               key={lang.code}
               onClick={() => onAudioLanguageChange(lang.code)}
-              className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
+              className={`px-4 py-2 rounded-[10px] text-sm font-semibold transition-all ${
                 selectedAudioLanguage === lang.code
                   ? "bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white"
                   : "bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] hover:text-[#0F172A]"
@@ -246,12 +246,12 @@ export function UploadZone({
         {/* Audio mode: speaker count */}
         {inputMode === 'audio' && (
           <>
-            <div className="text-[13px] font-semibold text-[#64748B] mb-3">{t('speakerCount')}</div>
-            <div className="flex flex-wrap gap-2 mb-2">
+            <div className="text-[12px] font-semibold text-[#64748B] mb-2">{t('speakerCount')}</div>
+            <div className="flex flex-wrap gap-1.5 mb-1.5">
               {/* Auto option */}
               <button
                 onClick={() => onSpeakerCountChange(null)}
-                className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
+                className={`px-4 py-2 rounded-[10px] text-sm font-semibold transition-all ${
                   selectedSpeakerCount === null
                     ? "bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white"
                     : "bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] hover:text-[#0F172A]"
@@ -264,7 +264,7 @@ export function UploadZone({
                 <button
                   key={num}
                   onClick={() => onSpeakerCountChange(num)}
-                  className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
+                  className={`px-4 py-2 rounded-[10px] text-sm font-semibold transition-all ${
                     selectedSpeakerCount === num
                       ? "bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white"
                       : "bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] hover:text-[#0F172A]"
@@ -274,15 +274,15 @@ export function UploadZone({
                 </button>
               ))}
             </div>
-            <p className="text-xs text-[#94A3B8] mb-4">{t('speakerCountHint')}</p>
+            <p className="text-[11px] text-[#94A3B8] mb-3">{t('speakerCountHint')}</p>
           </>
         )}
 
         {/* Text mode: cleanup type */}
         {inputMode === 'text' && onCleanupTypeChange && (
           <>
-            <div className="text-[13px] font-semibold text-[#64748B] mb-3">{t('cleanupType')}</div>
-            <div className="flex gap-2 mb-4">
+            <div className="text-[12px] font-semibold text-[#64748B] mb-2">{t('cleanupType')}</div>
+            <div className="flex gap-2 mb-3">
               <TooltipProvider delayDuration={300}>
                 {VISIBLE_CLEANUP_LEVELS.map((levelType) => {
                   const isDisabled = DISABLED_CLEANUP_LEVELS.includes(levelType)
@@ -295,7 +295,7 @@ export function UploadZone({
                       key={levelType}
                       onClick={() => !isDisabled && onCleanupTypeChange(levelType)}
                       disabled={isDisabled}
-                      className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
+                      className={`px-4 py-2 rounded-[10px] text-sm font-semibold transition-all ${
                         isDisabled
                           ? "opacity-60 cursor-not-allowed border border-dashed border-[#94A3B8]/30 bg-[#F8FAFC] text-[#94A3B8]"
                           : selectedCleanupType === levelType
@@ -338,14 +338,14 @@ export function UploadZone({
                 />
               </div>
             ) : (
-              <div className="w-full py-4 bg-[#F1F5F9] rounded-xl">
+              <div className="w-full py-3 bg-[#F1F5F9] rounded-xl">
                 <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden mx-4">
                   <div
                     className="h-full bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
-                <p className="text-[13px] text-[#64748B] text-center mt-2">
+                <p className="text-[12px] text-[#64748B] text-center mt-1.5">
                   {t('uploading', { progress: uploadProgress })}
                 </p>
               </div>
@@ -354,7 +354,7 @@ export function UploadZone({
             <button
               disabled={!hasFile}
               onClick={onTranscribeClick}
-              className={`w-full py-4 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white text-base font-bold rounded-xl transition-all ${
+              className={`w-full py-3 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white text-[15px] font-bold rounded-xl transition-all ${
                 !hasFile ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
               }`}
             >
@@ -374,8 +374,8 @@ export function UploadZone({
                 />
               </div>
             ) : (
-              <div className="w-full py-4 bg-[#F1F5F9] rounded-xl">
-                <p className="text-[13px] text-[#64748B] text-center">
+              <div className="w-full py-3 bg-[#F1F5F9] rounded-xl">
+                <p className="text-[12px] text-[#64748B] text-center">
                   {t('importing')}
                 </p>
               </div>
@@ -384,7 +384,7 @@ export function UploadZone({
             <button
               disabled={!text.trim()}
               onClick={onImportTextClick}
-              className={`w-full py-4 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white text-base font-bold rounded-xl transition-all ${
+              className={`w-full py-3 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white text-[15px] font-bold rounded-xl transition-all ${
                 !text.trim() ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
               }`}
             >
@@ -394,7 +394,7 @@ export function UploadZone({
         )}
 
         {/* Consent message */}
-        <p className="text-[11px] text-[#94A3B8] text-center mt-4">
+        <p className="text-[10px] text-[#94A3B8] text-center mt-3">
           {t.rich('consent', {
             terms: (chunks) => (
               <Link href="/terms" className="text-[#64748B] hover:text-[#0F172A] underline transition-colors">
