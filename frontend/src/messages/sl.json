@@ -30,11 +30,20 @@
   },
   "landing": {
     "hero": {
-      "title": "Pametna transkripcija.",
-      "titleAccent": "AI posluša. Vi odločate.",
-      "subtitle": "Nič več kopiranja transkripcij v ChatGPT in iskanja pravih navodil. Naložite enkrat, pregledajte vse spremembe, preverite s poslušanjem.",
+      "eyebrow": "AI transkripcija, čiščenje in preverjanje za profesionalce",
+      "title": "Prepišite. Očistite.",
+      "titleAccent": "Preverite vsako spremembo.",
+      "subtitle": "Naložite zvok, dobite očiščen prepis z oznakami govorcev in vidite vsako AI spremembo eno ob drugi. Kliknite katerokoli besedo za poslušanje originala. Izberite, kako agresivno AI čisti. Popravite govorce, izvlecite povzetke in naloge. Skladno z GDPR.",
       "cta": "Preizkusite brezplačni demo",
-      "noSignup": "Brez registracije · Brezplačni demo na voljo"
+      "ctaSecondary": "Pridobi dostop",
+      "noSignup": "Brez registracije za demo",
+      "importLink": "Že imate prepis? Uvozite in ga očistite"
+    },
+    "socialProof": {
+      "intro": "Večina strokovnjakov uporablja ChatGPT z generičnimi navodili za čiščenje. Rezultat?",
+      "stat": "76%",
+      "text": "napak AI urejanja ostane neodkritih brez orodij za preverjanje",
+      "source": "Executable and Verifiable Text-Editing with LLMs, UC Berkeley"
     },
     "heroTranscript": {
       "so": "No",
@@ -90,15 +99,6 @@
           "title": "Vaši podatki ostanejo zasebni",
           "description": "Skladno z GDPR, popolnoma šifrirano, nikoli uporabljeno za AI treniranje."
         }
-      },
-      "stat": {
-        "intro": "Večina strokovnjakov uporablja ChatGPT z generičnimi navodili za čiščenje. Rezultat?",
-        "text": "napak AI urejanja ostane neodkritih brez orodij za preverjanje",
-        "source": "Executable and Verifiable Text-Editing with LLMs, UC Berkeley"
-      },
-      "cta": {
-        "tagline": "pokaže, kaj se je spremenilo. Vi ostanete v kontroli.",
-        "features": "Predvajanje zvoka za kontekst. Razveljavite katero koli AI spremembo z enim klikom."
       }
     },
     "proofVisual": {
@@ -124,26 +124,33 @@
       "sectionLabel": "Funkcije",
       "title": "Kaj dobite",
       "subtitle": "Transkripcija, čiščenje in analiza. Vse preverljivo.",
-      "transparentEditing": {
-        "title": "Transparentno urejanje",
-        "item1": "Primerjava surovega in očiščenega drug ob drugem",
-        "item2": "Kliknite kateri koli segment za poslušanje originala",
-        "item3": "Oznake govorcev z barvnim označevanjem",
-        "item4": "Uredite kateri koli segment ali povrnite na original"
+      "transcription": {
+        "title": "Natančna transkripcija z zaznavanjem govorcev",
+        "description": "Naložite zvok ali posnemite v brskalniku. Dobite prepis z oznakami govorcev v minutah, s podporo za slovenščino in angleščino."
       },
-      "aiAnalysis": {
-        "title": "AI analiza",
-        "item1": "Povzetek s temami in ključnimi točkami",
-        "item2": "Izvlečene naloge in odločitve",
-        "item3": "Spodbude za razmislek za terapevte in mentorje"
+      "speakerEditing": {
+        "title": "Popravki atribucije govorcev",
+        "description": "Preimenujte govorce in premaknite napačno pripisano besedilo med segmenti.",
+        "comingSoon": "Kmalu na voljo"
       },
-      "privateSecure": {
-        "title": "Zasebno in varno",
-        "item1": "Skladno z GDPR, infrastruktura v EU",
-        "item2": "Šifrirano med prenosom in v mirovanju",
-        "item3": "Nikoli uporabljeno za učenje AI modelov"
+      "cleanup": {
+        "title": "AI čiščenje, ki ga vidite in nadzirate",
+        "description": "Čisti način odstrani polnila, jecljanja in napačne začetke, medtem ko ohrani vaše besede in slovnico. Urejen način (kmalu) tudi popravi slovnico in deli predolge povedi.",
+        "highlighted": true
       },
-      "disclaimerDemo": "Brezplačni demo uporablja varno povezavo. Polno šifriranje in obdelava samo v EU sta vključena z računi."
+      "verification": {
+        "title": "Vsaka sprememba vidna, preverljiva z zvokom",
+        "description": "Prikaz sprememb ob strani prikaže vsako AI urejanje. Kliknite kateri koli segment za predvajanje originala. Uredite ali povrnite karkoli.",
+        "highlighted": true
+      },
+      "analysis": {
+        "title": "Povzetki, naloge in teme",
+        "description": "AI izvleče ključne teme, odločitve in naloge. Preizkusite različne profile analize na istem prepisu."
+      },
+      "privacy": {
+        "title": "Skladno z GDPR, šifrirano, zasebno",
+        "description": "Gostovanje v EU, AES-256 šifriranje, nikoli uporabljeno za AI treniranje. Brez računa za brezplačni demo."
+      }
     },
     "useCases": {
       "sectionLabel": "Primeri uporabe",
@@ -175,29 +182,98 @@
         "description": "Povlecite zvočno datoteko ali posnemite neposredno v brskalniku."
       },
       "step2": {
-        "title": "Izberite govorce",
-        "description": "Izberite število govorcev za natančno ločevanje."
+        "title": "Prepis z govorci",
+        "description": "AI prepiše vaš zvok in zazna, kdo je kaj rekel."
       },
       "step3": {
-        "title": "Primerjajte in uredite",
-        "description": "Preglejte drug ob drugem. Uredite, povrnite, preverite z zvokom."
+        "title": "AI očisti",
+        "description": "Polnila, jecljanja in napačni začetki odstranjeni. Vaše besede ostanejo."
       },
       "step4": {
-        "title": "Analizirajte",
-        "description": "Preizkusite različne profile vpogledov na vašem prepisu."
+        "title": "Pregledajte in preverite",
+        "description": "Vsaka sprememba vidna v prikazu razlik. Kliknite besedo za poslušanje originala."
+      },
+      "library": {
+        "title": "Shranjeno v knjižnico",
+        "description": "Vsaka seja shranjena z oznakami govorcev in časovnimi oznakami."
+      },
+      "aiChat": {
+        "title": "Pogovarjajte se s knjižnico",
+        "description": "Iščite po sejah po pomenu. Sledite temam skozi čas.",
+        "comingSoon": "Kmalu na voljo"
       }
     },
-    "whatsNext": {
-      "badge": "Kaj sledi",
-      "title": "Pogovorna inteligenca",
-      "subtitle": "Postavljajte vprašanja skozi mesece sej. Vsak odgovor citiran, vsaka trditev povezana z originalnim zvokom.",
-      "cta": "Pridruži se čakalni listi za zgodnji dostop"
+    "knowledgeBridge": {
+      "badge": "Kmalu na voljo",
+      "title": "Vsaka seja, ki jo obdelate, postane iskalno znanje.",
+      "intro": "Danes: prepišite, očistite, preverite in analizirajte. Seje so shranjene v vaš arhiv s polnimi oznakami govorcev, časovnimi oznakami in povezavami do zvoka. Kmalu bo ta arhiv postal nekaj, s čimer se lahko pogovarjate.",
+      "concept1": {
+        "title": "Iščite po pomenu, ne ključnih besedah",
+        "description": "Vprašajte \"kdaj smo razpravljali o proračunu?\" skozi vse vaše seje. Dobite rezultate z govorcem, časovno oznako in povezavo do zvoka, tudi če nihče ni rekel besede \"proračun\"."
+      },
+      "concept2": {
+        "title": "Sledite vsaki temi skozi vaš arhiv",
+        "description": "Poglejte, kdaj se je tema prvič pojavila, kako se je razpravljalo drugače skozi čas in kje so se odločitve spremenile. Vse povezano nazaj na originalni zvok."
+      },
+      "concept3": {
+        "title": "Razložite vsak kompleksen odstavek takoj",
+        "description": "Označite zmeden 5-minutni odgovor in dobite jasno razlago, ki upošteva, kaj je bilo rečeno prej in potem."
+      },
+      "cta": "Kmalu na voljo. Pridružite se čakalni listi, da boste prvi."
+    },
+    "faq": {
+      "sectionLabel": "Pogosta vprašanja",
+      "title": "Pogosto zastavljena vprašanja",
+      "questions": {
+        "whatIs": {
+          "question": "Kaj je EverSaid?",
+          "answer": "EverSaid je platforma, skladna z GDPR, ki prepiše zvok in očisti prepis z AI. Prepis lahko preverite s klikom na katerokoli besedo za poslušanje originala. Čiščenje je popolnoma transparentno: vidite, kaj se je spremenilo, in lahko uredite ali povrnete karkoli."
+        },
+        "whatIsCleanup": {
+          "question": "Kaj je čiščenje?",
+          "answer": "Po transkripciji AI čiščenje samodejno odstrani polnilne besede (um, aa), jecljanja, napačne začetke in diskurzne označevalce, medtem ko ohrani vašo slovnico in izbiro besed. Dobite obe verziji: surovo in očiščeno, eno ob drugi v prikazu razlik. Način \"Urejeno\", ki tudi popravlja slovnico in deli predolge povedi, prihaja kmalu."
+        },
+        "existingTranscript": {
+          "question": "Kaj če že imam prepis?",
+          "answer": "Lahko prilepite ali naložite besedilni prepis neposredno, z ali brez oznak govorcev. EverSaid ga bo očistil in prikazal vsako spremembo v prikazu razlik, tako kot pri prepisih, ki jih ustvari sam.",
+          "importCta": "Potrebujete uvoz neposredno iz Zoom, Teams ali drugega orodja? Sporočite nam preko obrazca za prijavo, da lahko prednostno razvijemo, kar je najpomembnejše."
+        },
+        "howDifferent": {
+          "question": "Kako se EverSaid razlikuje od Otter.ai ali kopiranja v ChatGPT?",
+          "answer": "Orodja za transkripcijo kot Otter.ai vam dajo surov prepis, a brez procesa čiščenja. Kopiranje v ChatGPT lahko očisti besedilo, a dolge prepise je treba razdeliti na dele in ponovno sestaviti. Ne vidite, kaj se je spremenilo, ne morete preveriti z zvokom ali nadzorovati, koliko se uredi. EverSaid obravnava tako transkripcijo kot čiščenje v eni platformi, obdela celoten prepis naenkrat in pokaže vsako spremembo v prikazu razlik z zvočnim preverjanjem."
+        },
+        "dataStorage": {
+          "question": "Kje so shranjeni moji podatki?",
+          "answer": "EverSaid deluje na strežnikih Hetzner v Nemčiji. Za registrirane uporabnike ostane AI obdelava besedila tudi v EU (IONOS, Nemčija) in prepisi so šifrirani s ključi za posameznega uporabnika. Zvok obdeluje ElevenLabs za transkripcijo. Vaši podatki nikoli niso uporabljeni za treniranje AI modelov."
+        },
+        "pricing": {
+          "question": "Ali potrebujem račun? Koliko stane?",
+          "answer": "Demo je brezplačen brez potrebe po računu. Za polno platformo s shranjenimi sejami, razširjenimi omejitvami in vsemi funkcijami zaprosite za dostop preko obrazca za prijavo. Nove uporabnike dodajamo postopoma med pilotno fazo. Brezplačno, dokler gradimo. Zgodnji uporabniki dobijo ustanovno ceno."
+        },
+        "languages": {
+          "question": "Katere jezike podpira EverSaid?",
+          "answer": "Slovenščino in angleščino, tako za transkripcijo kot čiščenje. Vsak jezik zahteva namenski razvoj čiščenja za pravilno obravnavo polnil, diskurznih označevalcev in slovničnih vzorcev. Dodatni jeziki so načrtovani glede na povpraševanje uporabnikov."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Preizkusite EverSaid brezplačno",
+      "subtitle": "Naložite zvok. Dobite natančen prepis. Očistite z AI. Preverite vsako spremembo. Brez registracije.",
+      "cta": "Preizkusite brezplačni demo",
+      "ctaSecondary": "Pridobi dostop",
+      "trustBadges": {
+        "gdpr": "Skladno z GDPR",
+        "encrypted": "AES-256 šifrirano",
+        "noTraining": "Nikoli za AI treniranje"
+      }
     },
     "footer": {
-      "copyright": "© {year} EverSaid",
-      "builtIn": "Narejeno v Sloveniji · Neodvisno & zagnano",
-      "privacy": "Politika zasebnosti",
+      "copyright": "© {year} EverSaid. Vse pravice pridržane.",
+      "builtIn": "Samofinancirano in zgrajeno v Sloveniji",
+      "description": "EverSaid je platforma za AI transkripcijo in čiščenje, skladna z GDPR, z urejanjem govorcev, preverjanjem razlik, zvočnim preverjanjem, možnostmi urejanja in povrnitve ter analizo sej. Zgrajeno za profesionalce, ki morajo zaupati temu, kar berejo.",
+      "privacy": "Zasebnost",
       "terms": "Pogoji",
+      "apiDocs": "API dokumentacija",
       "contact": "Kontakt"
     }
   },

@@ -1,7 +1,7 @@
 "use client"
 
 import { Link } from "@/i18n/routing"
-import { Shield } from "lucide-react"
+import { Shield, FileText } from "lucide-react"
 import { useState, useCallback, useEffect } from "react"
 import { useTranslations } from "next-intl"
 import { WaitlistFlow } from "@/components/waitlist/waitlist-flow"
@@ -12,6 +12,10 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { MotionDiv } from "@/components/motion"
 import { SectionDivider, DIVIDER_COLORS } from "@/components/landing/section-divider"
 import { ProblemSection } from "@/components/landing/problem-section"
+import { SocialProofBar } from "@/components/landing/social-proof-bar"
+import { KnowledgeBridgeSection } from "@/components/landing/knowledge-bridge-section"
+import { FAQSection } from "@/components/landing/faq-section"
+import { FinalCtaSection } from "@/components/landing/final-cta-section"
 import { useAnimationVariants } from "@/lib/animation-variants"
 
 export default function HomePage() {
@@ -29,7 +33,6 @@ export default function HomePage() {
     sectionSubtitle,
     staggerContainer,
     cardItem,
-    fadeUp,
     scaleFade,
     stepsContainer,
     stepItem,
@@ -160,6 +163,16 @@ export default function HomePage() {
           {/* Left column - Text */}
           <div className="flex-1 text-center">
             <MotionDiv
+              variants={heroNote}
+              initial="hidden"
+              animate="visible"
+              className="mb-4"
+            >
+              <span className="text-[13px] font-semibold text-[#38BDF8] uppercase tracking-[2px]">
+                {t('hero.eyebrow')}
+              </span>
+            </MotionDiv>
+            <MotionDiv
               variants={heroTitle}
               initial="hidden"
               animate="visible"
@@ -177,7 +190,7 @@ export default function HomePage() {
               initial="hidden"
               animate="visible"
             >
-              <p className="text-lg md:text-xl text-white/75 mb-10 leading-relaxed font-normal">
+              <p className="text-lg md:text-xl text-white/75 mb-10 leading-relaxed font-normal max-w-[600px] mx-auto">
                 {t('hero.subtitle')}
               </p>
             </MotionDiv>
@@ -185,6 +198,7 @@ export default function HomePage() {
               variants={heroCta}
               initial="hidden"
               animate="visible"
+              className="flex flex-col sm:flex-row gap-4 justify-center"
             >
               <Link
                 href="/demo"
@@ -192,15 +206,30 @@ export default function HomePage() {
               >
                 {t('hero.cta')}
               </Link>
+              <button
+                onClick={() => handleWaitlistClick("extended_usage")}
+                className="inline-block px-10 py-[18px] border-2 border-white/30 hover:border-white/60 text-white rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5"
+              >
+                {t('hero.ctaSecondary')}
+              </button>
             </MotionDiv>
             <MotionDiv
               variants={heroNote}
               initial="hidden"
               animate="visible"
-              className="mt-6 flex items-center justify-center gap-2 text-sm text-white/60"
+              className="mt-6 flex flex-col items-center gap-3"
             >
-              <Shield className="w-4 h-4 opacity-70" />
-              {t('hero.noSignup')}
+              <div className="flex items-center gap-2 text-sm text-white/60">
+                <Shield className="w-4 h-4 opacity-70" />
+                {t('hero.noSignup')}
+              </div>
+              <Link
+                href="/demo?tab=text"
+                className="flex items-center gap-2 text-sm text-white/50 hover:text-white/80 transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                {t('hero.importLink')}
+              </Link>
             </MotionDiv>
           </div>
 
@@ -217,8 +246,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Divider: Hero → Problem */}
+      {/* Divider: Hero → Social Proof */}
       <SectionDivider fillColor={DIVIDER_COLORS.light} />
+
+      {/* Social Proof Bar */}
+      <SocialProofBar />
 
       {/* Problem Section */}
       <ProblemSection />
@@ -268,7 +300,7 @@ export default function HomePage() {
       {/* Divider: Proof Visual → Features */}
       <SectionDivider fillColor={DIVIDER_COLORS.white} />
 
-      {/* Features Section - Combined "What You Get" */}
+      {/* Features Section - 6-card layout */}
       <section className="snap-start snap-always min-h-screen flex items-center px-8 md:px-16 py-20" id="features">
         <div className="max-w-[1200px] mx-auto w-full">
           <MotionDiv
@@ -293,92 +325,68 @@ export default function HomePage() {
           </MotionDiv>
 
           <MotionDiv
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             variants={staggerContainer}
           >
-            {/* Transparent Editing */}
-            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-8 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-              <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mb-6 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
-                🔍
+            {/* Transcription */}
+            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-6 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+              <div className="w-[56px] h-[56px] bg-white rounded-[16px] flex items-center justify-center text-[28px] mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                🎙️
               </div>
-              <h3 className="text-xl font-bold text-[#0F172A] mb-4">{t('features.transparentEditing.title')}</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
-                  <span className="text-[15px] text-[#64748B]">{t('features.transparentEditing.item1')}</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
-                  <span className="text-[15px] text-[#64748B]">{t('features.transparentEditing.item2')}</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
-                  <span className="text-[15px] text-[#64748B]">{t('features.transparentEditing.item3')}</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
-                  <span className="text-[15px] text-[#64748B]">{t('features.transparentEditing.item4')}</span>
-                </li>
-              </ul>
+              <h3 className="text-lg font-bold text-[#0F172A] mb-2">{t('features.transcription.title')}</h3>
+              <p className="text-sm text-[#64748B] leading-relaxed">{t('features.transcription.description')}</p>
             </MotionDiv>
 
-            {/* AI Analysis (highlighted) */}
-            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[linear-gradient(135deg,rgba(56,189,248,0.08)_0%,rgba(168,85,247,0.08)_100%)] border border-purple-200 rounded-[20px] p-8 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-              <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mb-6 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+            {/* Speaker Editing (coming soon) */}
+            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-6 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] relative">
+              <div className="absolute top-4 right-4 px-2 py-1 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700">
+                {t('features.speakerEditing.comingSoon')}
+              </div>
+              <div className="w-[56px] h-[56px] bg-white rounded-[16px] flex items-center justify-center text-[28px] mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                👥
+              </div>
+              <h3 className="text-lg font-bold text-[#0F172A] mb-2">{t('features.speakerEditing.title')}</h3>
+              <p className="text-sm text-[#64748B] leading-relaxed">{t('features.speakerEditing.description')}</p>
+            </MotionDiv>
+
+            {/* AI Cleanup (highlighted) */}
+            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[linear-gradient(135deg,rgba(56,189,248,0.08)_0%,rgba(168,85,247,0.08)_100%)] border border-purple-200 rounded-[20px] p-6 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+              <div className="w-[56px] h-[56px] bg-white rounded-[16px] flex items-center justify-center text-[28px] mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
                 ✨
               </div>
-              <h3 className="text-xl font-bold text-[#0F172A] mb-4">{t('features.aiAnalysis.title')}</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
-                  <span className="text-[15px] text-[#64748B]">{t('features.aiAnalysis.item1')}</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
-                  <span className="text-[15px] text-[#64748B]">{t('features.aiAnalysis.item2')}</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
-                  <span className="text-[15px] text-[#64748B]">{t('features.aiAnalysis.item3')}</span>
-                </li>
-              </ul>
+              <h3 className="text-lg font-bold text-[#0F172A] mb-2">{t('features.cleanup.title')}</h3>
+              <p className="text-sm text-[#64748B] leading-relaxed">{t('features.cleanup.description')}</p>
             </MotionDiv>
 
-            {/* Privacy & Security */}
-            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-8 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-              <div className="w-[72px] h-[72px] bg-white rounded-[20px] flex items-center justify-center text-[32px] mb-6 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+            {/* Verification (highlighted) */}
+            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[linear-gradient(135deg,rgba(56,189,248,0.08)_0%,rgba(168,85,247,0.08)_100%)] border border-purple-200 rounded-[20px] p-6 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+              <div className="w-[56px] h-[56px] bg-white rounded-[16px] flex items-center justify-center text-[28px] mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                🔍
+              </div>
+              <h3 className="text-lg font-bold text-[#0F172A] mb-2">{t('features.verification.title')}</h3>
+              <p className="text-sm text-[#64748B] leading-relaxed">{t('features.verification.description')}</p>
+            </MotionDiv>
+
+            {/* Analysis */}
+            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-6 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+              <div className="w-[56px] h-[56px] bg-white rounded-[16px] flex items-center justify-center text-[28px] mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                📊
+              </div>
+              <h3 className="text-lg font-bold text-[#0F172A] mb-2">{t('features.analysis.title')}</h3>
+              <p className="text-sm text-[#64748B] leading-relaxed">{t('features.analysis.description')}</p>
+            </MotionDiv>
+
+            {/* Privacy */}
+            <MotionDiv variants={cardItem} whileHover={{ y: -4 }} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[20px] p-6 transition-shadow duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+              <div className="w-[56px] h-[56px] bg-white rounded-[16px] flex items-center justify-center text-[28px] mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
                 🔒
               </div>
-              <h3 className="text-xl font-bold text-[#0F172A] mb-4">{t('features.privateSecure.title')}</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
-                  <span className="text-[15px] text-[#64748B]">{t('features.privateSecure.item1')}</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
-                  <span className="text-[15px] text-[#64748B]">{t('features.privateSecure.item2')}</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs mt-0.5 shrink-0">✓</span>
-                  <span className="text-[15px] text-[#64748B]">{t('features.privateSecure.item3')}</span>
-                </li>
-              </ul>
+              <h3 className="text-lg font-bold text-[#0F172A] mb-2">{t('features.privacy.title')}</h3>
+              <p className="text-sm text-[#64748B] leading-relaxed">{t('features.privacy.description')}</p>
             </MotionDiv>
-          </MotionDiv>
-
-          <MotionDiv
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-          >
-            <p className="text-center text-sm text-[#64748B] mt-8 italic">
-              {t('features.disclaimerDemo')}
-            </p>
           </MotionDiv>
         </div>
       </section>
@@ -441,8 +449,8 @@ export default function HomePage() {
       <SectionDivider fillColor={DIVIDER_COLORS.light} />
 
       {/* How It Works Section */}
-      <section className="snap-start snap-always min-h-screen flex items-center px-8 md:px-16 py-20 bg-[#F8FAFC]" id="how-it-works">
-        <div className="max-w-[1000px] mx-auto w-full">
+      <section className="snap-start snap-always px-8 md:px-16 py-20 bg-[#F8FAFC]" id="how-it-works">
+        <div className="max-w-[1200px] mx-auto w-full">
           <MotionDiv
             className="text-center"
             initial="hidden"
@@ -464,8 +472,9 @@ export default function HomePage() {
             </MotionDiv>
           </MotionDiv>
 
+          {/* Main 4 steps */}
           <MotionDiv
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
@@ -512,71 +521,79 @@ export default function HomePage() {
               </p>
             </MotionDiv>
           </MotionDiv>
+
+          {/* Library and AI Chat steps */}
+          <MotionDiv
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 max-w-[600px] mx-auto"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stepsContainer}
+          >
+            <MotionDiv variants={stepItem} className="text-center">
+              <div className="w-14 h-14 bg-[#E2E8F0] text-[#64748B] rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                5
+              </div>
+              <h3 className="text-base font-bold text-[#0F172A] mb-2">{t('howItWorks.library.title')}</h3>
+              <p className="text-sm text-[#64748B] leading-relaxed">{t('howItWorks.library.description')}</p>
+            </MotionDiv>
+
+            <MotionDiv variants={stepItem} className="text-center relative">
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 text-purple-700">
+                {t('howItWorks.aiChat.comingSoon')}
+              </div>
+              <div className="w-14 h-14 bg-[#E2E8F0] text-[#64748B] rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                6
+              </div>
+              <h3 className="text-base font-bold text-[#0F172A] mb-2">{t('howItWorks.aiChat.title')}</h3>
+              <p className="text-sm text-[#64748B] leading-relaxed">{t('howItWorks.aiChat.description')}</p>
+            </MotionDiv>
+          </MotionDiv>
         </div>
       </section>
 
-      {/* Divider: How It Works → What's Next */}
+      {/* Divider: How It Works → Knowledge Bridge */}
       <SectionDivider fillColor={DIVIDER_COLORS.dark} />
 
-      {/* What's Next Section */}
-      <section className="snap-start snap-always px-8 md:px-16 py-24 bg-[linear-gradient(135deg,#0F172A_0%,#1E3A5F_100%)] relative overflow-hidden">
-        <div className="absolute top-[-50%] right-[-20%] w-[60%] h-[200%] bg-[radial-gradient(ellipse,rgba(56,189,248,0.1)_0%,transparent_60%)] pointer-events-none" />
-        <div className="absolute bottom-[-50%] left-[-20%] w-[50%] h-[150%] bg-[radial-gradient(ellipse,rgba(168,85,247,0.08)_0%,transparent_60%)] pointer-events-none" />
+      {/* Knowledge Bridge Section */}
+      <KnowledgeBridgeSection />
 
-        <MotionDiv
-          className="max-w-[600px] mx-auto text-center relative z-10"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.5 }}
-        >
-          <MotionDiv variants={fadeUp}>
-            <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-              {t('whatsNext.badge')}
-            </div>
-          </MotionDiv>
+      {/* FAQ Section */}
+      <FAQSection />
 
-          <MotionDiv variants={sectionHeader}>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-[-0.02em]">
-              {t('whatsNext.title')}
-            </h2>
-          </MotionDiv>
-
-          <MotionDiv variants={sectionSubtitle}>
-            <p className="text-lg text-white/70 mb-10 leading-relaxed">
-              {t('whatsNext.subtitle')}
-            </p>
-          </MotionDiv>
-
-          <MotionDiv variants={scaleFade}>
-            <button
-              onClick={() => handleWaitlistClick("conversation_intelligence")}
-              className="inline-block bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white px-8 py-4 rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5 shadow-[0_8px_32px_rgba(56,189,248,0.3)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.4)]"
-            >
-              {t('whatsNext.cta')}
-            </button>
-          </MotionDiv>
-        </MotionDiv>
-      </section>
+      {/* Final CTA Section */}
+      <FinalCtaSection onWaitlistClick={() => handleWaitlistClick("extended_usage")} />
 
       {/* Footer */}
-      <footer className="px-8 md:px-16 py-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-t border-[#E2E8F0]">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-          <span className="text-sm text-[#64748B]">{t('footer.copyright', { year: new Date().getFullYear() })}</span>
-          <span className="flex items-center gap-1.5 text-[13px] text-[#94A3B8] px-3 py-1.5 bg-[#F8FAFC] rounded-lg">
-            🇸🇮 {t('footer.builtIn')}
-          </span>
-        </div>
-        <div className="flex gap-8 items-center">
-          <Link href="/privacy" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
-            {t('footer.privacy')}
-          </Link>
-          <Link href="/terms" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
-            {t('footer.terms')}
-          </Link>
-          <a href="mailto:hello@eversaid.ai" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
-            hello@eversaid.ai
-          </a>
+      <footer className="px-8 md:px-16 py-10 border-t border-[#E2E8F0]">
+        <div className="max-w-[1200px] mx-auto">
+          {/* Product description */}
+          <p className="text-xs text-[#94A3B8] mb-6 max-w-[800px] leading-relaxed">
+            {t('footer.description')}
+          </p>
+
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+              <span className="text-sm text-[#64748B]">{t('footer.copyright', { year: new Date().getFullYear() })}</span>
+              <span className="flex items-center gap-1.5 text-[13px] text-[#94A3B8] px-3 py-1.5 bg-[#F8FAFC] rounded-lg">
+                🇸🇮 {t('footer.builtIn')}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-6 md:gap-8 items-center">
+              <Link href="/privacy" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
+                {t('footer.privacy')}
+              </Link>
+              <Link href="/terms" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
+                {t('footer.terms')}
+              </Link>
+              <Link href="/api-docs" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
+                {t('footer.apiDocs')}
+              </Link>
+              <a href="mailto:hello@eversaid.ai" className="text-sm text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">
+                hello@eversaid.ai
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
 

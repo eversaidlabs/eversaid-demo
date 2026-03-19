@@ -30,11 +30,20 @@
   },
   "landing": {
     "hero": {
-      "title": "Smart transcription.",
-      "titleAccent": "AI listens. You decide.",
-      "subtitle": "No more chunking transcripts into ChatGPT. No more prompt engineering. Upload once, see every AI edit, verify against the audio.",
+      "eyebrow": "AI Transcription, Cleanup & Verification for Professionals",
+      "title": "Transcribe. Clean up.",
+      "titleAccent": "Verify every change.",
+      "subtitle": "Upload audio, get a cleaned transcript with speaker labels, and see every AI edit side by side. Click any word to hear the original. Choose how aggressively the AI cleans. Fix speakers, extract summaries and action items. GDPR compliant.",
       "cta": "Try Free Demo",
-      "noSignup": "No sign-up required · Free demo available"
+      "ctaSecondary": "Get Full Access",
+      "noSignup": "No sign-up required for demo",
+      "importLink": "Already have a transcript? Import and clean it up"
+    },
+    "socialProof": {
+      "intro": "Most professionals turn to ChatGPT with generic prompts for cleanup. The result?",
+      "stat": "76%",
+      "text": "of AI text-editing errors go undetected without verification tools",
+      "source": "Executable and Verifiable Text-Editing with LLMs, UC Berkeley"
     },
     "heroTranscript": {
       "so": "So",
@@ -90,15 +99,6 @@
           "title": "Your data stays private",
           "description": "GDPR compliant, fully encrypted, never used for AI training."
         }
-      },
-      "stat": {
-        "intro": "Most professionals turn to ChatGPT with generic prompts for cleanup. The result?",
-        "text": "of AI text-editing errors go undetected without verification tools",
-        "source": "Executable and Verifiable Text-Editing with LLMs, UC Berkeley"
-      },
-      "cta": {
-        "tagline": "shows what changed, so you stay in control.",
-        "features": "Audio playback for context. Revert any AI change with one click."
       }
     },
     "proofVisual": {
@@ -124,26 +124,33 @@
       "sectionLabel": "Features",
       "title": "What You Get",
       "subtitle": "Transcription, cleanup, and analysis. All verifiable.",
-      "transparentEditing": {
-        "title": "Transparent Editing",
-        "item1": "Side-by-side comparison of raw and cleaned",
-        "item2": "Click any segment to hear the original audio",
-        "item3": "Speaker labels with color-coded attribution",
-        "item4": "Edit any segment or revert to original"
+      "transcription": {
+        "title": "Accurate transcription with speaker detection",
+        "description": "Upload audio or record in browser. Get a speaker-labeled transcript in minutes, with Slovenian and English supported."
       },
-      "aiAnalysis": {
-        "title": "AI Analysis",
-        "item1": "Summary with topics and key points",
-        "item2": "Action items and decisions extracted",
-        "item3": "Reflection prompts for coaches and therapists"
+      "speakerEditing": {
+        "title": "Fix speaker attribution",
+        "description": "Rename speakers and move misattributed text between segments.",
+        "comingSoon": "Coming soon"
       },
-      "privateSecure": {
-        "title": "Private & Secure",
-        "item1": "GDPR compliant, EU-hosted infrastructure",
-        "item2": "Encrypted in transit and at rest",
-        "item3": "Never used for AI model training"
+      "cleanup": {
+        "title": "AI cleanup you can see and control",
+        "description": "Clean mode removes fillers, stutters, and false starts while keeping your words and grammar intact. Edited mode (coming soon) also fixes grammar and polishes sentences for publication.",
+        "highlighted": true
       },
-      "disclaimerDemo": "Free demo uses secure connection. Full encryption & EU-only processing included with accounts."
+      "verification": {
+        "title": "See every change, verify against audio",
+        "description": "Side-by-side diff view highlights every AI edit. Click any segment to play the original. Edit or revert anything.",
+        "highlighted": true
+      },
+      "analysis": {
+        "title": "Summaries, action items, and themes",
+        "description": "AI extracts key topics, decisions, and action items. Try different analysis profiles on the same transcript."
+      },
+      "privacy": {
+        "title": "GDPR compliant, encrypted, private",
+        "description": "EU-hosted, AES-256 encrypted, never used for AI training. No account required for the free demo."
+      }
     },
     "useCases": {
       "sectionLabel": "Use Cases",
@@ -171,33 +178,102 @@
       "title": "How It Works",
       "subtitle": "From audio to verified transcript with AI analysis in minutes",
       "step1": {
-        "title": "Upload or Record",
+        "title": "Upload or record",
         "description": "Drag-drop an audio file or record directly in browser."
       },
       "step2": {
-        "title": "Choose Speakers",
-        "description": "Select speaker count for accurate diarization."
+        "title": "Transcribed with speakers",
+        "description": "AI transcribes your audio and detects who said what."
       },
       "step3": {
-        "title": "Compare & Edit",
-        "description": "Review side-by-side. Edit, revert, verify against audio."
+        "title": "AI cleans it up",
+        "description": "Fillers, stutters, and false starts removed. Your words stay intact."
       },
       "step4": {
-        "title": "Analyze",
-        "description": "Try different insight profiles on your transcript."
+        "title": "Review and verify",
+        "description": "See every change in the diff view. Click any word to hear the original audio."
+      },
+      "library": {
+        "title": "Saved to your library",
+        "description": "Every session stored with speaker labels and timestamps."
+      },
+      "aiChat": {
+        "title": "Talk to your library",
+        "description": "Search across sessions by meaning. Follow topics over time.",
+        "comingSoon": "Coming soon"
       }
     },
-    "whatsNext": {
-      "badge": "What's Next",
-      "title": "Conversation Intelligence",
-      "subtitle": "Ask questions across months of sessions. Every answer cited, every claim linked to the original audio.",
-      "cta": "Join Waitlist for Early Access"
+    "knowledgeBridge": {
+      "badge": "Coming Soon",
+      "title": "Every session you process becomes searchable knowledge.",
+      "intro": "Today: transcribe, clean up, verify and analyze. Sessions are saved to your archive with full speaker labels, timestamps, and audio links. Soon, that archive becomes something you can talk to.",
+      "concept1": {
+        "title": "Search by meaning, not keywords",
+        "description": "Ask \"when did we discuss the budget?\" across all your sessions. Get results with speaker, timestamp, and audio link, even if nobody said the word \"budget.\""
+      },
+      "concept2": {
+        "title": "Follow any topic through your archive",
+        "description": "See when a topic first came up, how it was discussed differently over time, and where decisions changed. All linked back to the original audio."
+      },
+      "concept3": {
+        "title": "Explain any dense passage instantly",
+        "description": "Highlight a confusing 5-minute answer and get a clear explanation that accounts for what was said before and after."
+      },
+      "cta": "Coming soon. Join the waitlist to be first."
+    },
+    "faq": {
+      "sectionLabel": "FAQ",
+      "title": "Frequently Asked Questions",
+      "questions": {
+        "whatIs": {
+          "question": "What is EverSaid?",
+          "answer": "EverSaid is a GDPR-compliant platform that transcribes audio and cleans up the transcript with AI. You can verify the transcription by clicking any word to hear the original audio. The cleanup is fully transparent: you see what changed and can edit or revert anything."
+        },
+        "whatIsCleanup": {
+          "question": "What is cleanup?",
+          "answer": "After transcription, AI cleanup automatically removes filler words (um, uh), stutters, false starts, and discourse markers while keeping your grammar and word choices intact. You get both versions: raw and cleaned, side by side in a diff view. An \"Edited\" mode that also fixes grammar and splits run-on sentences is coming soon."
+        },
+        "existingTranscript": {
+          "question": "What if I already have a transcript?",
+          "answer": "You can paste or upload a text transcript directly, with or without speaker labels. EverSaid will clean it up and show you every change in the diff view, just like with transcripts it generates.",
+          "importCta": "Need to import directly from Zoom, Teams, or another tool's export format? Let us know through the signup form so we can prioritize what matters most."
+        },
+        "howDifferent": {
+          "question": "How is EverSaid different from Otter.ai or pasting into ChatGPT?",
+          "answer": "Transcription tools like Otter.ai give you a raw transcript but no cleanup workflow. Pasting into ChatGPT can clean text, but long transcripts have to be broken into chunks and stitched back together. You can't see what changed, verify against audio, or control how much gets edited. EverSaid handles both transcription and cleanup in one platform, processes the full transcript at once, and shows every change in a diff view with audio verification."
+        },
+        "dataStorage": {
+          "question": "Where is my data stored?",
+          "answer": "EverSaid runs on Hetzner servers in Germany. For registered users, AI text processing also stays in the EU (IONOS, Germany) and transcripts are encrypted with per-user keys. Audio is processed by ElevenLabs for transcription. Your data is never used for AI model training."
+        },
+        "pricing": {
+          "question": "Do I need an account? How much does it cost?",
+          "answer": "The demo is free with no account required. For the full platform with saved sessions, extended limits, and all features, request access through the signup form. We're adding new users gradually during the pilot. Free while we build. Early users get founding member pricing."
+        },
+        "languages": {
+          "question": "What languages does EverSaid support?",
+          "answer": "Slovenian and English, for both transcription and cleanup. Each language requires dedicated cleanup development to handle fillers, discourse markers, and grammar patterns correctly. Additional languages are planned based on user demand."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Try EverSaid Free",
+      "subtitle": "Upload audio. Get an accurate transcript. Clean it up with AI. Verify every change. No sign-up needed.",
+      "cta": "Try Free Demo",
+      "ctaSecondary": "Get Full Access",
+      "trustBadges": {
+        "gdpr": "GDPR Compliant",
+        "encrypted": "AES-256 Encrypted",
+        "noTraining": "Never Used for AI Training"
+      }
     },
     "footer": {
-      "copyright": "© {year} EverSaid",
-      "builtIn": "Built in Slovenia · Independent & bootstrapped",
-      "privacy": "Privacy Policy",
+      "copyright": "© {year} EverSaid. All rights reserved.",
+      "builtIn": "Self-funded and built in Slovenia",
+      "description": "EverSaid is a GDPR-compliant AI transcription and cleanup platform with speaker editing, diff verification, audio playback verification, edit and revert capabilities, and session analysis. Built for professionals who need to trust what they read.",
+      "privacy": "Privacy",
       "terms": "Terms",
+      "apiDocs": "API Docs",
       "contact": "Contact"
     }
   },

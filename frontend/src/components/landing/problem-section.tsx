@@ -51,7 +51,7 @@ function ComparisonItem({ emoji, title, description, variant, itemVariants }: Co
 
 export function ProblemSection() {
   const t = useTranslations("landing.problem")
-  const { fadeUp, sectionHeader, sectionSubtitle, staggerContainer, staggerItem } = useAnimationVariants()
+  const { sectionHeader, sectionSubtitle, staggerContainer, staggerItem } = useAnimationVariants()
 
   return (
     <section className="snap-start snap-always min-h-screen flex items-center px-8 md:px-16 pt-24 pb-16 bg-[#F8FAFC]">
@@ -188,39 +188,6 @@ export function ProblemSection() {
           </MotionDiv>
         </MotionDiv>
 
-        {/* Stat Section */}
-        <MotionDiv
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={fadeUp}
-          className="text-center mt-10 p-8 bg-white rounded-2xl shadow-[0_2px_16px_rgba(0,0,0,0.04)] max-w-[640px] mx-auto"
-        >
-          <p className="text-sm text-[#64748B] mb-4">{t("stat.intro")}</p>
-          <div className="text-[56px] font-extrabold bg-gradient-to-br from-red-500 to-red-700 bg-clip-text text-transparent leading-none mb-2">
-            76%
-          </div>
-          <p className="text-[15px] text-[#475569] mb-3 max-w-[520px] mx-auto">
-            {t("stat.text")}
-          </p>
-          <p className="text-[11px] text-[#94A3B8] italic">{t("stat.source")}</p>
-        </MotionDiv>
-
-        {/* CTA */}
-        <MotionDiv
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={fadeUp}
-          className="text-center mt-8"
-        >
-          <p className="text-lg text-[#0F172A]">
-            <span className="bg-gradient-to-r from-[#38BDF8] to-[#A855F7] bg-clip-text text-transparent font-bold">
-              EverSaid
-            </span>{" "}
-            {t("cta.tagline")}
-          </p>
-        </MotionDiv>
       </div>
     </section>
   )
