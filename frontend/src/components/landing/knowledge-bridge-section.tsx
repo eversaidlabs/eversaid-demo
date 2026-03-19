@@ -28,7 +28,7 @@ export function KnowledgeBridgeSection() {
   const { fadeUp, staggerContainer, staggerItem } = useAnimationVariants()
 
   return (
-    <section className="px-8 md:px-16 py-24 bg-[linear-gradient(135deg,#0F172A_0%,#1E3A5F_100%)] relative overflow-hidden">
+    <section id="chat" className="px-8 md:px-16 py-24 bg-[linear-gradient(135deg,#0F172A_0%,#1E3A5F_100%)] relative overflow-hidden">
       {/* Background gradients */}
       <div className="absolute top-[-50%] right-[-20%] w-[60%] h-[200%] bg-[radial-gradient(ellipse,rgba(56,189,248,0.1)_0%,transparent_60%)] pointer-events-none" />
       <div className="absolute bottom-[-50%] left-[-20%] w-[50%] h-[150%] bg-[radial-gradient(ellipse,rgba(168,85,247,0.08)_0%,transparent_60%)] pointer-events-none" />

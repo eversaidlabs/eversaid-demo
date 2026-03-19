@@ -13,6 +13,7 @@ import { CleanupFAQ } from "@/components/landing/cleanup/cleanup-faq"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { MotionDiv } from "@/components/motion"
 import { useAnimationVariants } from "@/lib/animation-variants"
+import { useHashOnScroll } from "@/lib/useHashOnScroll"
 
 export default function CleanupLandingPage() {
   const t = useTranslations('cleanupLanding')
@@ -27,6 +28,9 @@ export default function CleanupLandingPage() {
     heroNote,
     fadeUp,
   } = useAnimationVariants()
+
+  // Update URL hash based on visible section
+  useHashOnScroll()
 
   // Header scroll state
   const [isScrolled, setIsScrolled] = useState(false)

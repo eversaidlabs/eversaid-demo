@@ -17,6 +17,7 @@ import { KnowledgeBridgeSection } from "@/components/landing/knowledge-bridge-se
 import { FAQSection } from "@/components/landing/faq-section"
 import { FinalCtaSection } from "@/components/landing/final-cta-section"
 import { useAnimationVariants } from "@/lib/animation-variants"
+import { useHashOnScroll } from "@/lib/useHashOnScroll"
 
 export default function HomePage() {
   const t = useTranslations('landing')
@@ -37,6 +38,9 @@ export default function HomePage() {
     stepsContainer,
     stepItem,
   } = useAnimationVariants()
+
+  // Update URL hash based on visible section
+  useHashOnScroll()
 
   // Header scroll state
   const [isScrolled, setIsScrolled] = useState(false)
