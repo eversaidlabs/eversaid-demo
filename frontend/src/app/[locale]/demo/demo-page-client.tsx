@@ -1077,6 +1077,11 @@ function DemoPageContent({ config }: DemoPageContentProps) {
     audioPlayer.seekToSegment(id)
   }, [audioPlayer])
 
+  // Handler for word-level seek in raw transcript
+  const handleWordSeek = useCallback((timeSeconds: number) => {
+    audioPlayer.seek(timeSeconds)
+  }, [audioPlayer])
+
   const handlePlayPause = useCallback(() => {
     audioPlayer.togglePlayPause()
   }, [audioPlayer])
@@ -1286,6 +1291,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
                       activeSuggestion={activeSuggestion}
                       editingCount={editingCount}
                       onSegmentClick={handleSegmentClick}
+                      onWordSeek={handleWordSeek}
                       onRevert={handleRevertSegment}
                       onUndoRevert={handleUndoRevert}
                       onSave={handleSaveSegment}

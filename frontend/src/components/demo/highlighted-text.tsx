@@ -17,6 +17,8 @@ export interface HighlightedTextProps {
   activeWordIndex: number
   /** Whether audio is currently playing */
   isPlaying: boolean
+  /** Callback when a word is clicked - receives start time in seconds */
+  onWordClick?: (startTime: number) => void
 }
 
 /**
@@ -29,6 +31,7 @@ export function HighlightedText({
   words,
   activeWordIndex,
   isPlaying,
+  onWordClick,
 }: HighlightedTextProps) {
   // Filter to only 'word' type entries
   const wordList = useMemo(
@@ -47,6 +50,13 @@ export function HighlightedText({
         const isActive = isPlaying && index === activeWordIndex
         const isPast = isPlaying && index < activeWordIndex
 
+        const handleClick = (e: React.MouseEvent) => {
+          if (onWordClick && word.start !== undefined) {
+            e.stopPropagation()
+            onWordClick(word.start)
+          }
+        }
+
         return (
           <span key={index}>
             <span
@@ -57,9 +67,11 @@ export function HighlightedText({
                 "motion-reduce:transition-none",
                 isActive &&
                   "bg-blue-400/90 text-blue-950 font-medium shadow-[0_0_0_2px_rgba(59,130,246,0.4),0_2px_8px_rgba(59,130,246,0.3)]",
-                !isActive && "bg-transparent shadow-none"
+                !isActive && "bg-transparent shadow-none",
+                onWordClick && "cursor-pointer hover:bg-blue-100/50"
               )}
               style={{ opacity: isPast && !isActive ? PAST_WORD_OPACITY : 1 }}
+              onClick={handleClick}
             >
               {word.text}
             </span>

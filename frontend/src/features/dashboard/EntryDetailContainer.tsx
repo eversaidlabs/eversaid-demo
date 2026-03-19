@@ -439,6 +439,16 @@ export function EntryDetailContainer({
     [audioPlayer, entryType]
   )
 
+  // Handler for word-level seek in raw transcript
+  const handleWordSeek = useCallback(
+    (timeSeconds: number) => {
+      if (entryType === 'audio') {
+        audioPlayer.seek(timeSeconds)
+      }
+    },
+    [audioPlayer, entryType]
+  )
+
   const handlePlayPause = useCallback(() => {
     audioPlayer.togglePlayPause()
   }, [audioPlayer])
@@ -705,6 +715,7 @@ export function EntryDetailContainer({
             activeWordIndex={wordHighlight.activeWordIndex}
             isPlaying={audioPlayer.isPlaying}
             onSegmentClick={handleSegmentClick}
+            onWordSeek={entryType === 'audio' ? handleWordSeek : undefined}
             onRevert={handleRevertSegment}
             onUndoRevert={handleUndoRevert}
             onSave={handleSaveSegment}

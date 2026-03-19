@@ -27,6 +27,8 @@ interface TranscriptComparisonLayoutProps {
   /** Whether audio is currently playing */
   isPlaying?: boolean
   onSegmentClick: (segmentId: string) => void
+  /** Callback when a word is clicked in raw transcript - seeks to that time in audio */
+  onWordSeek?: (timeSeconds: number) => void
   onRevert: (segmentId: string) => void
   onUndoRevert: (segmentId: string) => void
   onSave: (segmentId: string) => void
@@ -70,6 +72,7 @@ export function TranscriptComparisonLayout({
   activeWordIndex = -1,
   isPlaying = false,
   onSegmentClick,
+  onWordSeek,
   onRevert,
   onUndoRevert,
   onSave,
@@ -243,6 +246,7 @@ export function TranscriptComparisonLayout({
             }
             onTextSelect={onRawTextSelect}
             onScroll={handleRawScroll}
+            onWordSeek={onWordSeek}
           />
         )}
         <EditableSegmentList

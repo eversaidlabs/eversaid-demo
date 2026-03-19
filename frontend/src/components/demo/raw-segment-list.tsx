@@ -26,6 +26,8 @@ export interface RawSegmentListProps {
   onSegmentClick: (id: string) => void
   onTextSelect: (segmentId: string, text: string, startOffset: number, endOffset: number) => void
   onScroll?: (e: React.UIEvent<HTMLDivElement>) => void
+  /** Callback when a word is clicked - seeks to that time in audio */
+  onWordSeek?: (timeSeconds: number) => void
 }
 
 export const RawSegmentList = forwardRef<HTMLDivElement, RawSegmentListProps>(
@@ -41,6 +43,7 @@ export const RawSegmentList = forwardRef<HTMLDivElement, RawSegmentListProps>(
       onSegmentClick,
       onTextSelect,
       onScroll,
+      onWordSeek,
     },
     ref,
   ) => {
@@ -92,12 +95,13 @@ export const RawSegmentList = forwardRef<HTMLDivElement, RawSegmentListProps>(
                   </div>
                 </div>
                 <div className="text-[15px] leading-[1.7] text-foreground select-text">
-                  {seg.id === activeSegmentId && seg.words?.length ? (
+                  {seg.words?.length ? (
                     <HighlightedText
                       text={seg.rawText}
                       words={seg.words}
-                      activeWordIndex={activeWordIndex}
-                      isPlaying={isPlaying}
+                      activeWordIndex={seg.id === activeSegmentId ? activeWordIndex : -1}
+                      isPlaying={seg.id === activeSegmentId && isPlaying}
+                      onWordClick={onWordSeek}
                     />
                   ) : (
                     seg.rawText
