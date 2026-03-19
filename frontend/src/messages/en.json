@@ -1084,6 +1084,174 @@
       }
     }
   },
+  "cleanupLanding": {
+    "hero": {
+      "eyebrow": "AI Transcript Cleanup",
+      "title": "Clean up any transcript.",
+      "titleAccent": "See every change.",
+      "subtitle": "Paste or upload a transcript from any source. AI removes fillers, stutters, and false starts while keeping your words intact. A side-by-side diff view shows exactly what changed. Edit or revert anything.",
+      "cta": "Try It Free",
+      "ctaSecondary": "Get Full Access",
+      "noSignup": "No sign-up required · GDPR compliant",
+      "audioLink": "Need transcription too? Start from audio →"
+    },
+    "heroDiff": {
+      "tabs": {
+        "original": "Original",
+        "cleaned": "Cleaned (diff view)"
+      },
+      "speaker1": "Speaker 1",
+      "speaker2": "Speaker 2",
+      "line1": {
+        "prefix": "So",
+        "removed1": "basically",
+        "kept1": "I",
+        "removed2": "just",
+        "kept2": "wanted to",
+        "removed3": "to",
+        "kept3": "walk you through",
+        "removed4": "um",
+        "kept4": "what we're thinking for the",
+        "removed5": "the",
+        "suffix": "website redesign."
+      },
+      "line2": {
+        "removed1": "Yeah",
+        "added1": "T",
+        "removed2": "t",
+        "kept1": "hat sounds good",
+        "added2": ".",
+        "kept2": "I'm",
+        "removed3": "I'm",
+        "kept3": "really excited to",
+        "removed4": "to",
+        "kept4": "see what you've come up with",
+        "removed5": " you know",
+        "suffix": "."
+      },
+      "line3": {
+        "removed1": "Perfect so",
+        "added1": "W",
+        "removed2": "w",
+        "kept1": "e're",
+        "added2": "going to",
+        "removed3": "gonna we're gonna",
+        "kept2": "focus on three main areas",
+        "added3": ":",
+        "removed4": "I mean",
+        "kept3": "the homepage, the",
+        "removed5": "the",
+        "suffix": "product pages, and checkout."
+      }
+    },
+    "howItWorks": {
+      "sectionLabel": "How It Works",
+      "title": "How It Works",
+      "steps": {
+        "paste": {
+          "title": "Paste or upload",
+          "description": "Paste text or upload a file. Speaker labels detected automatically."
+        },
+        "clean": {
+          "title": "AI cleans it up",
+          "description": "Fillers, stutters, false starts, and discourse markers removed. Your words stay intact."
+        },
+        "review": {
+          "title": "Review and export",
+          "description": "See every change in the diff view. Edit, revert, then export."
+        },
+        "library": {
+          "title": "Saved to your library",
+          "description": "Every session stored with speaker labels and timestamps."
+        },
+        "chat": {
+          "title": "Talk to your library",
+          "description": "Search across sessions by meaning. Follow topics over time.",
+          "comingSoon": "Coming soon"
+        }
+      }
+    },
+    "features": {
+      "sectionLabel": "Features",
+      "title": "What You Get",
+      "subtitle": "Transparent cleanup with full control.",
+      "items": {
+        "cleanup": {
+          "title": "AI cleanup you can see and control",
+          "description": "Clean mode removes fillers, stutters, and false starts while keeping your words and grammar intact. Edited mode (coming soon) also fixes grammar and polishes sentences for publication."
+        },
+        "diff": {
+          "title": "Every change visible in a diff view",
+          "description": "Side-by-side comparison shows exactly what the AI removed, changed, or kept. Edit any line or revert with one click."
+        },
+        "analysis": {
+          "title": "Summaries, action items, and themes",
+          "description": "AI extracts key topics, decisions, and action items. Try different analysis profiles on the same transcript."
+        },
+        "speakers": {
+          "title": "Speaker labels preserved",
+          "description": "If your transcript has speaker labels, they're kept through the cleanup process with color-coded attribution in the diff view."
+        },
+        "privacy": {
+          "title": "GDPR compliant, encrypted, private",
+          "description": "EU-hosted, AES-256 encrypted, never used for AI training. No account required for the free demo."
+        },
+        "languages": {
+          "title": "Slovenian and English cleanup",
+          "description": "Each language has dedicated cleanup rules for fillers, discourse markers, and grammar patterns. More languages planned based on demand."
+        }
+      }
+    },
+    "faq": {
+      "sectionLabel": "FAQ",
+      "title": "Frequently Asked Questions",
+      "questions": {
+        "whatRemoves": {
+          "question": "What does cleanup actually remove?",
+          "answer": "Filler words (um, uh, aa), stutters and repetitions, false starts (abandoned sentence beginnings), and discourse markers (you know, like, basically, pač, v bistvu). Your grammar, word choices, and sentence structure stay untouched."
+        },
+        "differentFromChatgpt": {
+          "question": "How is this different from pasting into ChatGPT?",
+          "answer": "ChatGPT can't handle long transcripts in one go. You have to break them into chunks, process each one separately, and stitch the results back together. The edits are inconsistent across chunks, and you can't see what changed or revert specific words. EverSaid processes the full transcript at once, shows every change in a diff view, and lets you edit or revert anything. It won't summarize, rephrase, or add words that weren't there."
+        },
+        "formats": {
+          "question": "What formats can I import?",
+          "answer": "Paste text directly or upload a plain text file, with or without speaker labels. Speaker labels like \"Speaker 1:\" are detected automatically.",
+          "linkText": "Let us know through the signup form"
+        },
+        "account": {
+          "question": "Do I need an account?",
+          "answer": "The demo is free with no account required. For the full platform with saved sessions, extended limits, and all features, request access through the signup form. Free while we build. Early users get founding member pricing."
+        },
+        "dataStorage": {
+          "question": "Where is my data stored?",
+          "answer": "EverSaid runs on Hetzner servers in Germany. For registered users, AI text processing also stays in the EU (IONOS, Germany) and transcripts are encrypted with per-user keys. Your data is never used for AI model training."
+        },
+        "audioToo": {
+          "question": "I also need transcription from audio. Can EverSaid do that?",
+          "answer": "Yes. EverSaid also transcribes audio with automatic speaker detection, then cleans up and lets you verify every change against the original audio.",
+          "linkText": "Learn more on the main page."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Try it free",
+      "subtitle": "Paste a transcript. See it cleaned up. Review every change. No sign-up needed.",
+      "cta": "Try It Free",
+      "ctaSecondary": "Get Full Access",
+      "trustBadges": {
+        "gdpr": "🔒 GDPR Compliant",
+        "encrypted": "🔐 AES-256 Encrypted",
+        "noTraining": "🚫 Never Used for AI Training"
+      }
+    },
+    "footer": {
+      "copyright": "© {year} EverSaid",
+      "builtIn": "🇸🇮 Self-funded and built in Slovenia",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  },
   "metadata": {
     "title": "EverSaid | Smart transcription. AI listens. You decide.",
     "description": "AI-powered cleanup you can review, refine, and trust. See every edit. Verify against the original audio."

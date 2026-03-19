@@ -35,18 +35,18 @@ export function FinalCtaSection({ onWaitlistClick }: FinalCtaSectionProps) {
         </MotionDiv>
 
         <MotionDiv variants={scaleFade} className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
-          <Link
-            href="/demo"
-            className="inline-block bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white px-10 py-[18px] rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5 shadow-[0_8px_32px_rgba(56,189,248,0.3)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.4)]"
-          >
-            {t("cta")}
-          </Link>
           <button
             onClick={onWaitlistClick}
-            className="inline-block px-10 py-[18px] border-2 border-[#E2E8F0] hover:border-[#38BDF8] text-[#0F172A] rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5"
+            className="inline-block bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white px-10 py-[18px] rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5 shadow-[0_8px_32px_rgba(56,189,248,0.3)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.4)]"
           >
             {t("ctaSecondary")}
           </button>
+          <Link
+            href="/demo"
+            className="inline-block px-10 py-[18px] border-2 border-[#E2E8F0] hover:border-[#38BDF8] text-[#0F172A] rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5 text-center"
+          >
+            {t("cta")}
+          </Link>
         </MotionDiv>
 
         <MotionDiv

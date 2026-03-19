@@ -1084,6 +1084,174 @@
       }
     }
   },
+  "cleanupLanding": {
+    "hero": {
+      "eyebrow": "AI čiščenje prepisov",
+      "title": "Očistite katerikoli prepis.",
+      "titleAccent": "Vidite vsako spremembo.",
+      "subtitle": "Prilepite ali naložite prepis iz kateregakoli vira. AI odstrani polnila, zatikanja in napačne začetke, vaše besede pa ohrani nedotaknjene. Prikaz razlik prikaže, kaj se je spremenilo. Uredite ali razveljavite karkoli.",
+      "cta": "Preizkusite brezplačno",
+      "ctaSecondary": "Pridobite dostop",
+      "noSignup": "Brez registracije · Skladno z GDPR",
+      "audioLink": "Potrebujete tudi transkripcijo? Začnite z zvokom →"
+    },
+    "heroDiff": {
+      "tabs": {
+        "original": "Original",
+        "cleaned": "Očiščeno (prikaz razlik)"
+      },
+      "speaker1": "Govorec 1",
+      "speaker2": "Govorec 2",
+      "line1": {
+        "prefix": "No",
+        "removed1": "v bistvu",
+        "kept1": "jaz",
+        "removed2": "sam",
+        "kept2": "sem hotel",
+        "removed3": "da",
+        "kept3": "vam pokazat",
+        "removed4": "um",
+        "kept4": "kaj si mislimo za",
+        "removed5": "za",
+        "suffix": "prenovo spletne strani."
+      },
+      "line2": {
+        "removed1": "Ja",
+        "added1": "T",
+        "removed2": "t",
+        "kept1": "o se sliši dobro",
+        "added2": ".",
+        "kept2": "Sem",
+        "removed3": "sem",
+        "kept3": "res navdušen, da",
+        "removed4": "da",
+        "kept4": "vidim, kaj ste pripravili",
+        "removed5": " veš",
+        "suffix": "."
+      },
+      "line3": {
+        "removed1": "Odlično no",
+        "added1": "O",
+        "removed2": "o",
+        "kept1": "sredotočili se",
+        "added2": "bomo",
+        "removed3": "bomo se bomo",
+        "kept2": "na tri glavna področja",
+        "added3": ":",
+        "removed4": "mislim",
+        "kept3": "domačo stran,",
+        "removed5": "",
+        "suffix": "strani izdelkov in nakupno košarico."
+      }
+    },
+    "howItWorks": {
+      "sectionLabel": "Kako deluje",
+      "title": "Kako deluje",
+      "steps": {
+        "paste": {
+          "title": "Prilepite ali naložite",
+          "description": "Prilepite besedilo ali naložite datoteko. Oznake govorcev se zaznajo samodejno."
+        },
+        "clean": {
+          "title": "AI očisti",
+          "description": "Polnila, zatikanja, napačni začetki in diskurzni označevalci odstranjeni. Vaše besede ostanejo nedotaknjene."
+        },
+        "review": {
+          "title": "Preglejte in izvozite",
+          "description": "Vidite vsako spremembo v prikazu razlik. Uredite, razveljavite, nato izvozite."
+        },
+        "library": {
+          "title": "Shranjeno v knjižnico",
+          "description": "Vsaka seja shranjena z oznakami govorcev in časovnimi žigi."
+        },
+        "chat": {
+          "title": "Pogovarjajte se s knjižnico",
+          "description": "Iščite po sejah po pomenu. Spremljajte teme skozi čas.",
+          "comingSoon": "Kmalu na voljo"
+        }
+      }
+    },
+    "features": {
+      "sectionLabel": "Funkcije",
+      "title": "Kaj dobite",
+      "subtitle": "Transparentno čiščenje s popolnim nadzorom.",
+      "items": {
+        "cleanup": {
+          "title": "AI čiščenje, ki ga vidite in nadzorujete",
+          "description": "Čisti način odstrani polnila, zatikanja in napačne začetke, vaše besede in slovnico pa ohrani nedotaknjene. Urejen način (kmalu na voljo) tudi popravlja slovnico in polira stavke za objavo."
+        },
+        "diff": {
+          "title": "Vsaka sprememba vidna v prikazu razlik",
+          "description": "Primerjava ena ob drugi natančno pokaže, kaj je AI odstranil, spremenil ali ohranil. Uredite katero koli vrstico ali razveljavite z enim klikom."
+        },
+        "analysis": {
+          "title": "Povzetki, naloge in teme",
+          "description": "AI izvleče ključne teme, odločitve in naloge. Preizkusite različne profile analize na istem prepisu."
+        },
+        "speakers": {
+          "title": "Oznake govorcev ohranjene",
+          "description": "Če ima vaš prepis oznake govorcev, se ohranijo skozi proces čiščenja z barvno kodiranim pripisovanjem v prikazu razlik."
+        },
+        "privacy": {
+          "title": "Skladno z GDPR, šifrirano, zasebno",
+          "description": "Gostovano v EU, AES-256 šifrirano, nikoli uporabljeno za AI treniranje. Za brezplačni demo ni potrebna registracija."
+        },
+        "languages": {
+          "title": "Slovensko in angleško čiščenje",
+          "description": "Vsak jezik ima namenska pravila čiščenja za polnila, diskurzne označevalce in slovnične vzorce. Več jezikov načrtovanih glede na povpraševanje."
+        }
+      }
+    },
+    "faq": {
+      "sectionLabel": "Pogosta vprašanja",
+      "title": "Pogosto zastavljena vprašanja",
+      "questions": {
+        "whatRemoves": {
+          "question": "Kaj čiščenje dejansko odstrani?",
+          "answer": "Polnilne besede (um, uh, aa), zatikanja in ponavljanja, napačne začetke (opuščeni začetki stavkov) in diskurzne označevalce (veš, pač, v bistvu). Vaša slovnica, izbira besed in struktura stavkov ostanejo nedotaknjene."
+        },
+        "differentFromChatgpt": {
+          "question": "Kako se to razlikuje od lepljenja v ChatGPT?",
+          "answer": "ChatGPT ne more obdelati dolgih prepisov naenkrat. Morate jih razdeliti na dele, vsakega obdelati posebej in rezultate sestaviti nazaj. Urejanja so nedosledna med deli in ne morete videti, kaj se je spremenilo, ali razveljaviti posameznih besed. EverSaid obdela celoten prepis naenkrat, pokaže vsako spremembo v prikazu razlik in vam omogoča urejanje ali razveljavitev česarkoli."
+        },
+        "formats": {
+          "question": "Katere formate lahko uvozim?",
+          "answer": "Prilepite besedilo neposredno ali naložite navadno besedilno datoteko, z ali brez oznak govorcev. Oznake govorcev, kot je \"Govorec 1:\", se zaznajo samodejno.",
+          "linkText": "Sporočite nam preko obrazca za prijavo"
+        },
+        "account": {
+          "question": "Ali potrebujem račun?",
+          "answer": "Demo je brezplačen in ne zahteva računa. Za polno platformo s shranjenimi sejami, razširjenimi omejitvami in vsemi funkcijami zaprosite za dostop preko obrazca za prijavo. Brezplačno, dokler gradimo. Zgodnji uporabniki dobijo ustanovitveno ceno."
+        },
+        "dataStorage": {
+          "question": "Kje so shranjeni moji podatki?",
+          "answer": "EverSaid deluje na Hetzner strežnikih v Nemčiji. Za registrirane uporabnike tudi AI obdelava besedil ostaja v EU (IONOS, Nemčija), prepisi pa so šifrirani s ključi za vsakega uporabnika. Vaši podatki se nikoli ne uporabljajo za treniranje AI modelov."
+        },
+        "audioToo": {
+          "question": "Potrebujem tudi transkripcijo iz zvoka. Ali to EverSaid zmore?",
+          "answer": "Da. EverSaid tudi prepisuje zvok s samodejnim zaznavanjem govorcev, nato očisti in vam omogoča preverjanje vsake spremembe z originalnim zvokom.",
+          "linkText": "Več na glavni strani."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Preizkusite brezplačno",
+      "subtitle": "Prilepite prepis. Oglejte si ga očiščenega. Preglejte vsako spremembo. Brez registracije.",
+      "cta": "Preizkusite brezplačno",
+      "ctaSecondary": "Pridobite dostop",
+      "trustBadges": {
+        "gdpr": "🔒 Skladno z GDPR",
+        "encrypted": "🔐 AES-256 šifrirano",
+        "noTraining": "🚫 Nikoli uporabljeno za AI treniranje"
+      }
+    },
+    "footer": {
+      "copyright": "© {year} EverSaid",
+      "builtIn": "🇸🇮 Samozaloženo in zgrajeno v Sloveniji",
+      "privacy": "Zasebnost",
+      "terms": "Pogoji"
+    }
+  },
   "metadata": {
     "title": "EverSaid | Pametna transkripcija. AI posluša. Vi odločate.",
     "description": "AI čiščenje, ki ga lahko pregledate, prilagodite in mu zaupate. Vsaka sprememba vidna. Vsaka beseda preverljiva."

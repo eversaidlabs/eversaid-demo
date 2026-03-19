@@ -200,18 +200,18 @@ export default function HomePage() {
               animate="visible"
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              <Link
-                href="/demo"
-                className="inline-block bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white px-10 py-[18px] rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5 shadow-[0_8px_32px_rgba(56,189,248,0.3)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.4)]"
-              >
-                {t('hero.cta')}
-              </Link>
               <button
                 onClick={() => handleWaitlistClick("extended_usage")}
-                className="inline-block px-10 py-[18px] border-2 border-white/30 hover:border-white/60 text-white rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5"
+                className="inline-block bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white px-10 py-[18px] rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5 shadow-[0_8px_32px_rgba(56,189,248,0.3)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.4)]"
               >
                 {t('hero.ctaSecondary')}
               </button>
+              <Link
+                href="/demo"
+                className="inline-block px-10 py-[18px] border border-transparent [background:linear-gradient(135deg,#0F172A,#1E3A5F)_padding-box,linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)_border-box] hover:[background:linear-gradient(135deg,#1a2744,#264a6e)_padding-box,linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)_border-box] text-white rounded-xl font-bold text-[17px] transition-all hover:-translate-y-0.5 text-center"
+              >
+                {t('hero.cta')}
+              </Link>
             </MotionDiv>
             <MotionDiv
               variants={heroNote}
@@ -449,104 +449,131 @@ export default function HomePage() {
       <SectionDivider fillColor={DIVIDER_COLORS.light} />
 
       {/* How It Works Section */}
-      <section className="snap-start snap-always px-8 md:px-16 py-20 bg-[#F8FAFC]" id="how-it-works">
-        <div className="max-w-[1200px] mx-auto w-full">
+      <section className="snap-start snap-always px-6 md:px-16 py-[100px] bg-white" id="how-it-works">
+        <div className="max-w-[1400px] mx-auto w-full">
           <MotionDiv
-            className="text-center"
+            className="max-w-[700px] mx-auto text-center mb-12"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
           >
             <MotionDiv variants={sectionHeader}>
-              <div className="text-[13px] font-semibold text-[#38BDF8] uppercase tracking-[2px] mb-4">
+              <div className="text-[13px] font-semibold text-[#38BDF8] uppercase tracking-[2px] mb-2">
                 {t('howItWorks.sectionLabel')}
               </div>
-              <h2 className="text-[32px] md:text-[40px] font-extrabold text-[#0F172A] mb-4 tracking-[-0.02em]">
+              <h2 className="text-[36px] font-extrabold text-[#0F172A] tracking-[-0.02em] mb-3">
                 {t('howItWorks.title')}
               </h2>
             </MotionDiv>
             <MotionDiv variants={sectionSubtitle}>
-              <p className="text-lg text-[#64748B] mb-12 max-w-[600px] mx-auto">
+              <p className="text-[17px] text-[#64748B]">
                 {t('howItWorks.subtitle')}
               </p>
             </MotionDiv>
           </MotionDiv>
 
-          {/* Main 4 steps */}
+          {/* Main 4 steps + 2 future steps in 6-column grid */}
           <MotionDiv
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-2 lg:grid-cols-6 gap-6 lg:gap-8"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             variants={stepsContainer}
           >
-            <MotionDiv variants={stepItem} className="text-center relative">
-              <div className="hidden lg:block absolute top-8 right-[-16px] w-8 h-0.5 bg-[linear-gradient(90deg,#38BDF8,#A855F7)] opacity-30" />
-              <div className="w-16 h-16 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white rounded-full flex items-center justify-center text-2xl font-extrabold mx-auto mb-5">
-                1
+            {/* Step 1: Upload or record */}
+            <MotionDiv variants={stepItem} className="text-center px-3 py-9">
+              <div className="w-[72px] h-[72px] bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] rounded-[20px] flex items-center justify-center mx-auto mb-7">
+                <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-white fill-none stroke-2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
               </div>
-              <h3 className="text-lg font-bold text-[#0F172A] mb-3">{t('howItWorks.step1.title')}</h3>
-              <p className="text-sm text-[#64748B] leading-relaxed">
+              <h3 className="text-[22px] font-bold text-[#0F172A] mb-3">{t('howItWorks.step1.title')}</h3>
+              <p className="text-base text-[#64748B] leading-relaxed">
                 {t('howItWorks.step1.description')}
               </p>
             </MotionDiv>
 
-            <MotionDiv variants={stepItem} className="text-center relative">
-              <div className="hidden lg:block absolute top-8 right-[-16px] w-8 h-0.5 bg-[linear-gradient(90deg,#38BDF8,#A855F7)] opacity-30" />
-              <div className="w-16 h-16 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white rounded-full flex items-center justify-center text-2xl font-extrabold mx-auto mb-5">
-                2
+            {/* Step 2: Transcribed with speakers */}
+            <MotionDiv variants={stepItem} className="text-center px-3 py-9">
+              <div className="w-[72px] h-[72px] bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] rounded-[20px] flex items-center justify-center mx-auto mb-7">
+                <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-white fill-none stroke-2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
               </div>
-              <h3 className="text-lg font-bold text-[#0F172A] mb-3">{t('howItWorks.step2.title')}</h3>
-              <p className="text-sm text-[#64748B] leading-relaxed">{t('howItWorks.step2.description')}</p>
+              <h3 className="text-[22px] font-bold text-[#0F172A] mb-3">{t('howItWorks.step2.title')}</h3>
+              <p className="text-base text-[#64748B] leading-relaxed">{t('howItWorks.step2.description')}</p>
             </MotionDiv>
 
-            <MotionDiv variants={stepItem} className="text-center relative">
-              <div className="hidden lg:block absolute top-8 right-[-16px] w-8 h-0.5 bg-[linear-gradient(90deg,#38BDF8,#A855F7)] opacity-30" />
-              <div className="w-16 h-16 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white rounded-full flex items-center justify-center text-2xl font-extrabold mx-auto mb-5">
-                3
+            {/* Step 3: AI cleans it up */}
+            <MotionDiv variants={stepItem} className="text-center px-3 py-9">
+              <div className="w-[72px] h-[72px] bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] rounded-[20px] flex items-center justify-center mx-auto mb-7">
+                <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-white fill-none stroke-2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/>
+                </svg>
               </div>
-              <h3 className="text-lg font-bold text-[#0F172A] mb-3">{t('howItWorks.step3.title')}</h3>
-              <p className="text-sm text-[#64748B] leading-relaxed">
+              <h3 className="text-[22px] font-bold text-[#0F172A] mb-3">{t('howItWorks.step3.title')}</h3>
+              <p className="text-base text-[#64748B] leading-relaxed">
                 {t('howItWorks.step3.description')}
               </p>
             </MotionDiv>
 
-            <MotionDiv variants={stepItem} className="text-center">
-              <div className="w-16 h-16 bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] text-white rounded-full flex items-center justify-center text-2xl font-extrabold mx-auto mb-5">
-                4
+            {/* Step 4: Review and verify */}
+            <MotionDiv variants={stepItem} className="text-center px-3 py-9">
+              <div className="w-[72px] h-[72px] bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] rounded-[20px] flex items-center justify-center mx-auto mb-7">
+                <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-white fill-none stroke-2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h5"/>
+                  <path d="M13 5h5a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-5"/>
+                  <line x1="12" y1="4" x2="12" y2="20"/>
+                  <path d="M7 9h2"/>
+                  <path d="M7 13h2"/>
+                  <path d="M15 9h2"/>
+                  <path d="M15 13h2"/>
+                </svg>
               </div>
-              <h3 className="text-lg font-bold text-[#0F172A] mb-3">{t('howItWorks.step4.title')}</h3>
-              <p className="text-sm text-[#64748B] leading-relaxed">
+              <h3 className="text-[22px] font-bold text-[#0F172A] mb-3">{t('howItWorks.step4.title')}</h3>
+              <p className="text-base text-[#64748B] leading-relaxed">
                 {t('howItWorks.step4.description')}
               </p>
             </MotionDiv>
-          </MotionDiv>
 
-          {/* Library and AI Chat steps */}
-          <MotionDiv
-            className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 max-w-[600px] mx-auto"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={stepsContainer}
-          >
-            <MotionDiv variants={stepItem} className="text-center">
-              <div className="w-14 h-14 bg-[#E2E8F0] text-[#64748B] rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                5
+            {/* Step 5: Saved to your library */}
+            <MotionDiv variants={stepItem} className="text-center px-3 py-9">
+              <div className="w-[72px] h-[72px] bg-[linear-gradient(135deg,#38BDF8_0%,#A855F7_100%)] rounded-[20px] flex items-center justify-center mx-auto mb-7">
+                <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-white fill-none stroke-2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                  <line x1="8" y1="7" x2="16" y2="7"/>
+                  <line x1="8" y1="11" x2="13" y2="11"/>
+                </svg>
               </div>
-              <h3 className="text-base font-bold text-[#0F172A] mb-2">{t('howItWorks.library.title')}</h3>
-              <p className="text-sm text-[#64748B] leading-relaxed">{t('howItWorks.library.description')}</p>
+              <h3 className="text-[22px] font-bold text-[#0F172A] mb-3">{t('howItWorks.library.title')}</h3>
+              <p className="text-base text-[#64748B] leading-relaxed">{t('howItWorks.library.description')}</p>
             </MotionDiv>
 
-            <MotionDiv variants={stepItem} className="text-center relative">
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 text-purple-700">
+            {/* Step 6: Talk to your library (Coming soon) */}
+            <MotionDiv
+              variants={stepItem}
+              className="text-center px-5 py-9 bg-[linear-gradient(135deg,rgba(56,189,248,0.06)_0%,rgba(168,85,247,0.06)_100%)] border border-[rgba(168,85,247,0.15)] rounded-[24px]"
+            >
+              <div className="w-[72px] h-[72px] bg-[linear-gradient(135deg,rgba(56,189,248,0.3)_0%,rgba(168,85,247,0.3)_100%)] rounded-[20px] flex items-center justify-center mx-auto mb-4">
+                <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-white fill-none stroke-2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <path d="M8 10h.01"/>
+                  <path d="M12 10h.01"/>
+                  <path d="M16 10h.01"/>
+                </svg>
+              </div>
+              <div className="flex items-center justify-center gap-1.5 text-[13px] font-semibold text-[#A855F7] uppercase tracking-[1.5px] mb-3">
+                <span className="w-2 h-2 rounded-full bg-[#A855F7]" />
                 {t('howItWorks.aiChat.comingSoon')}
               </div>
-              <div className="w-14 h-14 bg-[#E2E8F0] text-[#64748B] rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                6
-              </div>
-              <h3 className="text-base font-bold text-[#0F172A] mb-2">{t('howItWorks.aiChat.title')}</h3>
-              <p className="text-sm text-[#64748B] leading-relaxed">{t('howItWorks.aiChat.description')}</p>
+              <h3 className="text-[22px] font-bold text-[#0F172A] mb-3">{t('howItWorks.aiChat.title')}</h3>
+              <p className="text-base text-[#64748B] leading-relaxed">{t('howItWorks.aiChat.description')}</p>
             </MotionDiv>
           </MotionDiv>
         </div>
