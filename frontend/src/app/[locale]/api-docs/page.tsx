@@ -18,6 +18,7 @@ export default function ApiDocsPage() {
   const [useCase, setUseCase] = useState('')
   const [volume, setVolume] = useState('')
   const [source, setSource] = useState('')
+  const [notes, setNotes] = useState('')
   const [languagePreference, setLanguagePreference] = useState('')
   const [languagePreferenceOther, setLanguagePreferenceOther] = useState('')
 
@@ -30,16 +31,17 @@ export default function ApiDocsPage() {
   const handleWaitlistSubmit = useCallback(async () => {
     const langPref =
       languagePreference === 'other' ? `other: ${languagePreferenceOther}` : languagePreference
-    await waitlist.submit({ useCase, volume, source, languagePreference: langPref })
+    await waitlist.submit({ useCase, volume, source, notes, languagePreference: langPref })
     // Transition to success state - the hook handles errors internally with toasts
     setWaitlistState('success')
-  }, [waitlist, useCase, volume, source, languagePreference, languagePreferenceOther])
+  }, [waitlist, useCase, volume, source, notes, languagePreference, languagePreferenceOther])
 
   const handleWaitlistClose = useCallback(() => {
     setWaitlistState('hidden')
     setUseCase('')
     setVolume('')
     setSource('')
+    setNotes('')
     setLanguagePreference('')
     setLanguagePreferenceOther('')
     waitlist.reset()
@@ -54,6 +56,7 @@ export default function ApiDocsPage() {
         useCase={useCase}
         volume={volume}
         source={source}
+        notes={notes}
         languagePreference={languagePreference}
         languagePreferenceOther={languagePreferenceOther}
         isSubmitting={waitlist.isSubmitting}
@@ -61,6 +64,7 @@ export default function ApiDocsPage() {
         onUseCaseChange={setUseCase}
         onVolumeChange={setVolume}
         onSourceChange={setSource}
+        onNotesChange={setNotes}
         onLanguagePreferenceChange={setLanguagePreference}
         onLanguagePreferenceOtherChange={setLanguagePreferenceOther}
         onSubmit={handleWaitlistSubmit}

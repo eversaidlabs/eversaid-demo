@@ -9,6 +9,7 @@ export interface WaitlistFlowProps {
   useCase?: string
   volume?: string
   source?: string
+  notes?: string
   languagePreference?: string
   languagePreferenceOther?: string
   isSubmitting?: boolean
@@ -16,6 +17,7 @@ export interface WaitlistFlowProps {
   onUseCaseChange?: (useCase: string) => void
   onVolumeChange?: (volume: string) => void
   onSourceChange?: (source: string) => void
+  onNotesChange?: (notes: string) => void
   onLanguagePreferenceChange?: (value: string) => void
   onLanguagePreferenceOtherChange?: (value: string) => void
   onSubmit: () => void
@@ -31,6 +33,7 @@ export function WaitlistFlow({
   useCase,
   volume,
   source,
+  notes,
   languagePreference,
   languagePreferenceOther,
   isSubmitting,
@@ -38,6 +41,7 @@ export function WaitlistFlow({
   onUseCaseChange,
   onVolumeChange,
   onSourceChange,
+  onNotesChange,
   onLanguagePreferenceChange,
   onLanguagePreferenceOtherChange,
   onSubmit,
@@ -286,6 +290,24 @@ export function WaitlistFlow({
                     onChange={(e) => onSourceChange?.(e.target.value)}
                     placeholder={t("waitlist.modal.sourcePlaceholder")}
                     className="w-full px-4 py-3 border-2 border-[#E2E8F0] rounded-xl text-[15px] bg-[#F8FAFC] transition-all focus:outline-none focus:border-[#38BDF8] focus:bg-white focus:shadow-[0_0_0_4px_rgba(56,189,248,0.1)] placeholder:text-[#94A3B8]"
+                  />
+                </div>
+
+                {/* Notes Field */}
+                <div className="mb-5">
+                  <label
+                    htmlFor="waitlist-notes"
+                    className="flex items-center gap-1.5 text-[13px] font-semibold text-[#374151] mb-2"
+                  >
+                    {t("waitlist.modal.notesLabel")}
+                    <span className="text-[#94A3B8] font-normal">{t("waitlist.modal.volumeOptional")}</span>
+                  </label>
+                  <textarea
+                    id="waitlist-notes"
+                    value={notes}
+                    onChange={(e) => onNotesChange?.(e.target.value)}
+                    placeholder={t("waitlist.modal.notesPlaceholder")}
+                    className="w-full px-4 py-3 border-2 border-[#E2E8F0] rounded-xl text-[15px] bg-[#F8FAFC] min-h-[80px] resize-vertical transition-all focus:outline-none focus:border-[#38BDF8] focus:bg-white focus:shadow-[0_0_0_4px_rgba(56,189,248,0.1)] placeholder:text-[#94A3B8]"
                   />
                 </div>
 

@@ -239,6 +239,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
   const [useCase, setUseCase] = useState("")
   const [volume, setVolume] = useState("")
   const [source, setSource] = useState("")
+  const [notes, setNotes] = useState("")
   const [languagePreference, setLanguagePreference] = useState("")
   const [languagePreferenceOther, setLanguagePreferenceOther] = useState("")
 
@@ -1004,17 +1005,18 @@ function DemoPageContent({ config }: DemoPageContentProps) {
     const langPref = languagePreference === "other"
       ? `other: ${languagePreferenceOther}`
       : languagePreference
-    await waitlist.submit({ useCase, volume, source, languagePreference: langPref })
+    await waitlist.submit({ useCase, volume, source, notes, languagePreference: langPref })
     capture('waitlist_joined', { user_role: useCase })
     // Transition to success state - the hook handles errors internally with toasts
     setWaitlistState("success")
-  }, [waitlist, useCase, volume, source, languagePreference, languagePreferenceOther])
+  }, [waitlist, useCase, volume, source, notes, languagePreference, languagePreferenceOther])
 
   const handleWaitlistClose = useCallback(() => {
     setWaitlistState("hidden")
     setUseCase("")
     setVolume("")
     setSource("")
+    setNotes("")
     setLanguagePreference("")
     setLanguagePreferenceOther("")
     waitlist.reset()
@@ -1449,6 +1451,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
         useCase={useCase}
         volume={volume}
         source={source}
+        notes={notes}
         languagePreference={languagePreference}
         languagePreferenceOther={languagePreferenceOther}
         isSubmitting={waitlist.isSubmitting}
@@ -1456,6 +1459,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
         onUseCaseChange={setUseCase}
         onVolumeChange={setVolume}
         onSourceChange={setSource}
+        onNotesChange={setNotes}
         onLanguagePreferenceChange={setLanguagePreference}
         onLanguagePreferenceOtherChange={setLanguagePreferenceOther}
         onSubmit={handleWaitlistSubmit}

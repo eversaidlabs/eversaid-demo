@@ -22,6 +22,7 @@ const defaultFormData: WaitlistFormData = {
   useCase: 'Meeting transcriptions',
   volume: '',
   source: '',
+  notes: '',
   languagePreference: '',
 }
 
@@ -140,7 +141,7 @@ describe('useWaitlist', () => {
       })
 
       await act(async () => {
-        await result.current.submit({ useCase: '', volume: '', source: '', languagePreference: '' })
+        await result.current.submit({ useCase: '', volume: '', source: '', notes: '', languagePreference: '' })
       })
 
       expect(api.joinWaitlist).toHaveBeenCalledWith({
@@ -197,7 +198,7 @@ describe('useWaitlist', () => {
       })
 
       await act(async () => {
-        await result.current.submit({ useCase: 'API integration', volume: '', source: '', languagePreference: 'en' })
+        await result.current.submit({ useCase: 'API integration', volume: '', source: '', notes: '', languagePreference: 'en' })
       })
 
       expect(api.joinWaitlist).toHaveBeenCalledWith({
@@ -437,6 +438,7 @@ describe('useWaitlist', () => {
           useCase: 'Testing',
           volume: '',
           source: '',
+          notes: '',
           languagePreference: 'sl',
         })
       })
@@ -464,6 +466,7 @@ describe('useWaitlist', () => {
           useCase: 'Testing',
           volume: '',
           source: '',
+          notes: '',
           languagePreference: '',
         })
       })

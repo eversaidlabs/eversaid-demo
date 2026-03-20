@@ -88,6 +88,7 @@ class WaitlistRequest(BaseModel):
     waitlist_type: Literal["api_access", "extended_usage"]
     source_page: Optional[str] = None
     language_preference: Optional[str] = Field(default=None, max_length=40)
+    notes: Optional[str] = Field(default=None, max_length=1000)
 
 
 class WaitlistResponse(BaseModel):
@@ -238,6 +239,7 @@ async def join_waitlist(
         waitlist_type=body.waitlist_type,
         source_page=body.source_page,
         language_preference=body.language_preference,
+        notes=body.notes,
     )
     db.add(waitlist_entry)
     db.commit()
@@ -254,6 +256,7 @@ async def join_waitlist(
         waitlist_type=body.waitlist_type,
         source_page=body.source_page,
         language_preference=body.language_preference,
+        notes=body.notes,
     )
 
     return WaitlistResponse(message="Thank you for joining the waitlist!")

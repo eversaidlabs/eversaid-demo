@@ -611,6 +611,8 @@
       },
       "sourceLabel": "How did you hear about us?",
       "sourcePlaceholder": "e.g., Twitter, friend, search",
+      "notesLabel": "Anything else?",
+      "notesPlaceholder": "Tell us anything else we should know...",
       "languageLabel": "Language you need most",
       "languagePlaceholder": "Select a language",
       "languageOptions": {

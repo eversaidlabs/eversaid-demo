@@ -93,6 +93,7 @@ class EmailService:
         waitlist_type: str,
         source_page: Optional[str],
         language_preference: Optional[str],
+        notes: Optional[str] = None,
     ) -> bool:
         """Send notification about a new waitlist signup.
 
@@ -102,6 +103,7 @@ class EmailService:
             waitlist_type: Type of waitlist (api_access, extended_usage).
             source_page: Page where they signed up.
             language_preference: User's language preference.
+            notes: Additional notes from the user.
 
         Returns:
             True if notification was sent successfully, False otherwise.
@@ -117,6 +119,7 @@ class EmailService:
         safe_type = html.escape(waitlist_type)
         safe_source = html.escape(source_page or "Not provided")
         safe_lang = html.escape(language_preference or "Not provided")
+        safe_notes = html.escape(notes or "Not provided")
 
         subject = f"New Pilot Signup: {safe_email}"
 
@@ -127,6 +130,7 @@ class EmailService:
         <p><strong>Type:</strong> {safe_type}</p>
         <p><strong>Source Page:</strong> {safe_source}</p>
         <p><strong>Language:</strong> {safe_lang}</p>
+        <p><strong>Notes:</strong> {safe_notes}</p>
         """
 
         return self.send_email(

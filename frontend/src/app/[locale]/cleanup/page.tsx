@@ -55,6 +55,7 @@ export default function CleanupLandingPage() {
   const [useCase, setUseCase] = useState("")
   const [volume, setVolume] = useState("")
   const [source, setSource] = useState("")
+  const [notes, setNotes] = useState("")
   const [languagePreference, setLanguagePreference] = useState("")
   const [languagePreferenceOther, setLanguagePreferenceOther] = useState("")
 
@@ -73,15 +74,16 @@ export default function CleanupLandingPage() {
     const langPref = languagePreference === "other"
       ? `other: ${languagePreferenceOther}`
       : languagePreference
-    await waitlist.submit({ useCase, volume, source, languagePreference: langPref })
+    await waitlist.submit({ useCase, volume, source, notes, languagePreference: langPref })
     setWaitlistState("success")
-  }, [waitlist, useCase, volume, source, languagePreference, languagePreferenceOther])
+  }, [waitlist, useCase, volume, source, notes, languagePreference, languagePreferenceOther])
 
   const handleWaitlistClose = useCallback(() => {
     setWaitlistState("hidden")
     setUseCase("")
     setVolume("")
     setSource("")
+    setNotes("")
     setLanguagePreference("")
     setLanguagePreferenceOther("")
     waitlist.reset()
@@ -332,6 +334,7 @@ export default function CleanupLandingPage() {
         useCase={useCase}
         volume={volume}
         source={source}
+        notes={notes}
         languagePreference={languagePreference}
         languagePreferenceOther={languagePreferenceOther}
         isSubmitting={waitlist.isSubmitting}
@@ -339,6 +342,7 @@ export default function CleanupLandingPage() {
         onUseCaseChange={setUseCase}
         onVolumeChange={setVolume}
         onSourceChange={setSource}
+        onNotesChange={setNotes}
         onLanguagePreferenceChange={setLanguagePreference}
         onLanguagePreferenceOtherChange={setLanguagePreferenceOther}
         onSubmit={handleWaitlistSubmit}

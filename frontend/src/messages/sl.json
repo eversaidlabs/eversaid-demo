@@ -287,7 +287,7 @@
   },
   "demo": {
     "title": "Preizkusi EverSaid",
-    "subtitle": "Naložite zvok ali posnemite neposredno. Odlična transkripcija. AI jo naredi še boljšo.",
+    "subtitle": "Naložite zvok ali posnemite neposredno. Odlična transkripcija. AI jo naredi berljivo.",
     "upload": {
       "title": "Naloži zvok",
       "uploadSubtitle": "Naložite zvočno datoteko za začetek transkripcije",
@@ -611,6 +611,8 @@
       },
       "sourceLabel": "Kako ste izvedeli za nas?",
       "sourcePlaceholder": "npr. Twitter, prijatelj, iskanje",
+      "notesLabel": "Kaj drugega?",
+      "notesPlaceholder": "Povejte nam karkoli drugega, kar bi morali vedeti...",
       "languageLabel": "Jezik, ki ga najbolj potrebujete",
       "languagePlaceholder": "Izberite jezik",
       "languageOptions": {

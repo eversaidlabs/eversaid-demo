@@ -11,6 +11,7 @@ export interface WaitlistFormData {
   volume: string
   source: string
   languagePreference: string
+  notes: string
 }
 
 /**
@@ -93,6 +94,7 @@ export function useWaitlist(options: UseWaitlistOptions): UseWaitlistReturn {
         waitlist_type: waitlistType,
         source_page: sourcePage,
         language_preference: formData.languagePreference || undefined,
+        notes: formData.notes.trim() || undefined,
       })
 
       setIsSubmitted(true)

@@ -39,6 +39,7 @@ class Waitlist(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now)
     source_page = Column(String, nullable=True)
     language_preference = Column(String, nullable=True)
+    notes = Column(String, nullable=True)
 
 
 class EntryFeedback(Base):

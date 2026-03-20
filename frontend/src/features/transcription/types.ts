@@ -444,6 +444,7 @@ export interface WaitlistPayload {
   waitlist_type: WaitlistType
   source_page?: string
   language_preference?: string
+  notes?: string
 }
 
 // =============================================================================
