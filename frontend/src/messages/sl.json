@@ -320,6 +320,14 @@
       "cleanupMinimal": "Minimalno",
       "cleanupClean": "Čisto",
       "cleanupEdited": "Urejeno",
+      "uploadTextFile": "Naloži .txt datoteko",
+      "dropTextFile": "Naloži .txt datoteko",
+      "browseTextFile": "Izberi",
+      "textFileHint": "Podpira .txt datoteke do 2 MB",
+      "orPasteText": "ali prilepi besedilo",
+      "invalidTextFileType": "Podprte so samo .txt datoteke",
+      "textFileTooLarge": "Datoteka je prevelika. Največja velikost je 2 MB",
+      "textFileReadError": "Datoteke ni bilo mogoče prebrati",
       "consent": "Z nalaganjem ali snemanjem se strinjate z našimi <terms>pogoji uporabe</terms> in <privacy>politiko zasebnosti</privacy>."
     },
     "import": {

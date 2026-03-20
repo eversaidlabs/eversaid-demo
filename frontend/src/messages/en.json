@@ -320,6 +320,14 @@
       "cleanupMinimal": "Minimal",
       "cleanupClean": "Clean",
       "cleanupEdited": "Edited",
+      "uploadTextFile": "Upload .txt file",
+      "dropTextFile": "Drop your .txt file here",
+      "browseTextFile": "Browse",
+      "textFileHint": "Supports .txt files up to 2 MB",
+      "orPasteText": "or paste text",
+      "invalidTextFileType": "Only .txt files are supported",
+      "textFileTooLarge": "File is too large. Maximum size is 2 MB",
+      "textFileReadError": "Could not read file contents",
       "consent": "By uploading or recording, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
     },
     "import": {

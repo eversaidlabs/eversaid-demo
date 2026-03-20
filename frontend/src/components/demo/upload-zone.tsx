@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { FileAudio, FileText, X } from "lucide-react"
+import { FileAudio, FileText, FileUp, X } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import { Link } from "@/i18n/routing"
 import { useConfig } from '@/lib/config-context'
@@ -55,6 +55,12 @@ export interface UploadZoneProps {
   onImportTextClick?: () => void
   /** Whether text import is in progress */
   isImporting?: boolean
+  /** Selected text file for text import */
+  textFile?: File | null
+  /** Callback when a text file is selected */
+  onTextFileSelect?: (file: File) => void
+  /** Callback when text file is removed */
+  onTextFileRemove?: () => void
 }
 
 function formatFileSize(bytes: number): string {
@@ -87,6 +93,9 @@ export function UploadZone({
   onCleanupTypeChange,
   onImportTextClick,
   isImporting = false,
+  textFile = null,
+  onTextFileSelect,
+  onTextFileRemove,
 }: UploadZoneProps) {
   const t = useTranslations('demo.upload')
   const tCommon = useTranslations('common')
@@ -101,6 +110,17 @@ export function UploadZone({
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) onFileSelect(file)
+  }
+
+  const handleTextFileDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file && onTextFileSelect) onTextFileSelect(file)
+  }
+
+  const handleTextFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && onTextFileSelect) onTextFileSelect(file)
   }
 
   // Check if mode switching is enabled
@@ -185,6 +205,60 @@ export function UploadZone({
       {/* Text Mode Content */}
       {inputMode === 'text' && (
         <div className="p-4">
+          {/* File upload zone - shown when no file is selected */}
+          {!textFile && onTextFileSelect && (
+            <>
+              <div
+                onDrop={handleTextFileDrop}
+                onDragOver={(e) => e.preventDefault()}
+                className="p-4 border-2 border-dashed border-[#E2E8F0] rounded-xl text-center hover:border-[#38BDF8] hover:bg-[rgba(56,189,248,0.02)] transition-all cursor-pointer mb-3"
+              >
+                <div className="w-10 h-10 bg-[linear-gradient(135deg,rgba(56,189,248,0.1)_0%,rgba(168,85,247,0.1)_100%)] rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <FileUp className="w-5 h-5 text-[#38BDF8]" />
+                </div>
+                <h4 className="text-[14px] font-semibold text-[#0F172A] mb-1">{t('dropTextFile')}</h4>
+                <p className="text-[12px] text-[#64748B] mb-2">{t('textFileHint')}</p>
+                <label className="px-4 py-2 bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-sm font-semibold rounded-lg transition-colors cursor-pointer inline-block">
+                  {t('browseTextFile')}
+                  <input
+                    type="file"
+                    accept=".txt,text/plain"
+                    onChange={handleTextFileInput}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              <div className="flex items-center gap-4 text-[12px] font-medium text-[#94A3B8] mb-3">
+                <div className="flex-1 h-px bg-[#E2E8F0]" />
+                {t('orPasteText')}
+                <div className="flex-1 h-px bg-[#E2E8F0]" />
+              </div>
+            </>
+          )}
+
+          {/* Selected file preview */}
+          {textFile && onTextFileRemove && (
+            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3 flex items-center gap-3 mb-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-[#E2E8F0]">
+                <FileText className="w-5 h-5 text-[#38BDF8]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[14px] font-semibold text-[#0F172A] truncate">{textFile.name}</div>
+                <div className="text-[12px] text-[#64748B]">
+                  {formatFileSize(textFile.size)}
+                </div>
+              </div>
+              <button
+                onClick={onTextFileRemove}
+                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#FEE2E2] text-[#64748B] hover:text-[#EF4444] transition-all flex-shrink-0"
+                aria-label="Remove file"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           <textarea
             value={text}
             onChange={(e) => onTextChange?.(e.target.value)}

@@ -105,6 +105,11 @@ interface DemoPageContentProps {
   config: AppConfig
 }
 
+// Text file validation constants
+const MAX_TEXT_FILE_SIZE_BYTES = 2 * 1024 * 1024 // 2 MB
+const ALLOWED_TEXT_EXTENSIONS = ['.txt']
+const ALLOWED_TEXT_MIME_TYPES = ['text/plain']
+
 function DemoPageContent({ config }: DemoPageContentProps) {
   // Feature flags from server-side config
   const isModelSelectionEnabled = config.features.modelSelection
@@ -149,6 +154,7 @@ function DemoPageContent({ config }: DemoPageContentProps) {
   const [inputMode, setInputMode] = useState<InputMode>(initialInputMode)
   const [importText, setImportText] = useState('')
   const [selectedTextCleanupType, setSelectedTextCleanupType] = useState<CleanupType>('clean')
+  const [textFile, setTextFile] = useState<File | null>(null)
 
   // LLM Model Selection State
   const [cleanupModels, setCleanupModels] = useState<ModelInfo[]>([])
@@ -257,8 +263,9 @@ function DemoPageContent({ config }: DemoPageContentProps) {
       turnstile.resetWidget()
       // Refresh entry list to show the new entry
       await entriesHook.refresh()
-      // Clear import text
+      // Clear import text and file
       setImportText('')
+      setTextFile(null)
     },
     onError: (err) => {
       turnstile.resetWidget()
@@ -624,6 +631,53 @@ function DemoPageContent({ config }: DemoPageContentProps) {
 
   const handleRemoveFile = useCallback(() => {
     setSelectedFile(null)
+  }, [])
+
+  // Text file validation function
+  const validateTextFile = useCallback((file: File): string | null => {
+    // Check extension
+    const dotIndex = file.name.lastIndexOf('.')
+    const ext = dotIndex === -1 ? '' : file.name.toLowerCase().slice(dotIndex)
+    if (!ALLOWED_TEXT_EXTENSIONS.includes(ext)) {
+      return t('demo.upload.invalidTextFileType')
+    }
+
+    // Check MIME type (can be spoofed, but good UX signal)
+    if (file.type && !ALLOWED_TEXT_MIME_TYPES.includes(file.type)) {
+      return t('demo.upload.invalidTextFileType')
+    }
+
+    // Check size
+    if (file.size > MAX_TEXT_FILE_SIZE_BYTES) {
+      return t('demo.upload.textFileTooLarge')
+    }
+
+    return null // Valid
+  }, [t])
+
+  // Text file select handler
+  const handleTextFileSelect = useCallback(async (file: File) => {
+    // Validate file
+    const validationError = validateTextFile(file)
+    if (validationError) {
+      toast.error(validationError)
+      return
+    }
+
+    // Read file contents
+    try {
+      const content = await file.text()
+      setImportText(content)
+      setTextFile(file)
+    } catch {
+      toast.error(t('demo.upload.textFileReadError'))
+    }
+  }, [validateTextFile, t])
+
+  // Text file remove handler
+  const handleTextFileRemove = useCallback(() => {
+    setTextFile(null)
+    setImportText('')
   }, [])
 
   const handleSpeakerCountChange = useCallback((count: number | null) => {
@@ -1417,6 +1471,9 @@ function DemoPageContent({ config }: DemoPageContentProps) {
                 onCleanupTypeChange={setSelectedTextCleanupType}
                 onImportTextClick={handleImportTextClick}
                 isImporting={isTextImportProcessing}
+                textFile={textFile}
+                onTextFileSelect={handleTextFileSelect}
+                onTextFileRemove={handleTextFileRemove}
               />
             </div>
             <div>
