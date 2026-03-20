@@ -13,17 +13,15 @@ function Removed({ children }: { children: React.ReactNode }) {
 }
 
 const MAX_ROTATION = 2 // degrees
-const DEFAULT_ROTATION = { x: 1, y: -2 }
-const RETURN_TRANSITION_MS = 900
+const BREATHE_AMPLITUDE = 3 // pixels of vertical movement
+const BREATHE_SPEED = 0.0012 // breathing speed
 
 export function CleanupHeroDiff() {
   const t = useTranslations("cleanupLanding.heroDiff")
   const containerRef = useRef<HTMLDivElement>(null)
-  const [rotation, setRotation] = useState(DEFAULT_ROTATION)
-  const [isHovering, setIsHovering] = useState(false)
-  const [isFloating, setIsFloating] = useState(true)
+  const [rotation, setRotation] = useState({ x: 0, y: 0 })
+  const [translateY, setTranslateY] = useState(0)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-  const floatTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -33,78 +31,73 @@ export function CleanupHeroDiff() {
     return () => mediaQuery.removeEventListener("change", handler)
   }, [])
 
-  // Cleanup timeout on unmount
+  // Breathing animation - runs continuously
   useEffect(() => {
-    return () => {
-      if (floatTimeoutRef.current) {
-        clearTimeout(floatTimeoutRef.current)
-      }
-    }
-  }, [])
+    if (prefersReducedMotion) return
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (prefersReducedMotion || !containerRef.current) return
+    let animationId: number
+    const startTime = performance.now()
+
+    const animate = (time: number) => {
+      const elapsed = time - startTime
+      const breatheY = Math.sin(elapsed * BREATHE_SPEED) * BREATHE_AMPLITUDE
+      setTranslateY(breatheY)
+      animationId = requestAnimationFrame(animate)
+    }
+
+    animationId = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(animationId)
+  }, [prefersReducedMotion])
+
+  // Window-level mouse tracking - follows mouse anywhere on screen
+  useEffect(() => {
+    if (prefersReducedMotion) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!containerRef.current) return
 
       const rect = containerRef.current.getBoundingClientRect()
       const centerX = rect.left + rect.width / 2
       const centerY = rect.top + rect.height / 2
 
-      // Calculate offset from center (-1 to 1)
-      const offsetX = (e.clientX - centerX) / (rect.width / 2)
-      const offsetY = (e.clientY - centerY) / (rect.height / 2)
+      // Calculate offset using viewport dimensions for full-screen tracking
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
 
-      // Apply rotation (inverted for natural feel)
+      // Normalize to -1 to 1 based on viewport, centered on component
+      const offsetX = (e.clientX - centerX) / (viewportWidth / 2)
+      const offsetY = (e.clientY - centerY) / (viewportHeight / 2)
+
+      // Clamp values to prevent extreme rotation
+      const clampedX = Math.max(-1, Math.min(1, offsetX))
+      const clampedY = Math.max(-1, Math.min(1, offsetY))
+
       setRotation({
-        x: -offsetY * MAX_ROTATION,
-        y: offsetX * MAX_ROTATION,
+        x: -clampedY * MAX_ROTATION,
+        y: clampedX * MAX_ROTATION,
       })
-    },
-    [prefersReducedMotion]
-  )
-
-  const handleMouseLeave = useCallback(() => {
-    setIsHovering(false)
-    setRotation(DEFAULT_ROTATION)
-    // Re-enable float animation after transition completes
-    floatTimeoutRef.current = setTimeout(() => {
-      setIsFloating(true)
-    }, RETURN_TRANSITION_MS)
-  }, [])
-
-  const handleMouseEnter = useCallback(() => {
-    // Cancel any pending float re-enable
-    if (floatTimeoutRef.current) {
-      clearTimeout(floatTimeoutRef.current)
-      floatTimeoutRef.current = null
     }
-    setIsHovering(true)
-    setIsFloating(false)
-  }, [])
+
+    window.addEventListener("mousemove", handleMouseMove)
+    return () => window.removeEventListener("mousemove", handleMouseMove)
+  }, [prefersReducedMotion])
 
   return (
     <div
       ref={containerRef}
       className="relative"
       style={{ perspective: "1200px" }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
       {/* Ambient glow behind the card */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.15)_0%,transparent_70%)] blur-3xl scale-150" />
 
       {/* 3D Floating App Mock - Dark theme */}
       <div
-        className={`relative bg-[#1E293B]/95 rounded-xl overflow-hidden shadow-[0_25px_80px_-12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-sm ${
-          isFloating && !prefersReducedMotion ? "animate-float" : ""
-        }`}
+        className="relative bg-[#1E293B]/95 rounded-xl overflow-hidden shadow-[0_25px_80px_-12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-sm"
         style={{
-          transform: `rotateY(${rotation.y}deg) rotateX(${rotation.x}deg)`,
+          transform: `translateY(${translateY}px) rotateY(${rotation.y}deg) rotateX(${rotation.x}deg)`,
           transformStyle: "preserve-3d",
-          transition: isHovering
-            ? "transform 0.1s ease-out"
-            : "transform 0.9s cubic-bezier(0.05, 0.8, 0.15, 1)",
+          transition: "transform 0.15s ease-out",
         }}
       >
         {/* App toolbar */}
@@ -143,17 +136,16 @@ export function CleanupHeroDiff() {
                   <span className="text-[13px] font-semibold text-blue-400">
                     {t("speaker1")}
                   </span>
-                  <span className="text-[11px] text-white/40">0:00 – 0:08</span>
+                  <span className="text-[11px] text-white/40">0:00 – 0:06</span>
                 </div>
                 <p className="text-[14px] leading-[1.7] text-white/85">
-                  <Removed>So </Removed>
-                  I think{" "}
-                  <Removed>you know um </Removed>
-                  the main point here is{" "}
-                  <Removed>basically </Removed>
-                  we need to{" "}
-                  <Removed>im-</Removed>
-                  improve the user experience significantly.
+                  <Removed>So w</Removed>
+                  <span className="text-emerald-400 underline decoration-emerald-400/60 decoration-dotted underline-offset-2">W</span>
+                  hen your team first{" "}
+                  <Removed>like first </Removed>
+                  switched to the new system,{" "}
+                  <Removed>um </Removed>
+                  how did people actually react?
                 </p>
               </div>
             </div>
@@ -168,18 +160,21 @@ export function CleanupHeroDiff() {
                   <span className="text-[13px] font-semibold text-emerald-400">
                     {t("speaker2")}
                   </span>
-                  <span className="text-[11px] text-white/40">0:08 – 0:15</span>
+                  <span className="text-[11px] text-white/40">0:06 – 0:18</span>
                 </div>
                 <p className="text-[14px] leading-[1.7] text-white/85">
-                  Right and I was actually thinking{" "}
-                  <Removed>um </Removed>
-                  what if we{" "}
-                  <Removed>foc-</Removed>
-                  focused on making{" "}
-                  <Removed>the </Removed>
-                  the onboarding{" "}
-                  <Removed>liek </Removed>
-                  way more intuitive?
+                  I mean honestly{" "}
+                  <Removed>it was </Removed>
+                  it was a mess.{" "}
+                  <Removed>Like h</Removed>
+                  <span className="text-emerald-400 underline decoration-emerald-400/60 decoration-dotted underline-offset-2">H</span>
+                  alf the team{" "}
+                  <Removed>just they </Removed>
+                  just kept using{" "}
+                  <Removed>the old </Removed>
+                  the old spreadsheets because{" "}
+                  <Removed>you know </Removed>
+                  nobody really explained why we were even switching in the first place.
                 </p>
               </div>
             </div>
@@ -194,17 +189,17 @@ export function CleanupHeroDiff() {
                   <span className="text-[13px] font-semibold text-blue-400">
                     {t("speaker1")}
                   </span>
-                  <span className="text-[11px] text-white/40">0:15 – 0:21</span>
+                  <span className="text-[11px] text-white/40">0:18 – 0:22</span>
                 </div>
                 <p className="text-[14px] leading-[1.7] text-white/85">
-                  Yes exactly! That&apos;s{" "}
-                  <Removed>uh that&apos;s </Removed>
-                  what I mean.{" "}
-                  <Removed>Like t</Removed>
-                  <span className="text-emerald-400 underline decoration-emerald-400/60 decoration-dotted underline-offset-2">T</span>
-                  he current flow is just{" "}
-                  <Removed>it&apos;s just </Removed>
-                  too complicated for new users.
+                  <Removed>Right. </Removed>
+                  And{" "}
+                  <Removed>so </Removed>
+                  did that{" "}
+                  <Removed>kind of </Removed>
+                  change over time{" "}
+                  <Removed>or </Removed>
+                  or was it?
                 </p>
               </div>
             </div>

@@ -33,10 +33,10 @@
       "eyebrow": "AI transkripcija, čiščenje in preverjanje za profesionalce",
       "title": "Prepišite. Očistite.",
       "titleAccent": "Preverite vsako spremembo.",
-      "subtitle": "Naložite zvok, dobite očiščen prepis z oznakami govorcev in vidite vsako AI spremembo eno ob drugi. Kliknite katerokoli besedo za poslušanje originala. Izberite, kako agresivno AI čisti. Popravite govorce, izvlecite povzetke in naloge. Skladno z GDPR.",
+      "subtitle": "Od posnetka do čistega, berljivega prepisa v minutah. Preverite vsako spremembo, poslušajte z zvokom, popravite karkoli.",
       "cta": "Preizkusite brezplačni demo",
       "ctaSecondary": "Pridobi dostop",
-      "noSignup": "Brez registracije za demo",
+      "noSignup": "Poln dostop brezplačno, dokler gradimo · Skladno z GDPR · Brez registracije",
       "importLink": "Že imate prepis? Uvozite in ga očistite"
     },
     "socialProof": {
@@ -44,6 +44,9 @@
       "stat": "76%",
       "text": "napak AI urejanja ostane neodkritih brez orodij za preverjanje",
       "source": "Executable and Verifiable Text-Editing with LLMs, UC Berkeley"
+    },
+    "valueProposition": {
+      "text": "EverSaid je platforma za AI transkripcijo in čiščenje, skladna z GDPR, zgrajena za profesionalce: raziskovalce, terapevte, mentorje, novinarje in podkasterje. Naložite zvok, dobite prepis z oznakami govorcev, očiščen za berljivost, in preverite vsako AI spremembo v prikazu razlik, sinhroniziranem z originalnim zvokom. Zgrajeno v Sloveniji."
     },
     "heroTranscript": {
       "so": "No",
@@ -275,7 +278,7 @@
     "footer": {
       "copyright": "© {year} EverSaid. Vse pravice pridržane.",
       "builtIn": "Samofinancirano in zgrajeno v Sloveniji",
-      "description": "EverSaid je platforma za AI transkripcijo in čiščenje, skladna z GDPR, z urejanjem govorcev, preverjanjem razlik, zvočnim preverjanjem, možnostmi urejanja in povrnitve ter analizo sej. Zgrajeno za profesionalce, ki morajo zaupati temu, kar berejo.",
+      "description": "EverSaid je platforma za AI transkripcijo in čiščenje, skladna z GDPR, z urejanjem govorcev, preverjanjem razlik, zvočnim preverjanjem, možnostmi urejanja in povrnitve ter analizo sej s prilagodljivimi profili. Zgrajeno za raziskovalce, terapevte, mentorje, novinarje in podkasterje.",
       "privacy": "Zasebnost",
       "terms": "Pogoji",
       "apiDocs": "API dokumentacija",
@@ -1094,11 +1097,14 @@
       "eyebrow": "AI čiščenje prepisov",
       "title": "Očistite katerikoli prepis.",
       "titleAccent": "Vidite vsako spremembo.",
-      "subtitle": "Prilepite ali naložite prepis iz kateregakoli vira. AI odstrani polnila, zatikanja in napačne začetke, vaše besede pa ohrani nedotaknjene. Prikaz razlik prikaže, kaj se je spremenilo. Uredite ali razveljavite karkoli.",
+      "subtitle": "Prilepite ali naložite prepis iz kateregakoli vira. AI ga očisti za berljivost. Vidite vsako spremembo, popravite karkoli.",
       "cta": "Preizkusite brezplačno",
       "ctaSecondary": "Pridobite dostop",
-      "noSignup": "Brez registracije · Skladno z GDPR",
+      "noSignup": "Poln dostop brezplačno, dokler gradimo · Skladno z GDPR · Brez registracije",
       "audioLink": "Potrebujete tudi transkripcijo? Začnite z zvokom →"
+    },
+    "intro": {
+      "text": "EverSaid Čiščenje prepisov je AI orodje, skladno z GDPR, ki iz kateregakoli prepisa odstrani polnila, zatikanja, napačne začetke in diskurzne označevalce, vaše besede in pomen pa ohrani nedotaknjene. Prilepite besedilo ali naložite datoteko. Vsako urejanje je prikazano v prikazu razlik, tako da lahko pregledate, uredite ali razveljavite karkoli pred izvozom. Zgrajeno v Sloveniji."
     },
     "heroDiff": {
       "toolbar": {
@@ -1202,9 +1208,13 @@
     },
     "finalCta": {
       "title": "Preizkusite brezplačno",
-      "subtitle": "Prilepite prepis. Oglejte si ga očiščenega. Preglejte vsako spremembo. Brez registracije.",
+      "subtitle": "Prilepite ali naložite prepis. Oglejte si ga očiščenega. Preglejte vsako spremembo. Brez registracije.",
       "cta": "Preizkusite brezplačno",
       "ctaSecondary": "Pridobite dostop",
+      "foundingPricingLine1Bold": "Brezplačno",
+      "foundingPricingLine1Suffix": "v fazi gradnje",
+      "foundingPricingLine2Bold": "Ustanovitvene",
+      "foundingPricingLine2Suffix": "cene za zgodnje člane",
       "trustBadges": {
         "gdpr": "🔒 Skladno z GDPR",
         "encrypted": "🔐 AES-256 šifrirano",

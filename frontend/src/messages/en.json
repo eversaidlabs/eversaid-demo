@@ -33,10 +33,10 @@
       "eyebrow": "AI Transcription, Cleanup & Verification for Professionals",
       "title": "Transcribe. Clean up.",
       "titleAccent": "Verify every change.",
-      "subtitle": "Upload audio, get a cleaned transcript with speaker labels, and see every AI edit side by side. Click any word to hear the original. Choose how aggressively the AI cleans. Fix speakers, extract summaries and action items. GDPR compliant.",
+      "subtitle": "From recording to clean, readable transcript in minutes. See every change, verify against the original, fix anything.",
       "cta": "Try Free Demo",
       "ctaSecondary": "Get Full Access",
-      "noSignup": "No sign-up required for demo",
+      "noSignup": "Full access free while we build · GDPR compliant · No sign-up required",
       "importLink": "Already have a transcript? Import and clean it up"
     },
     "socialProof": {
@@ -44,6 +44,9 @@
       "stat": "76%",
       "text": "of AI text-editing errors go undetected without verification tools",
       "source": "Executable and Verifiable Text-Editing with LLMs, UC Berkeley"
+    },
+    "valueProposition": {
+      "text": "EverSaid is a GDPR-compliant AI transcription and cleanup platform built for professionals: researchers, therapists, coaches, journalists, and podcasters. Upload audio, get a speaker-labeled transcript cleaned up for readability, and verify every AI edit in an inline diff view synced with the original audio. Built in Slovenia."
     },
     "heroTranscript": {
       "so": "So",
@@ -141,7 +144,7 @@
       },
       "verification": {
         "title": "See every change, verify against audio",
-        "description": "Side-by-side diff view highlights every AI edit. Click any segment to play the original. Edit or revert anything.",
+        "description": "Inline diff view highlights every AI edit. Click any segment to play the original. Edit or revert anything.",
         "highlighted": true
       },
       "analysis": {
@@ -171,7 +174,7 @@
       },
       "podcasters": {
         "title": "Podcasters & Creators",
-        "description": "Raw episode to show notes in minutes. Clean transcript, AI summary, and side-by-side diff to catch anything off."
+        "description": "Raw episode to show notes in minutes. Clean transcript, AI summary, and inline diff to catch anything off."
       }
     },
     "howItWorks": {
@@ -275,7 +278,7 @@
     "footer": {
       "copyright": "© {year} EverSaid. All rights reserved.",
       "builtIn": "Self-funded and built in Slovenia",
-      "description": "EverSaid is a GDPR-compliant AI transcription and cleanup platform with speaker editing, diff verification, audio playback verification, edit and revert capabilities, and session analysis. Built for professionals who need to trust what they read.",
+      "description": "EverSaid is a GDPR-compliant AI transcription and cleanup platform with speaker editing, diff verification, audio playback verification, edit and revert capabilities, and session analysis with custom profiles. Built for researchers, therapists, coaches, journalists, and podcasters.",
       "privacy": "Privacy",
       "terms": "Terms",
       "apiDocs": "API Docs",
@@ -553,7 +556,7 @@
     },
     "featuresHint": {
       "title": "What you'll get",
-      "sideBySide": "Side-by-side comparison",
+      "sideBySide": "Inline comparison",
       "speakerLabels": "Speaker identification",
       "aiCleanup": "AI-powered cleanup",
       "audioLinked": "Audio-linked segments",
@@ -1094,11 +1097,14 @@
       "eyebrow": "AI Transcript Cleanup",
       "title": "Clean up any transcript.",
       "titleAccent": "See every change.",
-      "subtitle": "Paste or upload a transcript from any source. AI removes fillers, stutters, and false starts while keeping your words intact. A side-by-side diff view shows exactly what changed. Edit or revert anything.",
+      "subtitle": "Paste or upload a transcript from any source. AI cleans it up for readability. See every change, fix anything.",
       "cta": "Try It Free",
       "ctaSecondary": "Get Full Access",
-      "noSignup": "No sign-up required · GDPR compliant",
+      "noSignup": "Full access free while we build · GDPR compliant · No sign-up required",
       "audioLink": "Need transcription too? Start from audio →"
+    },
+    "intro": {
+      "text": "EverSaid Transcript Cleanup is a GDPR-compliant AI tool that removes fillers, stutters, false starts, and discourse markers from any transcript while keeping your words and meaning intact. Paste text or upload a file. Every edit is shown in an inline diff view so you can review, edit, or revert anything before exporting. Built in Slovenia."
     },
     "heroDiff": {
       "toolbar": {
@@ -1148,7 +1154,7 @@
         },
         "diff": {
           "title": "Every change visible in a diff view",
-          "description": "Side-by-side comparison shows exactly what the AI removed, changed, or kept. Edit any line or revert with one click."
+          "description": "Inline comparison shows exactly what the AI removed, changed, or kept. Edit any line or revert with one click."
         },
         "analysis": {
           "title": "Summaries, action items, and themes",
@@ -1201,10 +1207,14 @@
       }
     },
     "finalCta": {
-      "title": "Try it free",
-      "subtitle": "Paste a transcript. See it cleaned up. Review every change. No sign-up needed.",
+      "title": "Try It Free",
+      "subtitle": "Paste or upload a transcript. See it cleaned up. Review every change. No sign-up needed.",
       "cta": "Try It Free",
       "ctaSecondary": "Get Full Access",
+      "foundingPricingLine1Bold": "Free",
+      "foundingPricingLine1Suffix": "while we build",
+      "foundingPricingLine2Bold": "Founding",
+      "foundingPricingLine2Suffix": "pricing for early members",
       "trustBadges": {
         "gdpr": "🔒 GDPR Compliant",
         "encrypted": "🔐 AES-256 Encrypted",

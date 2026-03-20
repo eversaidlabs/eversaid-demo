@@ -231,6 +231,13 @@ export default function CleanupLandingPage() {
         </div>
       </section>
 
+      {/* Intro Section */}
+      <section className="px-8 md:px-16 py-10 bg-slate-50 border-b border-slate-200">
+        <p className="max-w-[720px] mx-auto text-[17px] text-slate-700 leading-[1.7] text-center">
+          {t('intro.text')}
+        </p>
+      </section>
+
       {/* How It Works Section */}
       <CleanupHowItWorks />
 
@@ -252,9 +259,16 @@ export default function CleanupLandingPage() {
           viewport={{ once: true, amount: 0.3 }}
         >
           <MotionDiv variants={fadeUp}>
-            <h2 className="text-3xl md:text-[40px] font-extrabold text-white mb-4">
-              {t('finalCta.title')}
-            </h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+              <h2 className="text-3xl md:text-[40px] font-extrabold text-white">
+                {t('finalCta.title')}
+              </h2>
+              <span className="hidden sm:block text-white/20 text-3xl font-light">|</span>
+              <span className="text-base text-white/70 text-center sm:text-left">
+                <strong className="font-semibold text-white">{t('finalCta.foundingPricingLine1Bold')}</strong> {t('finalCta.foundingPricingLine1Suffix')}<br />
+                <strong className="font-semibold text-white">{t('finalCta.foundingPricingLine2Bold')}</strong> {t('finalCta.foundingPricingLine2Suffix')}
+              </span>
+            </div>
           </MotionDiv>
 
           <MotionDiv variants={fadeUp}>
