@@ -187,7 +187,10 @@ export async function generateMetadata({
     },
     alternates: getAlternates(locale),
     icons: {
-      icon: '/icon-192x192.png',
+      icon: [
+        { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+        { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+      ],
       apple: '/apple-icon.png',
     },
   }
