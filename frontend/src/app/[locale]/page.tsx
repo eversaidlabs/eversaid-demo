@@ -250,11 +250,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Divider: Hero → Social Proof */}
-      <SectionDivider fillColor={DIVIDER_COLORS.light} />
+      {/* Hero Curve Divider */}
+      <div className="w-full h-[80px] bg-[#F8FAFC] relative -mt-px">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" className="block w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,0 L1440,0 L1440,20 Q720,80 0,20 Z" fill="#0F172A"/>
+        </svg>
+      </div>
 
       {/* Social Proof Bar */}
       <SocialProofBar />
+
+      {/* Value Proposition Section */}
+      <section className="px-8 md:px-16 py-16 bg-[#F8FAFC]">
+        <MotionDiv
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+          variants={sectionSubtitle}
+          className="max-w-[900px] mx-auto text-center"
+        >
+          <p className="text-lg md:text-xl text-[#475569] leading-relaxed">
+            {t('valueProposition.text')}
+          </p>
+        </MotionDiv>
+      </section>
 
       {/* Problem Section */}
       <ProblemSection />

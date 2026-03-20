@@ -18,9 +18,9 @@ export function HeroTranscript() {
       <style jsx>{`
         .removed {
           display: inline;
-          color: rgba(255, 255, 255, 0.15);
+          color: rgba(255, 255, 255, 0.92);
           position: relative;
-          animation: strikeWord 8s ease-in-out 3 forwards;
+          animation: strikeWord 6s ease-in-out infinite;
         }
 
         .removed::after {
@@ -31,36 +31,42 @@ export function HeroTranscript() {
           top: 50%;
           height: 2px;
           background: rgba(239, 68, 68, 0.6);
-          transform: scaleX(1);
+          transform: scaleX(0);
           transform-origin: left;
-          animation: strikeLine 8s ease-in-out 3 forwards;
+          animation: strikeLine 6s ease-in-out infinite;
         }
 
         @keyframes strikeWord {
-          0%, 10% { color: rgba(255, 255, 255, 0.45); }
-          25%, 80% { color: rgba(255, 255, 255, 0.15); }
-          95%, 100% { color: rgba(255, 255, 255, 0.15); }
+          /* Normal state */
+          0%, 15% { color: rgba(255, 255, 255, 0.92); }
+          /* Fade to dimmed */
+          30%, 70% { color: rgba(255, 255, 255, 0.15); }
+          /* Fade back to normal */
+          85%, 100% { color: rgba(255, 255, 255, 0.92); }
         }
 
         @keyframes strikeLine {
-          0%, 10% { transform: scaleX(0); }
-          25%, 80% { transform: scaleX(1); }
-          95%, 100% { transform: scaleX(1); }
+          /* Hidden */
+          0%, 15% { transform: scaleX(0); }
+          /* Animate in and hold */
+          30%, 70% { transform: scaleX(1); }
+          /* Fade out */
+          85%, 100% { transform: scaleX(0); }
         }
 
         .removed:nth-of-type(1), .removed:nth-of-type(1)::after { animation-delay: 0s; }
-        .removed:nth-of-type(2), .removed:nth-of-type(2)::after { animation-delay: 0.12s; }
-        .removed:nth-of-type(3), .removed:nth-of-type(3)::after { animation-delay: 0.24s; }
-        .removed:nth-of-type(4), .removed:nth-of-type(4)::after { animation-delay: 0.36s; }
-        .removed:nth-of-type(5), .removed:nth-of-type(5)::after { animation-delay: 0.48s; }
-        .removed:nth-of-type(6), .removed:nth-of-type(6)::after { animation-delay: 0.6s; }
-        .removed:nth-of-type(7), .removed:nth-of-type(7)::after { animation-delay: 0.72s; }
+        .removed:nth-of-type(2), .removed:nth-of-type(2)::after { animation-delay: 0.08s; }
+        .removed:nth-of-type(3), .removed:nth-of-type(3)::after { animation-delay: 0.16s; }
+        .removed:nth-of-type(4), .removed:nth-of-type(4)::after { animation-delay: 0.24s; }
+        .removed:nth-of-type(5), .removed:nth-of-type(5)::after { animation-delay: 0.32s; }
+        .removed:nth-of-type(6), .removed:nth-of-type(6)::after { animation-delay: 0.4s; }
+        .removed:nth-of-type(7), .removed:nth-of-type(7)::after { animation-delay: 0.48s; }
 
         .added {
           display: inline;
           color: rgba(255, 255, 255, 0.92);
           position: relative;
-          animation: addWord 8s ease-in-out 3 forwards;
+          animation: addWord 6s ease-in-out infinite;
         }
 
         .added::before {
@@ -70,20 +76,24 @@ export function HeroTranscript() {
           background: rgba(74, 222, 128, 0.15);
           border-radius: 4px;
           opacity: 0;
-          animation: addBg 8s ease-in-out 3 forwards;
+          animation: addBg 6s ease-in-out infinite;
         }
 
         @keyframes addWord {
+          /* Hidden initially */
           0%, 15% { opacity: 0; }
-          30% { opacity: 1; color: #4ade80; }
-          50%, 80% { opacity: 1; color: rgba(255, 255, 255, 0.92); }
-          95%, 100% { opacity: 1; color: rgba(255, 255, 255, 0.92); }
+          /* Fade in with green highlight */
+          25% { opacity: 1; color: #4ade80; }
+          /* Hold visible */
+          35%, 70% { opacity: 1; color: rgba(255, 255, 255, 0.92); }
+          /* Fade out */
+          85%, 100% { opacity: 0; }
         }
 
         @keyframes addBg {
           0%, 15% { opacity: 0; }
-          30% { opacity: 1; }
-          50%, 100% { opacity: 0; }
+          25% { opacity: 1; }
+          40%, 100% { opacity: 0; }
         }
 
         @media (prefers-reduced-motion: reduce) {

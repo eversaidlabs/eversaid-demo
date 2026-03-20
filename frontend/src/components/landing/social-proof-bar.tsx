@@ -9,7 +9,7 @@ export function SocialProofBar() {
   const { fadeUp } = useAnimationVariants()
 
   return (
-    <section className="px-8 md:px-16 py-12 bg-[#F8FAFC]">
+    <section className="px-8 md:px-16 pt-3 pb-10 bg-[#F8FAFC]">
       <MotionDiv
         initial="hidden"
         whileInView="visible"
@@ -22,11 +22,12 @@ export function SocialProofBar() {
           <span className="text-[48px] md:text-[56px] font-extrabold bg-gradient-to-br from-red-500 to-red-700 bg-clip-text text-transparent leading-none">
             {t("stat")}
           </span>
-          <span className="text-[15px] text-[#475569] text-left max-w-[320px]">
+          <span className="text-[15px] text-[#475569] text-left max-w-[320px] font-semibold">
             {t("text")}
           </span>
         </div>
-        <p className="text-[11px] text-[#94A3B8] italic">{t("source")}</p>
+        <p className="text-[11px] text-[#94A3B8] italic mb-8">{t("source")}</p>
+        <div className="w-full max-w-[600px] mx-auto h-px bg-[#E2E8F0]" />
       </MotionDiv>
     </section>
   )
