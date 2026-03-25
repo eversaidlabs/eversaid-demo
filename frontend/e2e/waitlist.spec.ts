@@ -12,9 +12,8 @@ test.describe("Waitlist Flow - Network Integration", () => {
       { timeout: 5000 }
     )
 
-    // Open waitlist modal
-    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
+    // Open waitlist modal via "Get Early Access" button in hero
+    await page.getByRole("button", { name: /Get.*Access/i }).first().click()
 
     // Fill the form
     await page.getByLabel(/Email Address/).fill("network-test@example.com")
@@ -28,7 +27,7 @@ test.describe("Waitlist Flow - Network Integration", () => {
     const request = await waitlistRequestPromise
     const postData = request.postDataJSON()
     expect(postData.email).toBe("network-test@example.com")
-    expect(postData.waitlist_type).toBe("conversation_intelligence")
+    expect(postData.waitlist_type).toBe("extended_usage")
     expect(postData.use_case).toBe("research")
     expect(postData.language_preference).toBe("en")
   })
@@ -74,9 +73,8 @@ test.describe("Waitlist Flow - Network Integration", () => {
       { timeout: 5000 }
     )
 
-    // Open waitlist modal
-    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
+    // Open waitlist modal via "Get Early Access" button in hero
+    await page.getByRole("button", { name: /Get.*Access/i }).first().click()
 
     // Fill the form
     await page.getByLabel(/Email Address/).fill("other-lang@example.com")
@@ -105,9 +103,8 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
   })
 
   test("complete waitlist signup flow from landing page", async ({ page }) => {
-    // Scroll to and click the waitlist link
-    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
+    // Open waitlist modal via "Get Early Access" button in hero
+    await page.getByRole("button", { name: /Get.*Access/i }).first().click()
 
     // Modal opens
     const dialog = page.getByRole("dialog")
@@ -131,9 +128,8 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
   })
 
   test("can close modal with Done button after signup", async ({ page }) => {
-    // Open waitlist modal
-    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
+    // Open waitlist modal via "Get Early Access" button in hero
+    await page.getByRole("button", { name: /Get.*Access/i }).first().click()
 
     // Fill and submit
     await page.getByLabel(/Email Address/).fill("close-test@example.com")
@@ -152,9 +148,8 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
   })
 
   test("can close modal with X button", async ({ page }) => {
-    // Open waitlist modal
-    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
+    // Open waitlist modal via "Get Early Access" button in hero
+    await page.getByRole("button", { name: /Get.*Access/i }).first().click()
 
     await expect(page.getByRole("dialog")).toBeVisible()
 
@@ -166,9 +161,8 @@ test.describe("Waitlist Flow - Regular (Extended Usage)", () => {
   })
 
   test("form validates required fields", async ({ page }) => {
-    // Open waitlist modal
-    await page.getByText("Conversation Intelligence").scrollIntoViewIfNeeded()
-    await page.locator("button").filter({ hasText: "Join Waitlist for Early Access" }).click()
+    // Open waitlist modal via "Get Early Access" button in hero
+    await page.getByRole("button", { name: /Get.*Access/i }).first().click()
 
     await expect(page.getByRole("dialog")).toBeVisible()
 

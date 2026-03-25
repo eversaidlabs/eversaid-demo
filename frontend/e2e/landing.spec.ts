@@ -6,14 +6,14 @@ test.describe("Landing Page", () => {
   })
 
   test("displays hero section with main CTA", async ({ page }) => {
-    // Main headline - use heading role to avoid matching the page title
-    const heading = page.getByRole("heading", { name: /Smart transcription/ })
+    // Main headline - "Transcribe. Clean up. Verify every change."
+    const heading = page.getByRole("heading", { name: /Transcribe.*Clean up/i })
     await expect(heading).toBeVisible()
-    // The tagline is inside the heading as a styled span
-    await expect(heading.getByText("AI listens. You decide.")).toBeVisible()
+    // The accent part of the heading
+    await expect(heading.getByText(/Verify every change/i)).toBeVisible()
 
-    // Subheadline
-    await expect(page.getByText(/No more chunking transcripts into ChatGPT/)).toBeVisible()
+    // Eyebrow text (use first() to avoid matching the footer description)
+    await expect(page.getByText(/AI Transcription.*Cleanup.*Verification/i).first()).toBeVisible()
 
     // Try Free Demo button
     const demoButton = page.getByRole("link", { name: "Try Free Demo" }).first()
@@ -22,17 +22,21 @@ test.describe("Landing Page", () => {
 
   test("Try Free Demo button navigates to demo page", async ({ page }) => {
     const demoButton = page.getByRole("link", { name: "Try Free Demo" }).first()
+    await expect(demoButton).toBeVisible()
     await demoButton.click()
 
-    await expect(page).toHaveURL("/en/demo")
+    // Wait for navigation to complete
+    await page.waitForURL("/en/demo")
     await expect(page.getByRole("heading", { name: "Try eversaid" })).toBeVisible()
   })
 
   test("navigation links are visible", async ({ page }) => {
-    await expect(page.getByRole("link", { name: "Features" })).toBeVisible()
-    await expect(page.getByRole("link", { name: "Use Cases" })).toBeVisible()
-    await expect(page.getByRole("link", { name: "How It Works" })).toBeVisible()
-    await expect(page.getByRole("link", { name: "API Docs" })).toBeVisible()
+    const nav = page.getByRole("navigation")
+    await expect(nav.getByRole("link", { name: "Features" })).toBeVisible()
+    await expect(nav.getByRole("link", { name: "Use Cases" })).toBeVisible()
+    await expect(nav.getByRole("link", { name: "How It Works" })).toBeVisible()
+    // Scope to nav to avoid duplicate with footer link
+    await expect(nav.getByRole("link", { name: "API Docs" })).toBeVisible()
   })
 
   test("displays feature sections", async ({ page }) => {
@@ -50,27 +54,26 @@ test.describe("Landing Page", () => {
     await expect(page.getByRole("heading", { name: "How It Works" })).toBeVisible()
   })
 
-  test("displays What's Next section", async ({ page }) => {
-    await expect(page.getByText("What's Next")).toBeVisible()
-    await expect(page.getByText("Conversation Intelligence")).toBeVisible()
-    await expect(page.getByText(/Ask questions across months of sessions/)).toBeVisible()
+  test("displays Knowledge Bridge section", async ({ page }) => {
+    // Section was renamed from "What's Next" to "Knowledge Bridge"
+    await expect(page.getByText("Coming Soon", { exact: true })).toBeVisible()
+    await expect(page.getByText(/Every session you process becomes searchable knowledge/)).toBeVisible()
+    await expect(page.getByText(/Search by meaning, not keywords/)).toBeVisible()
   })
 
   test("footer contains expected links", async ({ page }) => {
+    const footer = page.locator("footer")
     await expect(page.getByText(/© \d{4} EverSaid/)).toBeVisible()
-    await expect(page.getByRole("link", { name: "Privacy Policy" })).toBeVisible()
-    await expect(page.getByRole("link", { name: "Terms" })).toBeVisible()
-    await expect(page.getByRole("link", { name: "hello@eversaid.ai" })).toBeVisible()
+    // Footer links are "Privacy" and "Terms" (not "Privacy Policy")
+    await expect(footer.getByRole("link", { name: "Privacy" })).toBeVisible()
+    await expect(footer.getByRole("link", { name: "Terms" })).toBeVisible()
+    await expect(footer.getByRole("link", { name: "hello@eversaid.ai" })).toBeVisible()
   })
 
-  test("Join waitlist link opens waitlist modal", async ({ page }) => {
-    // Scroll to the What's Next section at the bottom
-    const ctaSection = page.getByText("Conversation Intelligence")
-    await ctaSection.scrollIntoViewIfNeeded()
-
-    // Click the "Join Waitlist for Early Access" button
-    const waitlistLink = page.locator("button").filter({ hasText: "Join Waitlist for Early Access" })
-    await waitlistLink.click()
+  test("Get Early Access button opens waitlist modal", async ({ page }) => {
+    // Click the "Get Full Access" / "Get Early Access" button in the hero section
+    const waitlistButton = page.getByRole("button", { name: /Get.*Access/i }).first()
+    await waitlistButton.click()
 
     // Modal should open
     await expect(page.getByRole("dialog")).toBeVisible()

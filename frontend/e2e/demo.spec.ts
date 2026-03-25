@@ -64,9 +64,15 @@ test.describe("Demo Page", () => {
     await expect(diffButton).toHaveAttribute("aria-pressed", "true")
   })
 
-  test("transcript copy buttons work", async ({ page }) => {
-    // Copy button should be visible (there are multiple, pick first)
-    // After refactor, controls are directly accessible (no expand overlay)
+  test("transcript export menu works", async ({ page }) => {
+    // Export button opens a dropdown menu with Copy/Download options
+    const exportButton = page.getByRole("button", { name: "Export" }).first()
+    await expect(exportButton).toBeVisible()
+
+    // Click to open dropdown
+    await exportButton.click()
+
+    // Copy option should be visible in the dropdown
     const copyButton = page.getByRole("button", { name: "Copy" }).first()
     await expect(copyButton).toBeVisible()
 
