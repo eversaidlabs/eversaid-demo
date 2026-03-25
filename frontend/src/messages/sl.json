@@ -33,7 +33,7 @@
       "eyebrow": "AI transkripcija, čiščenje in preverjanje za profesionalce",
       "title": "Prepišite. Očistite.",
       "titleAccent": "Preverite vsako spremembo.",
-      "subtitle": "Od posnetka do čistega, berljivega prepisa v minutah. Preverite vsako spremembo, poslušajte z zvokom, popravite karkoli.",
+      "subtitle": "Od posnetka do čistega, berljivega prepisa v minutah. Preverite vsako spremembo, poslušajte z zvokom, zavrnite spremembe.",
       "cta": "Preizkusite brezplačni demo",
       "ctaSecondary": "Pridobi dostop",
       "noSignup": "Poln dostop brezplačno, dokler gradimo · Skladno z GDPR · Brez registracije",
@@ -166,11 +166,11 @@
       },
       "researchers": {
         "title": "Raziskovalci",
-        "description": "Intervjuji so vaši podatki. Vedite točno, kaj je AI spremenil. Začnite analizo s prepisom, ki ga dejansko lahko berete in mu zaupate."
+        "description": "Intervjuji so vaši podatki. Začnite analizo s prepisom, ki ga dejansko lahko berete in mu zaupate."
       },
       "journalists": {
         "title": "Novinarji",
-        "description": "Natančni citati, preverjeni z originalnim zvokom. Poglejte vsako AI spremembo, preden gre vaše ime na to."
+        "description": "Natančni citati, preverjeni z originalnim zvokom. Poglejte vsako AI spremembo."
       },
       "podcasters": {
         "title": "Podkasterji in ustvarjalci",
@@ -223,7 +223,7 @@
         "title": "Razložite vsak kompleksen odstavek takoj",
         "description": "Označite zmeden 5-minutni odgovor in dobite jasno razlago, ki upošteva, kaj je bilo rečeno prej in potem."
       },
-      "cta": "Kmalu na voljo. Pridružite se čakalni listi, da boste prvi."
+      "cta": "Kmalu na voljo. Pridružite se čakalni listi, da boste med prvimi."
     },
     "faq": {
       "sectionLabel": "Pogosta vprašanja",
@@ -1107,7 +1107,7 @@
       "eyebrow": "AI čiščenje prepisov",
       "title": "Očistite katerikoli prepis.",
       "titleAccent": "Vidite vsako spremembo.",
-      "subtitle": "Prilepite ali naložite prepis iz kateregakoli vira. AI ga očisti za berljivost. Vidite vsako spremembo, popravite karkoli.",
+      "subtitle": "Prilepite ali naložite prepis iz kateregakoli vira. AI ga očisti za berljivost. Vidite vsako spremembo, zavrnite spremembe.",
       "cta": "Preizkusite brezplačno",
       "ctaSecondary": "Pridobite dostop",
       "noSignup": "Poln dostop brezplačno, dokler gradimo · Skladno z GDPR · Brez registracije",

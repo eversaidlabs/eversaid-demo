@@ -12,8 +12,39 @@
 const ACCESS_TOKEN_KEY = 'eversaid_access_token'
 const REFRESH_TOKEN_KEY = 'eversaid_refresh_token'
 
+// Mutex for session creation to prevent race conditions
+// When multiple API calls fire simultaneously on page load, only the first
+// should create a session; others should wait for it to complete
+let sessionCreationPromise: Promise<TokenResponse> | null = null
+
 // API base URL - exported for use by api-client.ts
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
+
+/**
+ * Create an anonymous session with mutex protection.
+ *
+ * Prevents race conditions when multiple API calls fire simultaneously -
+ * only one session creation will occur, others wait for it to complete.
+ *
+ * @returns Access token from the created session
+ */
+async function createSessionWithMutex(): Promise<string> {
+  // If session creation is already in progress, wait for it
+  if (sessionCreationPromise) {
+    const response = await sessionCreationPromise
+    return response.access_token
+  }
+
+  // Start session creation and store the promise so concurrent calls can wait
+  sessionCreationPromise = createAnonymousSession()
+  try {
+    const response = await sessionCreationPromise
+    return response.access_token
+  } finally {
+    // Clear the promise after completion (success or failure)
+    sessionCreationPromise = null
+  }
+}
 
 /**
  * Token response from auth endpoints
@@ -158,6 +189,9 @@ export async function refreshTokens(): Promise<boolean> {
  * If no token exists or token is expired, attempts to refresh or create new session.
  * Returns the access token for use in API requests.
  *
+ * Uses a mutex to prevent race conditions when multiple API calls fire simultaneously
+ * on page load - only one session creation will occur, others wait for it.
+ *
  * @returns Access token
  * @throws Error if authentication fails
  */
@@ -166,8 +200,7 @@ export async function ensureAuthenticated(): Promise<string> {
 
   if (!token) {
     // No token - create anonymous session
-    const response = await createAnonymousSession()
-    return response.access_token
+    return createSessionWithMutex()
   }
 
   // Check if token is expired or about to expire
@@ -180,8 +213,7 @@ export async function ensureAuthenticated(): Promise<string> {
     }
 
     // Refresh failed - create new anonymous session
-    const response = await createAnonymousSession()
-    return response.access_token
+    return createSessionWithMutex()
   }
 
   return token
@@ -198,8 +230,7 @@ export async function handleUnauthorized(): Promise<string> {
   clearTokens()
 
   // Create new anonymous session
-  const response = await createAnonymousSession()
-  return response.access_token
+  return createSessionWithMutex()
 }
 
 /**
