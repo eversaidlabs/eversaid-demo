@@ -1,8 +1,10 @@
 'use client'
 
 import { Link } from '@/i18n/routing'
+import { usePathname } from 'next/navigation'
 import { useState, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
+import { getLandingUrl } from '@/lib/utils'
 import { WaitlistFlow } from '@/components/waitlist/waitlist-flow'
 import { useWaitlist } from '@/features/transcription/useWaitlist'
 import { ScalarEmbed } from './components/ScalarEmbed'
@@ -10,6 +12,11 @@ import { ScalarEmbed } from './components/ScalarEmbed'
 export default function ApiDocsPage() {
   const tNav = useTranslations('navigation')
   const tRoot = useTranslations()
+  const pathname = usePathname()
+
+  // Extract locale from pathname
+  const localeMatch = pathname.match(/^\/(en|sl)/)
+  const locale = localeMatch ? localeMatch[1] : 'en'
 
   // Waitlist modal state
   const [waitlistState, setWaitlistState] = useState<'hidden' | 'toast' | 'form' | 'success'>('hidden')
@@ -74,20 +81,20 @@ export default function ApiDocsPage() {
 
       {/* Navigation */}
       <nav className="sticky top-0 z-50 flex justify-between items-center px-8 md:px-12 py-4 bg-[linear-gradient(135deg,#0F172A_0%,#1E3A5F_50%,#0F172A_100%)]">
-        <Link href="/" className="flex items-center gap-2.5">
+        <a href={`${getLandingUrl()}/${locale}`} className="flex items-center gap-2.5">
           <img src="/logo.svg" alt="EverSaid logo" className="h-8 w-auto" />
           <span className="font-[family-name:var(--font-comfortaa)] font-bold text-[22px] text-white tracking-[0.01em]">
             eversaid
           </span>
-        </Link>
+        </a>
 
         <div className="hidden md:flex gap-8 items-center">
-          <Link
-            href="/"
+          <a
+            href={`${getLandingUrl()}/${locale}`}
             className="text-white/70 hover:text-white text-sm font-medium transition-colors"
           >
             {tNav('home')}
-          </Link>
+          </a>
           <Link
             href="/demo"
             className="text-white/70 hover:text-white text-sm font-medium transition-colors"

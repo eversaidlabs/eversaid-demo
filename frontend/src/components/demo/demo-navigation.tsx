@@ -1,9 +1,11 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { Link } from "@/i18n/routing"
 import { useTranslations } from 'next-intl'
 import { Bell, LogIn } from "lucide-react"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
+import { getLandingUrl } from '@/lib/utils'
 
 export interface DemoNavigationProps {
   currentPage?: "demo" | "features" | "api"
@@ -12,15 +14,20 @@ export interface DemoNavigationProps {
 
 export function DemoNavigation({ currentPage = "demo", onWaitlistClick }: DemoNavigationProps) {
   const t = useTranslations('navigation')
+  const pathname = usePathname()
+
+  // Extract locale from pathname
+  const localeMatch = pathname.match(/^\/(en|sl)/)
+  const locale = localeMatch ? localeMatch[1] : 'en'
 
   return (
     <nav className="sticky top-0 z-[100] flex justify-between items-center px-8 md:px-12 py-4 bg-[linear-gradient(135deg,#0F172A_0%,#1E3A5F_50%,#0F172A_100%)]">
-      <Link href="/" className="flex items-center gap-2.5">
+      <a href={`${getLandingUrl()}/${locale}`} className="flex items-center gap-2.5">
         <img src="/logo.svg" alt="EverSaid logo" className="h-8 w-auto" />
         <span className="font-[family-name:var(--font-comfortaa)] font-bold text-[22px] text-white tracking-[0.01em]">
           EverSaid
         </span>
-      </Link>
+      </a>
 
       <div className="hidden md:flex gap-8 items-center">
         <Link
@@ -33,14 +40,14 @@ export function DemoNavigation({ currentPage = "demo", onWaitlistClick }: DemoNa
         >
           {t('demo')}
         </Link>
-        <Link
-          href="/#features"
+        <a
+          href={`${getLandingUrl()}/${locale}#features`}
           className={`text-sm font-medium transition-colors ${
             currentPage === "features" ? "text-white" : "text-white/70 hover:text-white"
           }`}
         >
           {t('features')}
-        </Link>
+        </a>
         <Link
           href="/api-docs"
           className={`text-sm font-medium transition-colors ${

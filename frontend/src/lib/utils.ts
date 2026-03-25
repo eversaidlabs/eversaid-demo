@@ -18,6 +18,14 @@ export function getLandingUrl(): string {
 
   const hostname = window.location.hostname
 
+  return getLandingUrlFromHostname(hostname)
+}
+
+/**
+ * Get the landing page URL from a hostname string.
+ * Used by both client-side (getLandingUrl) and server-side code.
+ */
+export function getLandingUrlFromHostname(hostname: string): string {
   // Production: app.eversaid.ai → eversaid.ai
   if (hostname === 'app.eversaid.ai') {
     return 'https://eversaid.ai'

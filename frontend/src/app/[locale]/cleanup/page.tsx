@@ -1,9 +1,11 @@
 "use client"
 
 import { Link } from "@/i18n/routing"
+import { usePathname } from "next/navigation"
 import { Shield, Mic } from "lucide-react"
 import { useState, useCallback, useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { getLandingUrl } from "@/lib/utils"
 import { WaitlistFlow } from "@/components/waitlist/waitlist-flow"
 import { useWaitlist } from "@/features/transcription/useWaitlist"
 import { CleanupHeroDiff } from "@/components/landing/cleanup/cleanup-hero-diff"
@@ -19,6 +21,11 @@ export default function CleanupLandingPage() {
   const t = useTranslations('cleanupLanding')
   const tNav = useTranslations('navigation')
   const tRoot = useTranslations()
+  const pathname = usePathname()
+
+  // Extract locale from pathname
+  const localeMatch = pathname.match(/^\/(en|sl)/)
+  const locale = localeMatch ? localeMatch[1] : 'en'
 
   // Animation variants (respects prefers-reduced-motion)
   const {
@@ -93,20 +100,20 @@ export default function CleanupLandingPage() {
     <main className="h-screen overflow-y-scroll snap-y snap-proximity">
       {/* Navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-8 md:px-16 py-5 transition-all duration-300 ${isScrolled ? 'bg-[#0F172A]/95 backdrop-blur-md shadow-lg' : 'bg-transparent'}`}>
-        <Link href="/" className="flex items-center gap-2.5">
+        <a href={`${getLandingUrl()}/${locale}`} className="flex items-center gap-2.5">
           <img src="/logo.svg" alt="EverSaid logo" className="h-[39px] w-auto" />
           <span className="font-[family-name:var(--font-comfortaa)] font-bold text-[27px] text-white tracking-[0.01em]">
             EverSaid
           </span>
-        </Link>
+        </a>
         <div className="hidden md:flex items-center">
           <div className="flex gap-6 items-center">
-            <Link href="/" className="text-white/80 hover:text-white text-[15px] font-medium transition-colors">
+            <a href={`${getLandingUrl()}/${locale}`} className="text-white/80 hover:text-white text-[15px] font-medium transition-colors">
               {tNav('home')}
-            </Link>
-            <Link href="#features" className="text-white/80 hover:text-white text-[15px] font-medium transition-colors">
+            </a>
+            <a href={`${getLandingUrl()}/${locale}#features`} className="text-white/80 hover:text-white text-[15px] font-medium transition-colors">
               {tNav('features')}
-            </Link>
+            </a>
             <Link
               href="/api-docs"
               className="text-white/80 hover:text-white text-[15px] font-medium transition-colors"
@@ -312,9 +319,9 @@ export default function CleanupLandingPage() {
           <span className="text-[13px] text-white/40">{t('footer.builtIn')}</span>
         </div>
         <div className="flex flex-wrap justify-center gap-6">
-          <Link href="/" className="text-sm text-white/50 hover:text-white/90 transition-colors">
+          <a href={`${getLandingUrl()}/${locale}`} className="text-sm text-white/50 hover:text-white/90 transition-colors">
             {tNav('home')}
-          </Link>
+          </a>
           <Link href="/privacy" className="text-sm text-white/50 hover:text-white/90 transition-colors">
             {t('footer.privacy')}
           </Link>

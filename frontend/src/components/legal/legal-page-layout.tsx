@@ -1,8 +1,10 @@
 import { Link } from "@/i18n/routing"
+import { headers } from "next/headers"
 import { LanguageSwitcherLight } from "@/components/ui/language-switcher"
 import { DemoFooter } from "@/components/demo/demo-footer"
 import { MarkdownRenderer } from "./markdown-renderer"
 import { getTranslations } from "next-intl/server"
+import { getLandingUrlFromHostname } from "@/lib/utils"
 
 interface LegalPageLayoutProps {
   content: string
@@ -11,17 +13,20 @@ interface LegalPageLayoutProps {
 
 export async function LegalPageLayout({ content, locale }: LegalPageLayoutProps) {
   const tNav = await getTranslations({ locale, namespace: 'navigation' })
+  const headersList = await headers()
+  const hostname = headersList.get('host')?.split(':')[0] || ''
+  const landingUrl = getLandingUrlFromHostname(hostname)
 
   return (
     <div className="min-h-screen bg-[#0F172A] flex flex-col">
       {/* Navigation */}
       <nav className="flex justify-between items-center px-8 md:px-16 py-5">
-        <Link href="/" className="flex items-center gap-2.5">
+        <a href={`${landingUrl}/${locale}`} className="flex items-center gap-2.5">
           <img src="/logo.svg" alt="EverSaid logo" className="h-[39px] w-auto" />
           <span className="font-[family-name:var(--font-comfortaa)] font-bold text-[27px] text-white tracking-[0.01em]">
             EverSaid
           </span>
-        </Link>
+        </a>
         <div className="flex items-center gap-6">
           <Link
             href="/demo"
