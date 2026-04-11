@@ -94,3 +94,4 @@ infra/nginx
 backend/.env
 .mcp.json
 backend/scripts
+worktree/

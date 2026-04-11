@@ -311,7 +311,7 @@
       "languageSlovenian": "Slovenščina",
       "languageEnglish": "English",
       "text": "Text",
-      "textPlaceholder": "Paste your text here...\n\nSupported formats:\n- Plain text\n- Speaker labels (Speaker 1: Hello...)",
+      "textPlaceholder": "Paste your text here...\n\nSupported format:\n- Speaker labels (Speaker 1: Hello...)",
       "textHint": "Speaker labels like \"Speaker 1:\" are detected automatically.",
       "cleanupNow": "Clean Up Now",
       "enterText": "Enter text to clean up",

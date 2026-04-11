@@ -224,13 +224,21 @@ Dashboard routes `/audio` and `/text` filter by this field. Both types share the
 
 ## Demo Content System
 
-Demo entries are automatically created for anonymous users via a PostgreSQL trigger in Core API.
+Demo entries are automatically copied for anonymous users via a **copy-on-first-access** pattern in Core API.
 
 ### How it works
-1. PostgreSQL trigger fires on new anonymous user creation (`anon-*@anon.eversaid.example`)
-2. Trigger copies demo entries from `demo@system.eversaid.example` to the new user
-3. Demo entries identified by filename pattern `demo-*.mp3` (e.g., `demo-sl.mp3`, `demo-en.mp3`)
-4. Users see demo entries in their history and can trigger cleanup/analysis fresh
+1. Demo entries stored centrally under `DEMO_USER_ID` (`00000000-0000-0000-0000-000000000001`) within `ANONYMOUS_TENANT_ID`
+2. On first `/entries` API access, `demo_service.py` detects anonymous user (email pattern `anon-*@anon.eversaid.example`)
+3. `copy_demo_content_for_user()` copies VoiceEntry, Transcription, CleanedEntry to the new user's `user_id`
+4. PostgreSQL advisory lock prevents race conditions during copy
+5. Demo entries identified by filename pattern `demo-*.mp3` (e.g., `demo-sl.mp3`, `demo-en.mp3`)
+6. Text data re-encrypted per-user if `ENCRYPTION_ENABLED=true`
+7. Users see demo entries in their history and can trigger cleanup/analysis fresh
+
+### User Isolation
+- All anonymous users share `ANONYMOUS_TENANT_ID` (`00000000-0000-0000-0000-000000000000`)
+- Each user gets unique `user_id` from JWT claims
+- Database queries filter by `tenant_id`; after copy, each user has their own records
 
 ### Seeding Demo Content
 ```bash

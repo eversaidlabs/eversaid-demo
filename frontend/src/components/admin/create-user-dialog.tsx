@@ -7,7 +7,9 @@ import { Copy, Check, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { getTenants } from '@/features/admin/api'
 import type {
+  AdminTenant,
   CreateUserRequest,
   CreateUserResponse,
 } from '@/features/admin/types'
@@ -100,12 +102,32 @@ function CreateUserDialogContent({
 
   // Form state
   const [email, setEmail] = useState('')
+  const [tenantId, setTenantId] = useState('')
   const [role, setRole] = useState<UserRole>('tenant_user')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
+  // Tenants state
+  const [tenants, setTenants] = useState<AdminTenant[]>([])
+  const [tenantsLoading, setTenantsLoading] = useState(true)
+
   // Copy state
   const [copied, setCopied] = useState(false)
+
+  // Fetch tenants on mount
+  useEffect(() => {
+    getTenants()
+      .then((data) => {
+        setTenants(data)
+        if (data.length > 0) {
+          setTenantId(data[0].id)
+        }
+      })
+      .catch(() => {
+        // Tenants will be empty, backend will use default
+      })
+      .finally(() => setTenantsLoading(false))
+  }, [])
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -115,7 +137,7 @@ function CreateUserDialogContent({
         email,
         role,
         ...(password && { password }),
-        // tenant_id not sent - backend auto-selects default tenant
+        ...(tenantId && { tenant_id: tenantId }),
       }
 
       const response = await onCreate(data)
@@ -124,7 +146,7 @@ function CreateUserDialogContent({
         setView('success')
       }
     },
-    [email, role, password, onCreate]
+    [email, role, password, tenantId, onCreate]
   )
 
   const handleCopyPassword = useCallback(async () => {
@@ -172,6 +194,30 @@ function CreateUserDialogContent({
                   autoFocus
                   autoComplete="off"
                 />
+              </div>
+
+              {/* Tenant dropdown */}
+              <div>
+                <Label htmlFor="create-tenant">
+                  {t('createUserDialog.tenant')}
+                </Label>
+                <select
+                  id="create-tenant"
+                  value={tenantId}
+                  onChange={(e) => setTenantId(e.target.value)}
+                  disabled={isLoading || tenantsLoading}
+                  className="mt-1.5 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {tenantsLoading ? (
+                    <option>{t('createUserDialog.loadingTenants')}</option>
+                  ) : (
+                    tenants.map((tenant) => (
+                      <option key={tenant.id} value={tenant.id}>
+                        {tenant.name}
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
 
               {/* Role dropdown */}
