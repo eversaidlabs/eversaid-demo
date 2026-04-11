@@ -94,18 +94,14 @@ When you upload an audio file:
 
 1. **Your audio file** is uploaded to our server hosted by Hetzner Online GmbH in Germany.
 2. **For transcription**, your audio is sent to ElevenLabs Inc. (United States) via their Scribe API for speech-to-text conversion.
-3. **For AI cleanup and analysis**, the resulting transcript text (not audio) is sent to:
-   - In demo mode: Groq Inc. (United States) for LLM-based text processing
-   - In pilot mode: IONOS SE (Germany) for LLM-based text processing
+3. **For AI cleanup and analysis**, the resulting transcript text (not audio) is sent to IONOS SE (Germany) for LLM-based text processing.
 4. **The cleaned transcript and analysis results** are returned to you through our interface.
 
 ### 5.2 Text import flow
 When you upload a text file or paste text directly:
 
 1. **Your text** is stored on our server hosted by Hetzner Online GmbH in Germany.
-2. **For AI cleanup and analysis**, the text is sent to:
-   - In demo mode: Groq Inc. (United States) for LLM-based text processing
-   - In pilot mode: IONOS SE (Germany) for LLM-based text processing
+2. **For AI cleanup and analysis**, the text is sent to IONOS SE (Germany) for LLM-based text processing.
 3. **The cleaned text and analysis results** are returned to you through our interface.
 
 No audio is involved. Your text is not sent to ElevenLabs.
@@ -150,11 +146,10 @@ Some of our sub-processors are located outside the European Economic Area (EEA).
 | Sub-processor | Location | Transfer Safeguard |
 |---------------|----------|-------------------|
 | ElevenLabs Inc. | United States | EU-US Data Privacy Framework (DPF) + Standard Contractual Clauses (SCCs) in their DPA |
-| Groq Inc. | United States | Standard Contractual Clauses (SCCs) in their terms |
 
 Sub-processors located within the EEA (Hetzner, IONOS, PostHog EU) do not require additional transfer safeguards.
 
-For pilot users: AI text processing (cleanup and analysis) uses IONOS (Germany) instead of Groq (US).
+All AI text processing (cleanup and analysis) uses IONOS (Germany), ensuring your transcript text remains within the EU.
 
 ---
 
@@ -166,8 +161,7 @@ We use the following third-party services to operate EverSaid. A current list is
 |---------------|------|----------|---------|---------------|
 | **Hetzner Online GmbH** | Data processor | Germany (EU) | Server hosting and file storage | Audio files, transcripts, user accounts, server logs |
 | **ElevenLabs Inc.** | Sub-processor | United States | Speech-to-text transcription (Scribe API) | Audio files |
-| **Groq Inc.** | Sub-processor | United States | LLM text processing (demo mode only) | Transcript text (no audio) |
-| **IONOS SE** | Sub-processor | Germany (EU) | LLM text processing (pilot mode only) | Transcript text (no audio) |
+| **IONOS SE** | Sub-processor | Germany (EU) | LLM text processing | Transcript text (no audio) |
 | **PostHog Inc.** | Data processor | EU (eu.posthog.com) | Product analytics | Page views, anonymized usage events, browser metadata |
 
 We have Data Processing Agreements (DPAs) in place with all sub-processors. We will update the sub-processor list at https://eversaid.ai/sub-processors at least 14 days before engaging any new sub-processor.
